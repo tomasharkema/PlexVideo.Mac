@@ -61,6 +61,7 @@ struct VideoPlayer: UIViewControllerRepresentable {
 
   func makeUIViewController(context: Context) -> AVPlayerViewController {
     let vc = AVPlayerViewController()
+    vc.canStartPictureInPictureAutomaticallyFromInline = true
     vc.entersFullScreenWhenPlaybackBegins = true
     vc.updatesNowPlayingInfoCenter = true
     vc.player = player
