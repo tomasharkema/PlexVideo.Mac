@@ -10,7 +10,7 @@ import SwiftUI
 struct VideosGrid: View {
   @StateObject var viewModel: VideosViewModel
 
-  @Binding var state: PlayerOverlay.ViewState
+  @Binding var video: Video?
 
   private func section(text: String, videos: [Video]) -> some View {
     VStack(alignment: .leading) {
@@ -21,11 +21,11 @@ struct VideosGrid: View {
           Button(
             action: {
               withAnimation {
-                state = PlayerOverlay.ViewState(video: video, expanded: true)
+                self.video = video
               }
             },
             label: {
-              VideoListItem(video: video, width: 120, height: 180, activeVideo: $state.video)
+              VideoListItem(video: video, width: 120, height: 180, activeVideo: $video)
             }
           )
           .buttonStyle(PlainButtonStyle())
@@ -44,17 +44,19 @@ struct VideosGrid: View {
         }
         .padding()
         .animation(.easeInOut(duration: 0.6), value: data)
-
-        .navigationBarItems(trailing: Button("Reload", action: {
+        .navigationBarItems(trailing: HStack {Button("Reload", action: {
           asyncDetached {
             try await viewModel.load()
           }
-        }))    .refreshable {
-          asyncDetached {
-            try await viewModel.load()
-          }
-        }
+        })
+          Button("Logout", action: {
+            Storage.shared.plexToken = nil
+        })})
         .navigationBarTitle(Text("Videos"), displayMode: .inline)
+      }
+    }.refreshable {
+      async {
+        try await viewModel.load()
       }
     }
   }

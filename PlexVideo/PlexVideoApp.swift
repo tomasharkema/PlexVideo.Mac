@@ -11,7 +11,7 @@ import SwiftUI
 struct PlexVideoApp: App {
   var body: some Scene {
     WindowGroup {
-      ContentView(token: Storage.$plexToken)
+      ContentView()
         .accentColor(Color.tint)
     }
   }

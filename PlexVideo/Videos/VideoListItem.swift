@@ -9,8 +9,8 @@ import SwiftUI
 
 struct VideoListItem: View {
   let video: Video
-  let width: CGFloat?
-  let height: CGFloat?
+  let width: CGFloat
+  let height: CGFloat
 
   @State var hovered = false
   @Binding var activeVideo: Video?
@@ -21,19 +21,16 @@ struct VideoListItem: View {
         .overlay(VStack {
           Spacer()
           HStack {
-            GeometryReader { metrics in
-              Rectangle()
-                .foregroundColor(Color.tint)
-                .frame(
-                  width: metrics.size
-                    .width *
-                    (CGFloat(video.viewOffset?.value ?? 0) /
-                      CGFloat(video.Media?.first?.duration.value ?? 0)),
-                  height: 5,
-                  alignment: .leading
-                )
-              Spacer()
-            }
+            Rectangle()
+              .foregroundColor(Color.tint)
+              .frame(
+                width: width *
+                  (CGFloat(video.viewOffset?.value ?? 0) /
+                    CGFloat(video.Media?.first?.duration.value ?? 0)),
+                height: 5,
+                alignment: .leading
+              )
+            Spacer()
           }
           .background(Color.black.opacity(0.2))
           .frame(height: 5)
@@ -59,8 +56,8 @@ struct VideoListItem_Preview: PreviewProvider {
   static var previews: some View {
     VideoListItem(
       video: Video.preview(),
-      width: nil,
-      height: nil,
+      width: 100,
+      height: 100,
       activeVideo: .constant(Video.preview())
     )
   }

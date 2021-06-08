@@ -250,3 +250,29 @@ struct SessionStatus: Codable {
   let Session: Session
   let TranscodeSession: TranscodeSession
 }
+
+struct PinToken: Codable {
+  let authToken: String?
+  let clientIdentifier: String
+  let code: String
+  let createdAt: String?
+  let expiresAt: String?
+  let expiresIn: DoubleLike?
+  let id: DoubleLike
+  let newRegistration: Bool?
+  let product: String?
+  let trusted: Bool?
+  /*
+   authToken: string | null,
+   clientIdentifier: string,
+   code: string,
+   createdAt: string,
+   expiresAt: string,
+   expiresIn: number,
+   id: number,
+   location: IPlexCodeLocation,
+   newRegistration:boolean | null,
+   product: string,
+   trusted: boolean
+   */
+}

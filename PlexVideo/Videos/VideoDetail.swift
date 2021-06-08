@@ -11,19 +11,19 @@ import UIKit
 
 struct VideoDetail: View {
   @StateObject var videoDetailViewModel = VideoDetailViewModel()
-  let video: Video
-  @Binding var pip: Bool
+  let video: Video?
+  @Binding var isPip: Bool
 
   var body: some View {
     HStack {
       if let player = videoDetailViewModel.player {
-        VideoPlayer(player: player, pip: $pip)
+        VideoPlayer(player: player, isPip: $isPip)
           .onDisappear {
-            asyncDetached {
+            async {
               try await videoDetailViewModel.unload()
             }
           }
-      } else {
+      } else if let video = video {
         Rectangle().foregroundColor(.clear)
           .onAppear {
             asyncDetached {
@@ -33,6 +33,6 @@ struct VideoDetail: View {
       }
     }
     .background(Color.black)
-    .id(video.key)
+    .id(video?.key)
   }
 }

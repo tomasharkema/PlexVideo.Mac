@@ -21,11 +21,11 @@ class VideoDetailViewModel: ObservableObject {
     lastTime = s
     oldTask?.cancel()
     oldTask = asyncDetached {
-      guard let video = await video, let token = Storage.plexToken,
+      guard let video = await video, let token = Storage.shared.plexToken,
             let player = await player else { return }
 
       asyncDetached {
-        try await Storage.setSavedOffset(
+        try await Storage.shared.setSavedOffset(
           progress: Progress(seconds: s.seconds, date: Date().timeIntervalSince1970),
           video: video
         )
@@ -44,11 +44,11 @@ class VideoDetailViewModel: ObservableObject {
   func load(video: Video) async throws {
     self.video = video
     uuid = UUID().uuidString
-    guard let token = Storage.plexToken else { return }
+    guard let token = Storage.shared.plexToken else { return }
 
-    try await Storage.setLastPlayed(lastPlayed: video)
+    try await Storage.shared.setLastPlayed(lastPlayed: video)
 
-    let offset = await video.getProgress(storage: try? Storage.getSavedOffset(video: video))?
+    let offset = await video.getProgress(storage: try? Storage.shared.getSavedOffset(video: video))?
       .seconds ?? 0
 
     let url = try await Api.shared.videoUrl(
@@ -64,7 +64,7 @@ class VideoDetailViewModel: ObservableObject {
     let item = AVPlayerItem(asset: asset)
     player.replaceCurrentItem(with: item)
 
-    let saved = try? await Storage.getSavedOffset(video: video)
+    let saved = try? await Storage.shared.getSavedOffset(video: video)
 
     let time: Double = video.getProgress(storage: saved)?.seconds ?? 0
     asyncDetached {
@@ -88,7 +88,7 @@ class VideoDetailViewModel: ObservableObject {
   }
 
   func unload() async throws {
-    if let token = Storage.plexToken, let video = video, let lastTime = lastTime {
+    if let token = Storage.shared.plexToken, let video = video, let lastTime = lastTime {
       asyncDetached(priority: .background) {
         await Api.shared.timeline(video: video, time: lastTime, state: .stopped, token: token)
       }

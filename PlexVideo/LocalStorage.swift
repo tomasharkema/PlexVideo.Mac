@@ -8,34 +8,41 @@
 import Foundation
 import SwiftUI
 
-struct Storage {
-  @AppStorage("plexToken")
-  static var plexToken: String?
+class Storage: ObservableObject {
 
-  static var uuid: String {
+  static let shared = Storage()
+
+  @AppStorage("plexTokenV2")
+  var plexToken: String?
+
+  @AppStorage("lastUsedHost")
+  var lastUsedHost: String?
+
+  @MainActor
+  var uuid: String {
     let saved = UserDefaults.standard.string(forKey: "uuid")
     if let saved = saved {
-      return saved
+      return saved.lowercased()
     }
 
-    let generated = UUID().uuidString
+    let generated = UUID().uuidString.lowercased()
     UserDefaults.standard.set(generated, forKey: "uuid")
     return generated
   }
 
-  static func setLastPlayed(lastPlayed: Video?) async throws {
+  func setLastPlayed(lastPlayed: Video?) async throws {
     try await UserDefaults.standard.set(lastPlayed, key: "lastPlayed")
   }
 
-  static func getLastPlayed() async throws -> Video? {
+  func getLastPlayed() async throws -> Video? {
     return try await UserDefaults.standard.object(Video.self, key: "lastPlayed")
   }
 
-  static func setSavedOffset(progress: Progress?, video: Video) async throws {
+  func setSavedOffset(progress: Progress?, video: Video) async throws {
     try await UserDefaults.standard.set(progress, key: "PROGRESS_NEW_\(video.key)")
   }
 
-  static func getSavedOffset(video: Video) async throws -> Progress? {
+  func getSavedOffset(video: Video) async throws -> Progress? {
     return try await UserDefaults.standard.object(Progress.self, key: "PROGRESS_NEW_\(video.key)")
   }
 }

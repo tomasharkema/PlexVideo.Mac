@@ -9,6 +9,14 @@ import CoreMedia
 import Foundation
 import UIKit
 
+let platform = UIDevice().systemName
+// let platform = "Windows"
+let name = UIDevice().name
+let device = "iPhone"
+let version = "14.6"
+let appVersion = "0.1"
+let product = "PlexVideo"
+
 actor Api {
   static var shared = Api()
   private let jsonDecoder = JSONDecoder()
@@ -17,22 +25,27 @@ actor Api {
     URL(string: "https://192-168-1-102.e40e0158854249ae85a8d082f4a9ca9c.plex.direct:32400")!
 
   @MainActor
-  private func _requestUrl(url: URL, token: String, queryItems: [URLQueryItem]? = nil) -> URL {
+  private func _requestUrl(
+    url: URL,
+    token: String?,
+    queryItems: [URLQueryItem]? = nil,
+    sendDefaultQueries: Bool = true
+  ) -> URL {
     var components = URLComponents(url: url, resolvingAgainstBaseURL: true)!
 
-    components.queryItems = components.queryItems ?? [] + [
+    components.queryItems = (components.queryItems ?? []) + (sendDefaultQueries ? [
       URLQueryItem(name: "X-Plex-Client-Identifier", value: Storage.uuid),
-      URLQueryItem(name: "X-Plex-Client-Platform", value: "iOS"),
-      URLQueryItem(name: "X-Plex-Device", value: "iPhone"),
+      URLQueryItem(name: "X-Plex-Client-Platform", value: platform),
+      URLQueryItem(name: "X-Plex-Device", value: device),
       URLQueryItem(name: "X-Plex-Device-Screen-Density", value: "3"),
       URLQueryItem(name: "X-Plex-Device-Screen-Resolution", value: "1920x1080"),
       URLQueryItem(name: "X-Plex-Device-Vendor", value: "Apple"),
 //      URLQueryItem(name: "X-Plex-Drm", value: "fairplay:video"),
 //      URLQueryItem(name: "X-Plex-Http-Pipeline", value: "infinite"),
       URLQueryItem(name: "X-Plex-Model", value: "13,4"),
-      URLQueryItem(name: "X-Plex-Platform", value: "iOS"),
-      URLQueryItem(name: "X-Plex-Platform-Version", value: "14.6"),
-      URLQueryItem(name: "X-Plex-Product", value: "Plex for iOS"),
+      URLQueryItem(name: "X-Plex-Platform", value: platform),
+      URLQueryItem(name: "X-Plex-Platform-Version", value: version),
+      URLQueryItem(name: "X-Plex-Product", value: product),
 //      URLQueryItem(
 //        name: "X-Plex-Provides",
 //        value: "client,controller,sync-target,player,pubsub-player,provider-playback"
@@ -41,9 +54,9 @@ actor Api {
       URLQueryItem(name: "X-Plex-Sync-Version", value: "2"),
       URLQueryItem(name: "X-Plex-Token", value: token),
       URLQueryItem(name: "X-Plex-Username", value: "teumaauss"),
-      URLQueryItem(name: "X-Plex-Version", value: "7.19"),
+      URLQueryItem(name: "X-Plex-Version", value: appVersion),
       URLQueryItem(name: "X-Plex-Language", value: "nl"),
-      URLQueryItem(name: "X-Plex-Device-Name", value: UIDevice().name),
+      URLQueryItem(name: "X-Plex-Device-Name", value: name),
       URLQueryItem(
         name: "X-Plex-Client-Profile-Extra",
         value: "add-limitation(scope=videoAudioCodec&scopeName=*&type=upperBound&name=audio.channels&value=6&replace=true)+add-transcode-target(type=musicProfile&context=streaming&protocol=hls&container=mpegts&audioCodec=aac)+add-direct-play-profile(type=musicProfile&container=mp4&audioCodec=alac)+add-direct-play-profile(type=musicProfile&container=flac&audioCodec=flac)+add-transcode-target(type=videoProfile&context=streaming&protocol=hls&container=mp4&videoCodec=h264,mpeg4,hevc,h265&audioCodec=aac,mp3,ac3,eac3,flac&id=hevcmp4)+add-transcode-target(type=videoProfile&context=streaming&protocol=hls&container=mpegts&videoCodec=h264,mpeg4,hevc,h265&audioCodec=aac,mp3,ac3,flac,eac3)+add-direct-play-profile(type=videoProfile&container=mp4,mov&videoCodec=h264,mpeg4,hevc,h265&audioCodec=aac,ac3,eac3,flac&subtitleCodec=mov_text,tx3g,ttxt,text)"
@@ -82,20 +95,30 @@ actor Api {
 //      URLQueryItem(name: "X-Plex-Product", value: "PlexVideo"), // TODO: actual App name
 //      URLQueryItem(name: "X-Plex-Version", value: "0.1"), // TODO: version
 //      URLQueryItem(name: "X-Plex-Language", value: "nl"),
-    ] + (queryItems ?? [])
+    ] : []) + (queryItems ?? [])
 
     let url = components.url!
     print("BUILT URL", url)
     return url
   }
 
-  private func request<D: Decodable>(url: URL, token: String, method: String = "GET",
-                                     queryItems: [URLQueryItem]? = nil) async throws -> D
-  {
+  private func request<D: Decodable>(
+    url: URL,
+    token: String?,
+    method: String = "GET",
+    queryItems: [URLQueryItem]? = nil,
+    sendDefaultQueries: Bool = true
+  ) async throws -> D {
     var mutualRequest =
-      URLRequest(url: await _requestUrl(url: url, token: token, queryItems: queryItems))
+      URLRequest(url: await _requestUrl(
+        url: url,
+        token: token,
+        queryItems: queryItems,
+        sendDefaultQueries: sendDefaultQueries
+      ))
     mutualRequest.httpMethod = method
     mutualRequest.setValue("application/json", forHTTPHeaderField: "Accept")
+
     let request = mutualRequest
 
     print("REQUEST:", request.url)
@@ -103,7 +126,7 @@ actor Api {
     let (data, r) = try await URLSession.shared.data(for: request, delegate: nil)
 
     print((r as? HTTPURLResponse)?.allHeaderFields["Content-Type"])
-
+    print(String(data: data, encoding: .utf8))
     let d = try JSONDecoder().decode(D.self, from: data)
 
     return d
@@ -126,12 +149,14 @@ actor Api {
       $0.type == "movie"
     }
 
-    var videos = [Video]()
-
-    for var dir in dirs {
-      videos
-        .append(contentsOf: try await self.all(key: dir.key, token: token).MediaContainer.Metadata)
-    }
+    let videos: [Video] = try await withThrowingTaskGroup(of: [Video].self, body: { group in
+      for dir in dirs {
+        group.async {
+          (try await self.all(key: dir.key, token: token)).MediaContainer.Metadata
+        }
+      }
+      return try await group.reduce([], +)
+    })
 
     return videos
   }
@@ -190,8 +215,9 @@ actor Api {
     )
   }
 
-  func imageUrl(item: Video, token: String, width: Int, height: Int) async -> URL {
-    return await self._requestUrl(
+  @MainActor
+  func imageUrl(item: Video, token: String, width: Int, height: Int) -> URL {
+    return self._requestUrl(
       url: root.appendingPathComponent("/photo/:/transcode"),
       token: token,
       queryItems: [
@@ -224,6 +250,66 @@ actor Api {
       print(error)
       return .failure(error)
     }
+  }
+
+  func pollForPin(pinId: Int, requestDelay: Double, maxRetries: Int) async throws -> String {
+    try Task.checkCancellation()
+
+    if maxRetries <= 0 {
+      throw NSError(domain: "LIMIT REACHED", code: 0, userInfo: nil)
+    }
+
+    Thread.sleep(forTimeInterval: requestDelay)
+
+    do {
+      let token: PinToken = try await request(
+        url: URL(
+          string: "https://plex.tv/api/v2/pins/\(pinId)?X-Plex-Client-Identifier=\(await Storage.uuid)&X-Plex-Product=\(product)&X-Plex-Platform=\(platform)&X-Plex-Platform-Version=\(version)&X-Plex-Device-Name=\(product)&X-Plex-Version=\(appVersion)"
+        )!,
+        token: nil,
+        sendDefaultQueries: false
+      )
+
+      if let authToken = token.authToken {
+        Storage.plexToken = authToken
+        return authToken
+      } else {
+        return try await pollForPin(
+          pinId: pinId,
+          requestDelay: min(20, requestDelay + 0.5),
+          maxRetries: maxRetries - 1
+        )
+      }
+    } catch {
+      print("ERROR", error)
+      return try await pollForPin(
+        pinId: pinId,
+        requestDelay: min(20, requestDelay + 0.5),
+        maxRetries: maxRetries - 1
+      )
+    }
+  }
+
+  func authUrl() async throws -> (URL, Int) {
+    let data: PinToken = try await request(
+      url: URL(
+        string: "https://plex.tv/api/v2/pins?X-Plex-Client-Identifier=\(await Storage.uuid)&X-Plex-Product=\(product)&X-Plex-Platform=\(platform)&X-Plex-Platform-Version=7&X-Plex-Device-Name=\(product)&X-Plex-Version=3.2.2.5080&strong=True"
+      )!,
+      token: nil,
+      method: "POST",
+      sendDefaultQueries: false
+    )
+
+    let url =
+      "https://app.plex.tv/auth/#!?clientID=\(data.clientIdentifier)&code=\(data.code)&context[device][product]=\(product)&context[device][platform]=\(platform)&context[device][platformVersion]=7&context[device][version]=3.2.2.5080"
+
+    guard let url = URL(
+      string: url
+    ) else {
+      throw NSError(domain: "NO URL", code: 0, userInfo: nil)
+    }
+    print(url)
+    return (url, Int(data.id.value))
   }
 }
 

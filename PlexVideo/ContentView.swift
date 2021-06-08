@@ -8,10 +8,10 @@
 import SwiftUI
 
 struct ContentView: View {
-  @Binding var token: String?
+  @StateObject var token = Storage.shared
 
   var body: some View {
-    if let _ = token {
+    if let _ = token.plexToken {
       Videos()
     } else {
       Login()
@@ -21,6 +21,6 @@ struct ContentView: View {
 
 struct ContentView_Previews: PreviewProvider {
   static var previews: some View {
-    ContentView(token: Storage.$plexToken)
+    ContentView()
   }
 }
