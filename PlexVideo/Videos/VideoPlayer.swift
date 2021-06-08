@@ -51,6 +51,11 @@ struct VideoPlayer: UIViewControllerRepresentable {
         playerViewController.videoGravity = .resizeAspectFill
       }, completion: nil)
     }
+    
+    func playerViewControllerRestoreUserInterfaceForFullScreenExit(_ playerViewController: AVPlayerViewController) async -> Bool {
+	// Custom UI restoration logic
+	return false
+}
   }
 
   func makeCoordinator() -> Coordinator {
