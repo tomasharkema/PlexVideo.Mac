@@ -51,6 +51,11 @@ struct VideoPlayer: UIViewControllerRepresentable {
         playerViewController.videoGravity = .resizeAspectFill
       }, completion: nil)
     }
+    
+    func playerViewControllerRestoreUserInterfaceForFullScreenExit(_ playerViewController: AVPlayerViewController) async -> Bool {
+	// Custom UI restoration logic
+	return false
+}
   }
 
   func makeCoordinator() -> Coordinator {
@@ -61,6 +66,7 @@ struct VideoPlayer: UIViewControllerRepresentable {
 
   func makeUIViewController(context: Context) -> AVPlayerViewController {
     let vc = AVPlayerViewController()
+    vc.canStartPictureInPictureAutomaticallyFromInline = true
     vc.entersFullScreenWhenPlaybackBegins = true
     vc.updatesNowPlayingInfoCenter = true
     vc.player = player
