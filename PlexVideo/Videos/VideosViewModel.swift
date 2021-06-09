@@ -19,11 +19,11 @@ class VideosViewModel: ObservableObject {
   @Published private(set) var savedLastPlayed: Video?
 
   func load() async throws {
-    guard let token = Storage.plexToken else {
+    guard let token = Storage.shared.plexToken else {
       return
     }
     async {
-      savedLastPlayed = try? await Storage.getLastPlayed()
+      savedLastPlayed = try? await Storage.shared.getLastPlayed()
     }
     async {
       let (onDeck, all) = try await service.getVideoList()
@@ -34,11 +34,11 @@ class VideosViewModel: ObservableObject {
 
 actor VideoDataService {
   func progress(for video: Video) async throws -> Progress? {
-    return video.getProgress(storage: try await Storage.getSavedOffset(video: video))
+    return video.getProgress(storage: try await Storage.shared.getSavedOffset(video: video))
   }
 
   func getVideoList() async throws -> (onDeck: [Video], all: [Video]) {
-    guard let token = Storage.plexToken else {
+    guard let token = Storage.shared.plexToken else {
       throw NSError(domain: "NOT AUTHED", code: 0, userInfo: nil)
     }
 

@@ -12,15 +12,10 @@ struct Thumb: View {
   let width: CGFloat?
   let height: CGFloat?
 
-  @State var url: URL? = nil
+  @State var url: URL?
 
   var body: some View {
-    AsyncImage(url: Api.shared.imageUrl(
-      item: video,
-      token: Storage.shared.plexToken ?? "",
-      width: Int(width ?? 120) * 2,
-      height: Int(height ?? 180) * 2
-    ), content: { (i: Image) in
+    AsyncImage(url: url, content: { (i: Image) in
       i.resizable()
         .frame(width: width, height: height)
     }) {
@@ -29,5 +24,15 @@ struct Thumb: View {
     }
     .background(Color.black.opacity(0.6))
     .frame(width: width, height: height)
+    .onAppear {
+      async {
+        url = try await Api.shared.imageUrl(
+          item: video,
+          token: Storage.shared.plexToken ?? "",
+          width: Int(width ?? 120) * 2,
+          height: Int(height ?? 180) * 2
+        )
+      }
+    }
   }
 }

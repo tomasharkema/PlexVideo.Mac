@@ -37,10 +37,10 @@ struct PlayerOverlay: View {
         .shadow(radius: 10)
         .padding(.bottom, 10)
         .frame(
-          width: 300 * (video?.Media?.first?.aspectRatio?.value ?? (16 / 9)),
-          height: 300
+          width: 200 * (video?.Media?.first?.aspectRatio?.value ?? (16 / 9)),
+          height: 200
         )
-        .offset(y: isPip ? 250 : 0)
+        .offset(y: isPip ? 150 : 0)
         .offset(y: video == nil ? 300 : 0)
         .animation(.easeInOut, value: video)
         .animation(.easeInOut, value: isPip)

@@ -276,3 +276,25 @@ struct PinToken: Codable {
    trusted: boolean
    */
 }
+
+
+struct Device: Codable {
+  let name: String
+  let provides: String
+  let publicAddress: String
+  let connections: [Connection]
+}
+
+struct Connection: Codable {
+  let `protocol`: String
+  let address: String
+  let port: Int
+  let uri: String
+  let local: Bool
+  let relay: Bool
+  let IPv6: Bool
+}
+
+struct Version: Codable {
+  let version: String
+}

@@ -8,6 +8,7 @@
 import CoreMedia
 import Foundation
 import UIKit
+//import XMLCoder
 
 let platform = UIDevice().systemName
 // let platform = "Windows"
@@ -21,9 +22,6 @@ actor Api {
   static var shared = Api()
   private let jsonDecoder = JSONDecoder()
 
-  private let root =
-    URL(string: "https://192-168-1-102.e40e0158854249ae85a8d082f4a9ca9c.plex.direct:32400")!
-
   @MainActor
   private func _requestUrl(
     url: URL,
@@ -34,7 +32,7 @@ actor Api {
     var components = URLComponents(url: url, resolvingAgainstBaseURL: true)!
 
     components.queryItems = (components.queryItems ?? []) + (sendDefaultQueries ? [
-      URLQueryItem(name: "X-Plex-Client-Identifier", value: Storage.uuid),
+      URLQueryItem(name: "X-Plex-Client-Identifier", value: Storage.shared.uuid),
       URLQueryItem(name: "X-Plex-Client-Platform", value: platform),
       URLQueryItem(name: "X-Plex-Device", value: device),
       URLQueryItem(name: "X-Plex-Device-Screen-Density", value: "3"),
@@ -107,7 +105,8 @@ actor Api {
     token: String?,
     method: String = "GET",
     queryItems: [URLQueryItem]? = nil,
-    sendDefaultQueries: Bool = true
+    sendDefaultQueries: Bool = true,
+    timeoutInterval: TimeInterval? = nil
   ) async throws -> D {
     var mutualRequest =
       URLRequest(url: await _requestUrl(
@@ -118,27 +117,101 @@ actor Api {
       ))
     mutualRequest.httpMethod = method
     mutualRequest.setValue("application/json", forHTTPHeaderField: "Accept")
-
+    mutualRequest.timeoutInterval = timeoutInterval ?? 30
     let request = mutualRequest
 
-    print("REQUEST:", request.url)
-
     let (data, r) = try await URLSession.shared.data(for: request, delegate: nil)
+//
+//    if (((r as? HTTPURLResponse)?.allHeaderFields["Content-Type"]) as? String)?.contains("application/xml") == true {
+//      do {
+//        return try XMLDecoder().decode(D.self, from: data)
+//      }
+//      catch {
+//        print(error)
+//        print(error)
+//      }
+//    }
 
-    print((r as? HTTPURLResponse)?.allHeaderFields["Content-Type"])
-    print(String(data: data, encoding: .utf8))
-    let d = try JSONDecoder().decode(D.self, from: data)
+    return try JSONDecoder().decode(D.self, from: data)
+  }
 
-    return d
+  private var lastUsedRoot: URL?
+
+  private func ping(server: URL) async throws -> Root<Version> {
+    return try await self.request(url: server, token: token, timeoutInterval: 5)
+  }
+
+  func root(force: Bool = false) async throws -> URL {
+    if let lastUsedRoot = lastUsedRoot, !force {
+      return lastUsedRoot
+    }
+
+    if let storage = Storage.shared.lastUsedHost {
+      do {
+        let _ = try await ping(server: storage)
+        return storage
+      } catch {
+        print(error)
+      }
+    }
+
+    let d = try await devices()
+    print(d)
+
+    let servers = d.filter {
+      $0.provides.contains("server")
+    }.flatMap { server in
+      server.connections.filter { $0.protocol == "https" }
+    }.sorted { (l, r) in
+      return (l.local ? 100 : 0) > (r.local ? 100 : 0)
+    }.flatMap {
+      URL(string: $0.uri).map { [$0] } ?? []
+    }
+
+    guard let token = Storage.shared.plexToken else  {
+      throw NSError(domain: "DERP", code: 0, userInfo: nil)
+    }
+
+    let pings = await withTaskGroup(of: [(URL, Double, Int)].self) { group in
+      for (index, server) in servers.enumerated() {
+        if Task.isCancelled { break }
+        group.async {
+          let date = Date()
+          do {
+            let _: Root<Version> = try await self.request(url: server, token: token, timeoutInterval: 5)
+            // CANCEL ALL OTHERS!
+            return [(server, Date().timeIntervalSince(date), index + 1)]
+          } catch {
+            print(error)
+            return []
+          }
+        }
+      }
+
+      return await group.reduce([], +)
+    }
+
+    guard let url = pings.sorted { $0.1 * Double($0.2) < $1.1 * Double($0.2) }.first?.0 else {
+      throw NSError(domain: "", code: 0, userInfo: nil)
+    }
+
+    lastUsedRoot = url
+    Storage.shared.lastUsedHost = url
+
+    return url
+  }
+
+  func devices() async throws -> [Device] {
+    return try await request(url: URL(string: "https://plex.tv/api/v2/resources?")!, token: Storage.shared.plexToken, queryItems: [URLQueryItem(name: "includeHttps", value: "1"),URLQueryItem(name: "includeRelay", value: "1")])
   }
 
   func sections(token: String) async throws -> Root<DirectoryContainer> {
-    return try await request(url: root.appendingPathComponent("/library/sections"), token: token)
+    return try await request(url: (try await root()).appendingPathComponent("/library/sections"), token: token)
   }
 
   func all(key: String, token: String) async throws -> Root<Metadata<Video>> {
     return try await request(
-      url: root.appendingPathComponent("/library/sections/\(key)/all"),
+      url: (try await root()).appendingPathComponent("/library/sections/\(key)/all"),
       token: token
     )
   }
@@ -162,7 +235,7 @@ actor Api {
   }
 
   private func status(token: String) async throws -> Root<Metadata<SessionStatus>> {
-    return try await request(url: root.appendingPathComponent("/status/sessions"), token: token)
+    return try await request(url: (try await root()).appendingPathComponent("/status/sessions"), token: token)
   }
 
   func videoUrl(video: Video, token: String, uuid: String,
@@ -201,24 +274,23 @@ actor Api {
     ]
 
     let des: Root<Metadata<Video>> = try await request(
-      url: root.appendingPathComponent("/video/:/transcode/universal/decision"),
+      url: (try await root()).appendingPathComponent("/video/:/transcode/universal/decision"),
       token: token,
       queryItems:
       videoQueryItems
     )
     print(des)
     return await self._requestUrl(
-      url: self.root.appendingPathComponent("/video/:/transcode/universal/start.m3u8"),
+      url: (try await self.root()).appendingPathComponent("/video/:/transcode/universal/start.m3u8"),
       token: token,
       queryItems:
       videoQueryItems
     )
   }
 
-  @MainActor
-  func imageUrl(item: Video, token: String, width: Int, height: Int) -> URL {
-    return self._requestUrl(
-      url: root.appendingPathComponent("/photo/:/transcode"),
+  func imageUrl(item: Video, token: String, width: Int, height: Int) async throws -> URL {
+    return await self._requestUrl(
+      url: (try await self.root()).appendingPathComponent("/photo/:/transcode"),
       token: token,
       queryItems: [
         URLQueryItem(name: "url", value: item.thumb),
@@ -234,7 +306,7 @@ actor Api {
   {
     do {
       return .success(try await request(
-        url: root.appendingPathComponent("/:/timeline"),
+        url: (try await root()).appendingPathComponent("/:/timeline"),
         token: token,
         queryItems: [
           URLQueryItem(name: "time", value: "\(Int(time.seconds * 1000))"),
@@ -264,14 +336,14 @@ actor Api {
     do {
       let token: PinToken = try await request(
         url: URL(
-          string: "https://plex.tv/api/v2/pins/\(pinId)?X-Plex-Client-Identifier=\(await Storage.uuid)&X-Plex-Product=\(product)&X-Plex-Platform=\(platform)&X-Plex-Platform-Version=\(version)&X-Plex-Device-Name=\(product)&X-Plex-Version=\(appVersion)"
+          string: "https://plex.tv/api/v2/pins/\(pinId)?X-Plex-Client-Identifier=\(await Storage.shared.uuid)&X-Plex-Product=\(product)&X-Plex-Platform=\(platform)&X-Plex-Platform-Version=\(version)&X-Plex-Device-Name=\(product)&X-Plex-Version=\(appVersion)"
         )!,
         token: nil,
         sendDefaultQueries: false
       )
 
       if let authToken = token.authToken {
-        Storage.plexToken = authToken
+        Storage.shared.plexToken = authToken
         return authToken
       } else {
         return try await pollForPin(
@@ -293,7 +365,7 @@ actor Api {
   func authUrl() async throws -> (URL, Int) {
     let data: PinToken = try await request(
       url: URL(
-        string: "https://plex.tv/api/v2/pins?X-Plex-Client-Identifier=\(await Storage.uuid)&X-Plex-Product=\(product)&X-Plex-Platform=\(platform)&X-Plex-Platform-Version=7&X-Plex-Device-Name=\(product)&X-Plex-Version=3.2.2.5080&strong=True"
+        string: "https://plex.tv/api/v2/pins?X-Plex-Client-Identifier=\(await Storage.shared.uuid)&X-Plex-Product=\(product)&X-Plex-Platform=\(platform)&X-Plex-Platform-Version=7&X-Plex-Device-Name=\(product)&X-Plex-Version=3.2.2.5080&strong=True"
       )!,
       token: nil,
       method: "POST",
