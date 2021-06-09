@@ -28,7 +28,6 @@ struct Thumb: View {
       async {
         url = try await Api.shared.imageUrl(
           item: video,
-          token: Storage.shared.plexToken ?? "",
           width: Int(width ?? 120) * 2,
           height: Int(height ?? 180) * 2
         )

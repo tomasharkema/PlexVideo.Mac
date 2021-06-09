@@ -29,8 +29,12 @@ struct Root<T: Codable>: Codable {
   let transcodeDecisionText: String?
 }
 
+struct SectionKey: RawRepresentable, Codable {
+  var rawValue: String
+}
+
 struct Directory: Codable, Identifiable {
-  let key: String
+  let key: SectionKey
   let title: String
   let uuid: String
   let type: String
@@ -42,7 +46,7 @@ struct Directory: Codable, Identifiable {
 
 struct DoubleLikeError: Error {}
 
-struct DoubleLike: Codable, Equatable {
+struct NumberLike: Codable, Equatable {
   let value: Double
 
   init(value: Double) {
@@ -61,6 +65,9 @@ struct DoubleLike: Codable, Equatable {
     } else if let v = try? s.decode(String.self), let value = Double(v) {
       self.value = value
       return
+    } else if let v = try? s.decode(Bool.self) {
+      value = v ? 1 : 0
+      return
     }
 
     throw DoubleLikeError()
@@ -73,61 +80,118 @@ struct DoubleLike: Codable, Equatable {
 }
 
 extension Double {
-  var doubleLike: DoubleLike {
-    return DoubleLike(value: self)
+  var doubleLike: NumberLike {
+    return NumberLike(value: self)
+  }
+}
+
+struct MetadataSingle<T: Codable & Equatable>: Codable, Equatable {
+  let Metadata: T
+}
+
+struct OnDeck: Codable, Identifiable, Equatable {
+  let key: VideoKey
+  let title: String
+  let parentTitle: String?
+  let grandparentTitle: String?
+  let thumb: String
+  let art: String
+  let Media: [Media]?
+  let ratingKey: RatingKey
+  let viewOffset: NumberLike?
+  let lastViewedAt: NumberLike?
+  let leafCount: NumberLike?
+  let viewedLeafCount: NumberLike?
+  let grandparentKey: VideoKey?
+  let parentKey: VideoKey?
+  let childCount: NumberLike?
+  let grandparentThumb: String?
+
+  var id: String {
+    return key.rawValue
+  }
+}
+
+struct RatingKey: RawRepresentable, Codable, Equatable {
+  var rawValue: String
+}
+
+struct VideoKey: RawRepresentable, Codable, Equatable, Identifiable, Hashable {
+  var rawValue: String
+
+  var id: String {
+    rawValue
   }
 }
 
 struct Video: Codable, Identifiable, Equatable {
-  let key: String
+  let key: VideoKey
   let title: String
+  let parentTitle: String?
+  let grandparentTitle: String?
   let thumb: String
   let art: String
   let Media: [Media]?
-  let ratingKey: String
-  let viewOffset: DoubleLike?
-  let lastViewedAt: DoubleLike?
+  let ratingKey: RatingKey
+  let viewOffset: NumberLike?
+  let lastViewedAt: NumberLike?
+  let leafCount: NumberLike?
+  let viewedLeafCount: NumberLike?
+  let OnDeck: MetadataSingle<OnDeck>?
+  let grandparentKey: VideoKey?
+  let parentKey: VideoKey?
+  let childCount: NumberLike?
+  let grandparentThumb: String?
 
   var id: String {
-    return key
+    return key.rawValue
   }
 
-  func getProgress(storage storageProgress: Progress?) -> Progress? {
-    if let viewOffset = viewOffset, let lastViewedAt = lastViewedAt {
-      let p = Progress(seconds: viewOffset.value / 1000, date: lastViewedAt.value)
+  func getProgress(storage storageProgress: Progress?) -> Progress {
+    let remoteProgress = Progress(video: self)
 
-      if let storageProgress = storageProgress {
-        if storageProgress.date > p.date {
-          return storageProgress
-        } else {
-          return p
-        }
-      } else {
-        return p
-      }
-    } else {
-      return storageProgress
+    switch (remoteProgress, storageProgress) {
+    case let (r?, s?) where s.date >= r.date:
+      return s
+    case let (r?, s?):
+      return r
+    case let (r?, .none):
+      return r
+    case let (.none, s?):
+      return s
+    case (.none, .none):
+      return .zero
     }
   }
 }
 
 extension Video {
   static func preview() -> Video {
-    Video(key: "key", title: "Film", thumb: "Ding", art: "ding", Media: [
-      PlexVideo.Media.preview(),
-    ], ratingKey: "", viewOffset: DoubleLike(value: 1000),
-    lastViewedAt: Date().timeIntervalSince1970.doubleLike)
+    Video(
+      key: VideoKey(rawValue: "key"), title: "Film", parentTitle: "Film", grandparentTitle: "Film",
+      thumb: "Ding", art: "ding", Media: [
+        PlexVideo.Media.preview(),
+      ],
+      ratingKey: RatingKey(rawValue: "1234"),
+      viewOffset: NumberLike(value: 1000),
+
+      lastViewedAt: NumberLike(value: 1000),
+      leafCount: NumberLike(value: 1000),
+      viewedLeafCount: Date().timeIntervalSince1970.doubleLike,
+      OnDeck: nil,
+      grandparentKey: nil, parentKey: nil, childCount: nil, grandparentThumb: nil
+    )
   }
 }
 
 struct Media: Codable, Equatable {
-  let id: DoubleLike
-  let duration: DoubleLike
-  let bitrate: DoubleLike
-  let width: DoubleLike
-  let height: DoubleLike
-  let aspectRatio: DoubleLike?
-  let audioChannels: DoubleLike?
+  let id: NumberLike
+  let duration: NumberLike
+  let bitrate: NumberLike
+  let width: NumberLike
+  let height: NumberLike
+  let aspectRatio: NumberLike?
+  let audioChannels: NumberLike?
   let audioCodec: String?
   let videoCodec: String?
   let videoResolution: String?
@@ -144,13 +208,13 @@ struct Media: Codable, Equatable {
 extension Media {
   static func preview() -> Media {
     return Media(
-      id: DoubleLike(value: 0),
-      duration: DoubleLike(value: 2000),
-      bitrate: DoubleLike(value: 1000),
-      width: DoubleLike(value: 1920),
-      height: DoubleLike(value: 1080),
-      aspectRatio: DoubleLike(value: 1.7777),
-      audioChannels: DoubleLike(value: 6),
+      id: NumberLike(value: 0),
+      duration: NumberLike(value: 2000),
+      bitrate: NumberLike(value: 1000),
+      width: NumberLike(value: 1920),
+      height: NumberLike(value: 1080),
+      aspectRatio: NumberLike(value: 1.7777),
+      audioChannels: NumberLike(value: 6),
       audioCodec: "ac3",
       videoCodec: "HEVC",
       videoResolution: "1920x1080",
@@ -168,11 +232,11 @@ extension Media {
 }
 
 struct Part: Codable, Equatable {
-  let id: DoubleLike
+  let id: NumberLike
   let key: String?
-  let duration: DoubleLike
+  let duration: NumberLike?
   let file: String?
-  let size: DoubleLike?
+  let size: NumberLike?
   let audioProfile: String?
   let container: String?
   let indexes: String?
@@ -182,21 +246,21 @@ struct Part: Codable, Equatable {
 }
 
 struct Stream: Codable, Equatable {
-  let bitrate: String?
+  let bitrate: NumberLike?
   let codec: String?
   let colorPrimaries: String?
   let colorTrc: String?
-  let `default`: String?
+  let `default`: NumberLike?
   let displayTitle: String
   let extendedDisplayTitle: String
-  let frameRate: String?
-  let height: String?
-  let id: String
+  let frameRate: NumberLike?
+  let height: NumberLike?
+  let id: NumberLike
   let requiredBandwidths: String?
-  let streamType: String
-  let width: String?
+  let streamType: NumberLike
+  let width: NumberLike?
   let decision: String?
-  let location: String
+  let location: String?
 
   let format: String?
   let key: String?
@@ -204,12 +268,12 @@ struct Stream: Codable, Equatable {
   let languageCode: String?
   let providerTitle: String?
   let score: String?
-  let selected: String?
+  let selected: NumberLike?
   let sourceKey: String?
   let transient: String?
   let userID: String?
   let bitrateMode: String?
-  let channels: String?
+  let channels: NumberLike?
 }
 
 struct Metadata<T: Codable>: Codable {
@@ -257,8 +321,8 @@ struct PinToken: Codable {
   let code: String
   let createdAt: String?
   let expiresAt: String?
-  let expiresIn: DoubleLike?
-  let id: DoubleLike
+  let expiresIn: NumberLike?
+  let id: NumberLike
   let newRegistration: Bool?
   let product: String?
   let trusted: Bool?
@@ -277,7 +341,6 @@ struct PinToken: Codable {
    */
 }
 
-
 struct Device: Codable {
   let name: String
   let provides: String
@@ -285,7 +348,7 @@ struct Device: Codable {
   let connections: [Connection]
 }
 
-struct Connection: Codable {
+struct Connection: Codable, Equatable {
   let `protocol`: String
   let address: String
   let port: Int
@@ -297,4 +360,8 @@ struct Connection: Codable {
 
 struct Version: Codable {
   let version: String
+}
+
+struct Hub<T: Codable>: Codable {
+  let Hub: [Metadata<T>]
 }

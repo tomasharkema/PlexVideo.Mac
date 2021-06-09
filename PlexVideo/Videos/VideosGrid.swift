@@ -20,8 +20,11 @@ struct VideosGrid: View {
         ForEach(videos) { video in
           Button(
             action: {
-              withAnimation {
-                self.video = video
+              async {
+                let newVideo = try await viewModel.openVideo(video: video)
+                withAnimation {
+                  self.video = newVideo
+                }
               }
             },
             label: {
@@ -38,20 +41,27 @@ struct VideosGrid: View {
     ScrollView {
       if let data = viewModel.data {
         VStack(alignment: .leading) {
-          section(text: "Continue Watching", videos: data.continueWatching)
-          Spacer()
-          section(text: "All", videos: data.videos)
+          switch data {
+          case let .success(data):
+            section(text: "Continue Watching", videos: data.continueWatching)
+            Spacer()
+            section(text: "All", videos: data.videos)
+
+          case let .failure(error):
+            Text(error.localizedDescription)
+          }
         }
         .padding()
         .animation(.easeInOut(duration: 0.6), value: data)
-        .navigationBarItems(trailing: HStack {Button("Reload", action: {
-          asyncDetached {
+        .navigationBarItems(trailing: HStack { Button("Reload", action: {
+          async {
             try await viewModel.load()
           }
         })
-          Button("Logout", action: {
-            Storage.shared.plexToken = nil
-        })})
+        Button("Logout", action: {
+          Storage.shared.plexToken = nil
+        })
+        })
         .navigationBarTitle(Text("Videos"), displayMode: .inline)
       }
     }.refreshable {

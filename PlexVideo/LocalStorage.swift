@@ -8,17 +8,19 @@
 import Foundation
 import SwiftUI
 
+@MainActor
 class Storage: ObservableObject {
-
   static let shared = Storage()
 
   @AppStorage("plexTokenV2")
   var plexToken: String?
 
-  @AppStorage("lastUsedHost")
-  var lastUsedHost: String?
+  @AppStorage("lastUsedLocalHost")
+  var lastUsedLocalHost: String?
 
-  @MainActor
+  @AppStorage("lastUsedRemoteHost")
+  var lastUsedRemoteHost: String?
+
   var uuid: String {
     let saved = UserDefaults.standard.string(forKey: "uuid")
     if let saved = saved {
@@ -39,10 +41,21 @@ class Storage: ObservableObject {
   }
 
   func setSavedOffset(progress: Progress?, video: Video) async throws {
-    try await UserDefaults.standard.set(progress, key: "PROGRESS_NEW_\(video.key)")
+    try await UserDefaults.standard.set(progress, key: "PROGRESS_NEW_\(video.key.rawValue)")
   }
 
   func getSavedOffset(video: Video) async throws -> Progress? {
-    return try await UserDefaults.standard.object(Progress.self, key: "PROGRESS_NEW_\(video.key)")
+    return try await UserDefaults.standard.object(
+      Progress.self,
+      key: "PROGRESS_NEW_\(video.key.rawValue)"
+    )
+  }
+
+  func getToken() -> String? {
+    return plexToken
+  }
+
+  func getUUID() -> String? {
+    return uuid
   }
 }

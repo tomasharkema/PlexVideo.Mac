@@ -14,7 +14,7 @@ struct PlayerOverlay: View {
 
   var body: some View {
     ZStack(alignment: Alignment(horizontal: .trailing, vertical: .bottom)) {
-      VideoDetail(video: video, isPip: $isPip)
+      VideoDetail(video: $video, isPip: $isPip)
         .overlay(
           HStack {
             Button(action: {
@@ -37,11 +37,12 @@ struct PlayerOverlay: View {
         .shadow(radius: 10)
         .padding(.bottom, 10)
         .frame(
-          width: 200 * (video?.Media?.first?.aspectRatio?.value ?? (16 / 9)),
-          height: 200
+          width: min(UIScreen.main.bounds.width - 50, 400),
+          height: min(UIScreen.main.bounds.width - 50, 400) * (1 /
+            (video?.Media?.first?.aspectRatio?.value ?? (16 / 9)))
         )
-        .offset(y: isPip ? 150 : 0)
-        .offset(y: video == nil ? 300 : 0)
+        .offset(y: isPip ? min(UIScreen.main.bounds.width - 50, 400) * 0.5 : 0)
+        .offset(y: video == nil ? min(UIScreen.main.bounds.width - 50, 400) : 0)
         .animation(.easeInOut, value: video)
         .animation(.easeInOut, value: isPip)
     }

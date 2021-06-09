@@ -21,15 +21,19 @@ struct VideoListItem: View {
         .overlay(VStack {
           Spacer()
           HStack {
-            Rectangle()
-              .foregroundColor(Color.tint)
-              .frame(
-                width: width *
-                  (CGFloat(video.viewOffset?.value ?? 0) /
-                    CGFloat(video.Media?.first?.duration.value ?? 0)),
-                height: 5,
-                alignment: .leading
-              )
+            if let viewOffset = video.viewOffset?.value,
+               let duration = video.Media?.first?.duration.value
+            {
+              Rectangle()
+                .foregroundColor(Color.tint)
+                .frame(
+                  width: width *
+                    (CGFloat(viewOffset) /
+                      CGFloat(duration)),
+                  height: 5,
+                  alignment: .leading
+                )
+            }
             Spacer()
           }
           .background(Color.black.opacity(0.2))
@@ -37,7 +41,7 @@ struct VideoListItem: View {
         })
         .cornerRadius(5.0)
         .shadow(radius: 10)
-      Text(video.title).lineLimit(1).truncationMode(.tail)
+      Text(video.grandparentTitle ?? video.title).lineLimit(1).truncationMode(.tail)
         .shadow(radius: 10).padding(3)
     }
     .padding(5)

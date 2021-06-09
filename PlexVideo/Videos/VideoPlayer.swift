@@ -12,6 +12,7 @@ import SwiftUI
 struct VideoPlayer: UIViewControllerRepresentable {
   let player: AVPlayer
   @Binding var isPip: Bool
+  @Binding var videoBounds: CGRect?
 
   class Coordinator: NSObject, AVPlayerViewControllerDelegate {
     let pip: (Bool) -> Void
@@ -51,11 +52,15 @@ struct VideoPlayer: UIViewControllerRepresentable {
         playerViewController.videoGravity = .resizeAspectFill
       }, completion: nil)
     }
+
+    func playerViewControllerRestoreUserInterfaceForFullScreenExit(_: AVPlayerViewController) async
+      -> Bool
+    {
+      // Custom UI restoration logic
+      return false
+    }
+
     
-    func playerViewControllerRestoreUserInterfaceForFullScreenExit(_ playerViewController: AVPlayerViewController) async -> Bool {
-	// Custom UI restoration logic
-	return false
-}
   }
 
   func makeCoordinator() -> Coordinator {
@@ -72,8 +77,16 @@ struct VideoPlayer: UIViewControllerRepresentable {
     vc.player = player
     vc.delegate = context.coordinator
     vc.videoGravity = .resizeAspectFill
+
+    player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 10, preferredTimescale: 1), queue: .main, using: { [weak vc] time in
+      if videoBounds != vc?.videoBounds {
+        videoBounds = vc?.videoBounds
+      }
+    })
+
     DispatchQueue.main.async {
       isPip = false
+      vc.player?.play()
     }
 
     return vc

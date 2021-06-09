@@ -29,6 +29,11 @@
 		C36279F2265FE6EA00DEF2B6 /* Videos.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36279F1265FE6EA00DEF2B6 /* Videos.swift */; };
 		C36279F4265FEA1A00DEF2B6 /* Api.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36279F3265FEA1A00DEF2B6 /* Api.swift */; };
 		C3D0F350266E3C6F002EC3F8 /* Thumb.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D0F34F266E3C6F002EC3F8 /* Thumb.swift */; };
+		C3EACAD22670D2A4003A9299 /* ServerLocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3EACAD12670D2A4003A9299 /* ServerLocator.swift */; };
+		C3EACAD42670ECA2003A9299 /* Requestor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3EACAD32670ECA2003A9299 /* Requestor.swift */; };
+		C3EACAD626710332003A9299 /* ConnectionOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3EACAD526710332003A9299 /* ConnectionOverlay.swift */; };
+		C3EACAD8267132A8003A9299 /* Auth.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3EACAD7267132A8003A9299 /* Auth.swift */; };
+		C3EACADA267148C6003A9299 /* VideoDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3EACAD9267148C6003A9299 /* VideoDataService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -57,6 +62,11 @@
 		C36279F1265FE6EA00DEF2B6 /* Videos.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Videos.swift; sourceTree = "<group>"; };
 		C36279F3265FEA1A00DEF2B6 /* Api.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Api.swift; sourceTree = "<group>"; };
 		C3D0F34F266E3C6F002EC3F8 /* Thumb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Thumb.swift; sourceTree = "<group>"; };
+		C3EACAD12670D2A4003A9299 /* ServerLocator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerLocator.swift; sourceTree = "<group>"; };
+		C3EACAD32670ECA2003A9299 /* Requestor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Requestor.swift; sourceTree = "<group>"; };
+		C3EACAD526710332003A9299 /* ConnectionOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionOverlay.swift; sourceTree = "<group>"; };
+		C3EACAD7267132A8003A9299 /* Auth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Auth.swift; sourceTree = "<group>"; };
+		C3EACAD9267148C6003A9299 /* VideoDataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoDataService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,6 +96,9 @@
 			children = (
 				C36279F3265FEA1A00DEF2B6 /* Api.swift */,
 				C333785F266CE883007C3D41 /* Model.swift */,
+				C3EACAD12670D2A4003A9299 /* ServerLocator.swift */,
+				C3EACAD32670ECA2003A9299 /* Requestor.swift */,
+				C3EACAD7267132A8003A9299 /* Auth.swift */,
 			);
 			path = Api;
 			sourceTree = "<group>";
@@ -129,6 +142,7 @@
 				C36279E0265FE44500DEF2B6 /* Assets.xcassets */,
 				C36279E5265FE44500DEF2B6 /* Info.plist */,
 				C36279E2265FE44500DEF2B6 /* Preview Content */,
+				C3EACAD9267148C6003A9299 /* VideoDataService.swift */,
 			);
 			path = PlexVideo;
 			sourceTree = "<group>";
@@ -154,6 +168,7 @@
 				C32868E5266EC67C00A6F88B /* VideoPlayer.swift */,
 				C32868E7266EC68D00A6F88B /* VideoDetailViewModel.swift */,
 				C32868EB266EC74C00A6F88B /* Progress.swift */,
+				C3EACAD526710332003A9299 /* ConnectionOverlay.swift */,
 			);
 			path = Videos;
 			sourceTree = "<group>";
@@ -235,17 +250,22 @@
 			files = (
 				C32868EC266EC74C00A6F88B /* Progress.swift in Sources */,
 				C36279F4265FEA1A00DEF2B6 /* Api.swift in Sources */,
+				C3EACAD42670ECA2003A9299 /* Requestor.swift in Sources */,
+				C3EACADA267148C6003A9299 /* VideoDataService.swift in Sources */,
 				C333785C266CDADB007C3D41 /* Colors.swift in Sources */,
 				C36279ED265FE52300DEF2B6 /* LocalStorage.swift in Sources */,
 				C3D0F350266E3C6F002EC3F8 /* Thumb.swift in Sources */,
+				C3EACAD626710332003A9299 /* ConnectionOverlay.swift in Sources */,
 				C32868E4266EC64300A6F88B /* VideosViewModel.swift in Sources */,
 				C32868EA266EC72B00A6F88B /* UserDefaults.swift in Sources */,
 				C3337854266BA811007C3D41 /* VideoDetail.swift in Sources */,
 				C36279DF265FE44400DEF2B6 /* ContentView.swift in Sources */,
 				C3337860266CE883007C3D41 /* Model.swift in Sources */,
 				C36279DD265FE44400DEF2B6 /* PlexVideoApp.swift in Sources */,
+				C3EACAD8267132A8003A9299 /* Auth.swift in Sources */,
 				C36279F2265FE6EA00DEF2B6 /* Videos.swift in Sources */,
 				C33FAE54266FFAE400177385 /* SafariView.swift in Sources */,
+				C3EACAD22670D2A4003A9299 /* ServerLocator.swift in Sources */,
 				C32868E2266EC62000A6F88B /* VideosGrid.swift in Sources */,
 				C32868E8266EC68D00A6F88B /* VideoDetailViewModel.swift in Sources */,
 				C32868E6266EC67C00A6F88B /* VideoPlayer.swift in Sources */,

@@ -19,14 +19,14 @@ struct Videos: View {
         VideosGrid(
           viewModel: viewModel,
           video: $video
-        )
+        ).overlay(ConnectionOverlay())
       }
       .navigationViewStyle(StackNavigationViewStyle()).zIndex(1)
 
       PlayerOverlay(video: $video).zIndex(100)
     }
     .onAppear {
-      asyncDetached {
+      async {
         try await viewModel.load()
       }
     }

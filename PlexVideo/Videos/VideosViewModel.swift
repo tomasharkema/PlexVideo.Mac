@@ -7,80 +7,81 @@
 
 import Foundation
 
-@MainActor
-class VideosViewModel: ObservableObject {
-  private let service = VideoDataService()
-  struct Data: Equatable {
-    let continueWatching: [Video]
-    let videos: [Video]
-  }
+enum ViewError: LocalizedError, Equatable {
+  case error(Error)
 
-  @Published private(set) var data: Data?
-  @Published private(set) var savedLastPlayed: Video?
-
-  func load() async throws {
-    guard let token = Storage.shared.plexToken else {
-      return
-    }
-    async {
-      savedLastPlayed = try? await Storage.shared.getLastPlayed()
-    }
-    async {
-      let (onDeck, all) = try await service.getVideoList()
-      data = Data(continueWatching: onDeck, videos: all)
+  static func == (lhs: ViewError, rhs: ViewError) -> Bool {
+    switch (lhs, rhs) {
+    case let (.error(l), .error(r)):
+      return l.localizedDescription == r.localizedDescription
     }
   }
 }
 
-actor VideoDataService {
-  func progress(for video: Video) async throws -> Progress? {
-    return video.getProgress(storage: try await Storage.shared.getSavedOffset(video: video))
+@MainActor
+class VideosViewModel: ObservableObject {
+  private let service = VideoDataService()
+
+  @Published private(set) var data: Result<Data, ViewError>?
+  @Published private(set) var savedLastPlayed: Video?
+
+  func load() async throws {
+    async {
+      savedLastPlayed = try? await Storage.shared.getLastPlayed()
+    }
+    async {
+      do {
+        let (onDeck, all) = try await service.getVideoList()
+        data = .success(Data(continueWatching: onDeck, videos: all))
+      } catch {
+        print(error)
+        data = .failure(ViewError.error(error))
+      }
+    }
   }
 
-  func getVideoList() async throws -> (onDeck: [Video], all: [Video]) {
-    guard let token = Storage.shared.plexToken else {
-      throw NSError(domain: "NOT AUTHED", code: 0, userInfo: nil)
-    }
+  func openVideo(video: Video) async throws -> Video? {
+    do {
+      let onDeckResponse = try await Api.shared.onDeck(ratingKey: video.ratingKey)
 
-    let videos = try await Api.shared.videos(token: token)
-
-    let cont: [String: Progress] = try await withThrowingTaskGroup(of: [String: Progress]
-      .self) { group in
-      for video in videos {
-        if Task.isCancelled { break }
-        group.async {
-          if let progress = try await self.progress(for: video) {
-            return [video.key: progress]
-          } else {
-            return [:]
-          }
-        }
+      if let res = onDeckResponse.MediaContainer.Metadata.first?.OnDeck?.Metadata {
+        return Video(onDeck: res)
+      } else {
+        return video
       }
 
-      return try await group.reduce([String: Progress]()) { prev, c in
-        try Task.checkCancellation()
-        var p = prev
-        for (key, value) in c {
-          p[key] = value
-        }
-        return p
-      }
+    } catch {
+      return video
     }
+  }
+}
 
-    let c = videos.lazy.map { video in
-      (video, cont[video.key])
-    }
-    .filter {
-      $0.1?.date != nil
-    }
-    .map {
-      $0.0
-    }
-    .sorted {
-      $0.lastViewedAt?.value ?? 0 > $1.lastViewedAt?.value ?? 0
-    }
+extension VideosViewModel {
+  struct Data: Equatable {
+    let continueWatching: [Video]
+    let videos: [Video]
+  }
+}
 
-    return (c, videos)
+extension Video {
+  init(onDeck: OnDeck) {
+    key = onDeck.key
+    title = onDeck.title
+    thumb = onDeck.thumb
+    art = onDeck.art
+    Media = onDeck.Media
+    ratingKey = onDeck.ratingKey
+    viewOffset = onDeck.viewOffset
+    lastViewedAt = onDeck.lastViewedAt
+    leafCount = onDeck.leafCount
+    viewedLeafCount = onDeck.viewedLeafCount
+    OnDeck = nil
+    grandparentKey = onDeck.grandparentKey
+    parentKey = onDeck.parentKey
+    childCount = onDeck.childCount
+    grandparentThumb = onDeck.grandparentThumb
+    parentTitle = onDeck.parentTitle
+    grandparentTitle = onDeck.grandparentTitle
   }
 }
 
