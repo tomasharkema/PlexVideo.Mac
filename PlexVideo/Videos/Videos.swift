@@ -14,17 +14,14 @@ struct Videos: View {
   @State var video: Video?
 
   var body: some View {
-    ZStack(alignment: Alignment(horizontal: .center, vertical: .bottom)) {
-      NavigationView {
-        VideosGrid(
-          viewModel: viewModel,
-          video: $video
-        ).overlay(ConnectionOverlay())
-      }
-      .navigationViewStyle(StackNavigationViewStyle()).zIndex(1)
-
-      PlayerOverlay(video: $video).zIndex(100)
+    NavigationView {
+      VideosGrid(
+        viewModel: viewModel,
+        video: $video
+      ).overlay(ConnectionOverlay())
     }
+    .navigationViewStyle(StackNavigationViewStyle())
+    .overlay(PlayerOverlay(video: $video), alignment: Alignment(horizontal: .center, vertical: .bottom))
     .onAppear {
       async {
         try await viewModel.load()

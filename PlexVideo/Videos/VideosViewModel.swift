@@ -23,6 +23,7 @@ class VideosViewModel: ObservableObject {
   private let service = VideoDataService()
 
   @Published private(set) var data: Result<Data, ViewError>?
+  @Published private(set) var searchResults: [Video]?
   @Published private(set) var savedLastPlayed: Video?
 
   func load() async throws {
@@ -53,6 +54,35 @@ class VideosViewModel: ObservableObject {
     } catch {
       return video
     }
+  }
+
+  private var searchTask: Task.Handle<Void, Never>?
+  func searchText(_ searchText: String) async {
+    searchTask?.cancel()
+
+    if searchText.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).isEmpty {
+      searchResults = nil
+      return
+    }
+
+    if case let .success(s) = data {
+      searchTask = asyncDetached(priority: .userInteractive) {
+        do {
+          await setSearchResult(try s.videos.filter {
+            try Task.checkCancellation()
+            return $0.title.contains(searchText)
+          })
+        } catch {
+          print(error)
+        }
+      }
+    } else {
+      searchResults = nil
+    }
+  }
+
+  func setSearchResult(_ s:[Video]) {
+    searchResults = s
   }
 }
 

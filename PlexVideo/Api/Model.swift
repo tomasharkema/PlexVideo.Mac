@@ -147,6 +147,10 @@ struct Video: Codable, Identifiable, Equatable {
     return key.rawValue
   }
 
+  var displayTitle: String {
+    return grandparentTitle ?? parentTitle ?? title
+  }
+
   func getProgress(storage storageProgress: Progress?) -> Progress {
     let remoteProgress = Progress(video: self)
 

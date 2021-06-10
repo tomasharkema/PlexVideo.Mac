@@ -71,7 +71,7 @@ class Requestor {
     let (data, r) = try await URLSession.shared.data(for: request, delegate: nil)
 
     if (((r as? HTTPURLResponse)?.allHeaderFields["Content-Type"]) as? String)?
-      .contains("application/xml") == true
+      .contains("xml") == true
     {
       do {
         return try XMLDecoder().decode(D.self, from: data)

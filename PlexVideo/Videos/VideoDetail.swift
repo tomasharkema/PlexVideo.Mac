@@ -13,6 +13,7 @@ struct VideoDetail: View {
   @StateObject var videoDetailViewModel = VideoDetailViewModel()
   @Binding var video: Video?
   @Binding var isPip: Bool
+  @Binding var isFullscreen: Bool
   @State var videoBounds: CGRect?
 
   private func load(_ video: Video?) {
@@ -29,14 +30,26 @@ struct VideoDetail: View {
 
   var body: some View {
     HStack {
-      if let player = videoDetailViewModel.player {
-        VideoPlayer(player: player, isPip: $isPip, videoBounds: $videoBounds)
+      if let player = videoDetailViewModel.player, let video = video {
+        VideoPlayer(video: video, player: player, isPip: $isPip, isFullscreen: $isFullscreen, videoBounds: $videoBounds)
       } else {
         Rectangle().foregroundColor(.clear)
       }
     }
     .onChange(of: video) {
       load($0)
+    }
+    .onChange(of: isFullscreen) {
+      AppDelegate.orientationLock = $0 ? .landscape : .portrait
+      UIDevice.current.setValue($0 ? UIInterfaceOrientation.landscapeRight.rawValue : UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
+    }
+    .onAppear {
+      AppDelegate.orientationLock = isFullscreen ? .landscape : .portrait
+      UIDevice.current.setValue(isFullscreen ? UIInterfaceOrientation.landscapeRight.rawValue : UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
+    }
+    .onDisappear {
+      AppDelegate.orientationLock = isFullscreen ? .landscape : .portrait
+      UIDevice.current.setValue(isFullscreen ? UIInterfaceOrientation.landscapeRight.rawValue : UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
     }
     .onChange(of: videoBounds) { bounds in
       async {

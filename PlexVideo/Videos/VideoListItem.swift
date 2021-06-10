@@ -41,7 +41,7 @@ struct VideoListItem: View {
         })
         .cornerRadius(5.0)
         .shadow(radius: 10)
-      Text(video.grandparentTitle ?? video.title).lineLimit(1).truncationMode(.tail)
+      Text(video.displayTitle).lineLimit(1).truncationMode(.tail)
         .shadow(radius: 10).padding(3)
     }
     .padding(5)
