@@ -90,6 +90,12 @@ class VideoDataService {
         }
     }
 
-    return try await (fixedContinue.get(), videos.get())
+    let videosSorted = asyncDetached(priority: .userInitiated) {
+      try await videos.get().sorted {
+        $0.titleSort ?? $0.title < $1.titleSort ?? $1.title
+      }
+    }
+
+    return try await (fixedContinue.get(), videosSorted.get())
   }
 }

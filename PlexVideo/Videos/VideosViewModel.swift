@@ -111,6 +111,7 @@ extension Video {
   init(onDeck: OnDeck) {
     key = onDeck.key
     title = onDeck.title
+    titleSort = onDeck.titleSort
     thumb = onDeck.thumb
     art = onDeck.art
     Media = onDeck.Media

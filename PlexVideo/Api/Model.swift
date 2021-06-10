@@ -92,6 +92,7 @@ struct MetadataSingle<T: Codable & Equatable>: Codable, Equatable {
 struct OnDeck: Codable, Identifiable, Equatable {
   let key: VideoKey
   let title: String
+  let titleSort: String?
   let parentTitle: String?
   let grandparentTitle: String?
   let thumb: String
@@ -127,6 +128,7 @@ struct VideoKey: RawRepresentable, Codable, Equatable, Identifiable, Hashable {
 struct Video: Codable, Identifiable, Equatable, Hashable {
   let key: VideoKey
   let title: String
+  let titleSort: String?
   let parentTitle: String?
   let grandparentTitle: String?
   let thumb: String
@@ -176,7 +178,7 @@ struct Video: Codable, Identifiable, Equatable, Hashable {
 extension Video {
   static func preview(id: String = UUID().uuidString) -> Video {
     Video(
-      key: VideoKey(rawValue: id), title: "Dit is een titel van een hele lange film",
+      key: VideoKey(rawValue: id), title: "Dit is een titel van een hele lange film", titleSort: "is",
       parentTitle: nil, grandparentTitle: nil,
       thumb: "https://static.posters.cz/image/750/posters/pulp-fiction-cover-i1288.jpg",
       art: "ding",
