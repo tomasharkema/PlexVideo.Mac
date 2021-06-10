@@ -7,7 +7,12 @@
 
 import Foundation
 
-actor Auth {
+enum AuthError: LocalizedError {
+  case limitReached
+  case noUrl
+}
+
+class Auth {
   static let shared = Auth()
   private let requestor = Requestor.shared
 
@@ -15,7 +20,7 @@ actor Auth {
     try Task.checkCancellation()
 
     if maxRetries <= 0 {
-      throw NSError(domain: "LIMIT REACHED", code: 0, userInfo: nil)
+      throw AuthError.limitReached
     }
 
     Thread.sleep(forTimeInterval: requestDelay)
@@ -29,7 +34,7 @@ actor Auth {
       )
 
       if let authToken = token.authToken {
-        DispatchQueue.main.async {
+        await MainActor.run {
           Storage.shared.plexToken = authToken
         }
         return authToken
@@ -65,7 +70,7 @@ actor Auth {
     guard let url = URL(
       string: url
     ) else {
-      throw NSError(domain: "NO URL", code: 0, userInfo: nil)
+      throw AuthError.noUrl
     }
     print(url)
     return (url, Int(data.id.value))

@@ -7,75 +7,89 @@
 
 import Foundation
 
+// FIXME: Tryout asyncDetached! Should be async let. But that crashes the compiler
+
 class VideoDataService {
-  func progress(for video: Video) async throws -> Progress? {
+  nonisolated func progress(for video: Video) async throws -> Progress {
     return video.getProgress(storage: try await Storage.shared.getSavedOffset(video: video))
   }
 
-  func getVideoList() async throws -> (onDeck: [Video], all: [Video]) {
-    let sections = try await Api.shared.sections().MediaContainer.Directory.filter {
+  private func getSections() async throws -> [Directory] {
+    return try await Api.shared.sections().MediaContainer.Directory.filter {
       $0.type == "movie" || $0.type == "show"
     }
+  }
 
-    let continueWatching = try await Api.shared
-      .continueWatching(contentDirectoryIDs: sections.map { $0.key })
-
-    let videos: [Video] = try await withThrowingTaskGroup(of: [Video].self, body: { group in
-      for dir in sections {
-        group.async {
-          (try await Api.shared.all(key: dir.key)).MediaContainer.Metadata
+  func getContinueWatching(sections: Task
+    .Handle<[Directory], Error>) async throws -> [(VideoKey, Progress)]
+  {
+    return try await whenAll(tasks: Api.shared
+      .continueWatching(contentDirectoryIDs: sections.get().map { $0.key })
+      .MediaContainer.Hub
+      .flatMap { $0.Metadata }
+      .map { v in
+        asyncDetached(priority: .userInitiated) {
+          try await (v.key, v.getProgress(storage: self.progress(for: v)))
         }
-      }
-      return try await group.reduce([], +)
-    })
+      })
+  }
 
-    let localProgress: [VideoKey: Progress] =
-      try await withThrowingTaskGroup(of: [VideoKey: Progress]
-        .self) { group in
-        for video in videos {
-          if Task.isCancelled { break }
-          group.async {
-            if let progress = try await self.progress(for: video) {
-              return [video.key: progress]
+  func fetchVideos(sections: Task.Handle<[Directory], Error>) async throws -> [Video] {
+    return try await Array(whenAll(tasks: sections.get().map { s in
+      asyncDetached(priority: .userInitiated) {
+        (try await Api.shared.all(key: s.key)).MediaContainer.Metadata
+      }
+    }).joined())
+  }
+
+  func getVideoList() async throws -> (onDeck: [Video], all: [Video]) {
+    let sections = asyncDetached(priority: .userInitiated) { try await getSections() }
+    let continueWatchingResultKeyValue = asyncDetached(priority: .userInitiated) {
+      try await getContinueWatching(sections: asyncDetached(priority: .userInitiated) {
+        try await sections.get()
+      })
+    }
+    let continueWatching = asyncDetached(priority: .userInitiated) {
+      Dictionary(uniqueKeysWithValues: try await continueWatchingResultKeyValue.get())
+    }
+
+    let videos = asyncDetached(priority: .userInitiated) {
+      try await fetchVideos(sections: sections)
+    }
+
+    let videosByKey = asyncDetached(priority: .userInitiated) {
+      try await Dictionary(uniqueKeysWithValues: videos.get().map {
+        ($0.key, $0)
+      })
+    }
+
+    let progressArrayMissing =
+      asyncDetached(priority: .userInitiated) {
+        try await Array(whenAll(tasks: videos.get().map { video in
+          asyncDetached(priority: .userInitiated) { () -> [(VideoKey, Progress)] in
+            let progress = try await video.getProgress(storage: self.progress(for: video))
+            let cw = try await continueWatching.get()
+
+            if !progress.isZero, cw[video.key] == nil {
+              return [(video.key, progress)]
             } else {
-              return [:]
+              return []
             }
           }
+        }).joined())
+      }
+
+    let fixedContinue: Task.Handle<[Video], Error> = asyncDetached(priority: .userInitiated) {
+      let vbk = try await videosByKey.get()
+      return try await [continueWatchingResultKeyValue.get(), progressArrayMissing.get()].joined()
+        .sorted {
+          $0.1.date > $1.1.date
         }
-
-        return try await group.reduce([VideoKey: Progress]()) { prev, c in
-          try Task.checkCancellation()
-          var p = prev
-          for (key, value) in c {
-            p[key] = value
-          }
-          return p
+        .flatMap {
+          vbk[$0.0].map { [$0] } ?? []
         }
-      }
-
-    let continueWithLocal = continueWatching.MediaContainer.Hub.flatMap { $0.Metadata }
-      .map {
-        ($0, $0.getProgress(storage: localProgress[$0.key]))
-      }
-
-    let missing: [(Video, Progress)] = localProgress.filter { video in
-      localProgress[video.key]?.isZero == false && !continueWithLocal
-        .contains { $0.0.key == video.key }
-    }
-    .flatMap { k -> [(Video, Progress)] in
-      if let v = videos.first(where: { k.key == $0.key }) {
-        return [(v, k.value)]
-      } else {
-        return []
-      }
     }
 
-    let fixedContinue = [continueWithLocal, missing].joined().sorted(by: {
-      $0.1.date > $1.1.date
-    }).map {
-      $0.0
-    }
-
-    return (fixedContinue, videos)
+    return try await (fixedContinue.get(), videos.get())
   }
 }

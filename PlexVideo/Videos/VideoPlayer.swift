@@ -71,7 +71,11 @@ struct VideoPlayer: UIViewControllerRepresentable {
       return true
     }
 
-    func playerViewControllerRestoreUserInterfaceForPictureInPictureStop(_ playerViewController: AVPlayerViewController) async -> Bool {
+    func playerViewControllerRestoreUserInterfaceForPictureInPictureStop(
+      _: AVPlayerViewController
+    ) async
+      -> Bool
+    {
       return true
     }
   }
@@ -108,7 +112,11 @@ struct VideoPlayer: UIViewControllerRepresentable {
     DispatchQueue.main.async {
       isPip = false
       vc.player?.play()
-      vc.perform(NSSelectorFromString("enterFullScreenAnimated:completionHandler:"), with: true, with: nil)
+      vc.perform(
+        NSSelectorFromString("enterFullScreenAnimated:completionHandler:"),
+        with: true,
+        with: nil
+      )
     }
 
     return vc

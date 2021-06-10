@@ -7,15 +7,36 @@
 
 import Foundation
 
+enum ServerLocatorError: LocalizedError {
+  case noUrl
+}
+
+actor ServerLocatorData {
+  var lastUsedRoot: URL?
+  var retrieveLastUsedHostTask: Task.Handle<URL?, Never>?
+
+  func set(lastUsedRoot: URL?) {
+    self.lastUsedRoot = lastUsedRoot
+  }
+
+  func set(retrieveLastUsedHostTask: Task.Handle<URL?, Never>?) {
+    self.retrieveLastUsedHostTask = retrieveLastUsedHostTask
+  }
+
+//  public func run<T>(resultType: T.Type = T.self, body: (ServerLocatorData) throws -> T) async rethrows -> T {
+//    return try body(self)
+//  }
+}
+
 class ServerLocator: ObservableObject {
   static let locator = ServerLocator()
-  private let requestor = Requestor()
-
-  private var lastUsedRoot: URL?
-  private var retrieveLastUsedHostTask: Task.Handle<URL?, Never>?
+  private let requestor = Requestor.shared
 
   private(set) var hasForceTried: Bool = false
-  @Published private(set) var connection: Connection?
+
+  private var data = ServerLocatorData()
+
+  @MainActor @Published private(set) var connection: Connection?
 
   func root(force: Bool = false) async throws -> URL {
     do {
@@ -31,11 +52,10 @@ class ServerLocator: ObservableObject {
       }
 
       guard let url = try await chooseServer() else {
-        throw NSError(domain: "NO URL", code: 0, userInfo: nil)
+        throw ServerLocatorError.noUrl
       }
 
-      lastUsedRoot = url
-
+      await data.set(lastUsedRoot: url)
       return url
     } catch {
       print("ERROR!", error)
@@ -60,10 +80,10 @@ class ServerLocator: ObservableObject {
     async let remote = ping(server: r)
 
     if case .success = await local {
-      lastUsedRoot = l
+      await data.set(lastUsedRoot: l)
       return l
     } else if case .success = await remote {
-      lastUsedRoot = r
+      await data.set(lastUsedRoot: r)
       return r
     } else {
       return nil
@@ -71,16 +91,16 @@ class ServerLocator: ObservableObject {
   }
 
   private func retrieveLastUsedHost(force: Bool = false) async -> URL? {
-    if let lastUsedRoot = lastUsedRoot, !force {
+    if let lastUsedRoot = await data.lastUsedRoot, !force {
       return lastUsedRoot
     }
 
-    if let hangingTask = retrieveLastUsedHostTask {
-      return try? await hangingTask.getResult().get()
+    if let hangingTask = await data.retrieveLastUsedHostTask {
+      return try? await hangingTask.get()
     }
 
     let task = asyncDetached { () -> URL? in
-      defer { retrieveLastUsedHostTask = nil }
+      defer { async { await data.set(retrieveLastUsedHostTask: nil) } }
       if let lastUsedLocalHost = await Storage.shared.lastUsedLocalHost,
          let lastUsedRemoteHost = await Storage.shared.lastUsedRemoteHost,
          let localHost = URL(string: lastUsedLocalHost),
@@ -92,9 +112,12 @@ class ServerLocator: ObservableObject {
       return nil
     }
 
-    retrieveLastUsedHostTask = task
+//    await data.run {
+//      $0.retrieveLastUsedHostTask = task
+//    }
 
-    return try? await task.getResult().get()
+    await data.set(retrieveLastUsedHostTask: task)
+    return await task.get()
   }
 
   func devices() async throws -> [Device] {
@@ -171,10 +194,29 @@ class ServerLocator: ObservableObject {
 
     let choice = local ?? remote
 
-    DispatchQueue.main.async {
+    await MainActor.run {
       self.connection = choice?.0
     }
 
     return choice?.1
+  }
+
+  private var invalidateTask: Task.Handle<Void, Never>?
+  func invalidate() async {
+    if let invalidateTask = invalidateTask {
+      await invalidateTask.get()
+      return
+    }
+    invalidateTask = async {
+      await data.set(lastUsedRoot: nil)
+//      lastUsedRoot = nil
+
+      do {
+        try await root(force: true)
+      } catch {
+        print(error)
+      }
+      invalidateTask = nil
+    }
   }
 }

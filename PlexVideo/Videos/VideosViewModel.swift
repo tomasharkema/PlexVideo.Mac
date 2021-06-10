@@ -8,12 +8,26 @@
 import Foundation
 
 enum ViewError: LocalizedError, Equatable {
-  case error(Error)
+  case error(LocalizedError)
 
   static func == (lhs: ViewError, rhs: ViewError) -> Bool {
     switch (lhs, rhs) {
     case let (.error(l), .error(r)):
       return l.localizedDescription == r.localizedDescription
+    }
+  }
+
+  func errorDescription() -> String? {
+    switch self {
+    case let .error(error):
+      return error.errorDescription
+    }
+  }
+
+  var localizedDescription: String? {
+    switch self {
+    case let .error(error):
+      return error.localizedDescription
     }
   }
 }
@@ -36,7 +50,7 @@ class VideosViewModel: ObservableObject {
         data = .success(Data(continueWatching: onDeck, videos: all))
       } catch {
         print(error)
-        data = .failure(ViewError.error(error))
+        data = .failure(ViewError.error(error as! LocalizedError))
       }
     }
   }
@@ -81,7 +95,7 @@ class VideosViewModel: ObservableObject {
     }
   }
 
-  func setSearchResult(_ s:[Video]) {
+  func setSearchResult(_ s: [Video]) {
     searchResults = s
   }
 }

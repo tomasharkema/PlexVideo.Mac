@@ -13,18 +13,25 @@ struct Videos: View {
 
   @State var video: Video?
 
+  @State var isLoading: Bool = true
+
   var body: some View {
     NavigationView {
-      VideosGrid(
+      VideosGridScreen(
         viewModel: viewModel,
         video: $video
-      ).overlay(ConnectionOverlay())
+      ).overlay(ConnectionOverlay()).overlay(ProgressView().opacity(isLoading ? 1 : 0))
     }
     .navigationViewStyle(StackNavigationViewStyle())
-    .overlay(PlayerOverlay(video: $video), alignment: Alignment(horizontal: .center, vertical: .bottom))
+    .overlay(
+      PlayerOverlay(video: $video),
+      alignment: Alignment(horizontal: .center, vertical: .bottom)
+    )
     .onAppear {
       async {
+        isLoading = true
         try await viewModel.load()
+        isLoading = false
       }
     }
     .onChange(of: viewModel.savedLastPlayed) {

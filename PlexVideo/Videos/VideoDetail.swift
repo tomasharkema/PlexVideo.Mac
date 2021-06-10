@@ -31,7 +31,13 @@ struct VideoDetail: View {
   var body: some View {
     HStack {
       if let player = videoDetailViewModel.player, let video = video {
-        VideoPlayer(video: video, player: player, isPip: $isPip, isFullscreen: $isFullscreen, videoBounds: $videoBounds)
+        VideoPlayer(
+          video: video,
+          player: player,
+          isPip: $isPip,
+          isFullscreen: $isFullscreen,
+          videoBounds: $videoBounds
+        )
       } else {
         Rectangle().foregroundColor(.clear)
       }
@@ -41,15 +47,27 @@ struct VideoDetail: View {
     }
     .onChange(of: isFullscreen) {
       AppDelegate.orientationLock = $0 ? .landscape : .portrait
-      UIDevice.current.setValue($0 ? UIInterfaceOrientation.landscapeRight.rawValue : UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
+      UIDevice.current.setValue(
+        $0 ? UIInterfaceOrientation.landscapeRight.rawValue : UIInterfaceOrientation.portrait
+          .rawValue,
+        forKey: "orientation"
+      )
     }
     .onAppear {
       AppDelegate.orientationLock = isFullscreen ? .landscape : .portrait
-      UIDevice.current.setValue(isFullscreen ? UIInterfaceOrientation.landscapeRight.rawValue : UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
+      UIDevice.current.setValue(
+        isFullscreen ? UIInterfaceOrientation.landscapeRight.rawValue : UIInterfaceOrientation
+          .portrait.rawValue,
+        forKey: "orientation"
+      )
     }
     .onDisappear {
       AppDelegate.orientationLock = isFullscreen ? .landscape : .portrait
-      UIDevice.current.setValue(isFullscreen ? UIInterfaceOrientation.landscapeRight.rawValue : UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
+      UIDevice.current.setValue(
+        isFullscreen ? UIInterfaceOrientation.landscapeRight.rawValue : UIInterfaceOrientation
+          .portrait.rawValue,
+        forKey: "orientation"
+      )
     }
     .onChange(of: videoBounds) { bounds in
       async {

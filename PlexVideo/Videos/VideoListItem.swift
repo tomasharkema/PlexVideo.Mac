@@ -41,7 +41,12 @@ struct VideoListItem: View {
         })
         .cornerRadius(5.0)
         .shadow(radius: 10)
-      Text(video.displayTitle).lineLimit(1).truncationMode(.tail)
+      Text(video.displayTitle)
+        .font(.footnote)
+        .fontWeight(.regular)
+        .lineLimit(1)
+        .truncationMode(.tail)
+        .dynamicTypeSize(.small)
         .shadow(radius: 10).padding(3)
     }
     .padding(5)
@@ -58,11 +63,17 @@ struct VideoListItem: View {
 
 struct VideoListItem_Preview: PreviewProvider {
   static var previews: some View {
-    VideoListItem(
-      video: Video.preview(),
-      width: 100,
-      height: 100,
-      activeVideo: .constant(Video.preview())
-    )
+    LazyVGrid(columns: [
+      GridItem(.adaptive(minimum: thumbSize.width), spacing: 10),
+    ], spacing: 10) {
+      ForEach(0 ..< 12) { _ in
+        VideoListItem(
+          video: Video.preview(),
+          width: thumbSize.width,
+          height: thumbSize.height,
+          activeVideo: .constant(Video.preview())
+        )
+      }
+    }
   }
 }

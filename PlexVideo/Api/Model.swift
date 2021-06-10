@@ -124,7 +124,7 @@ struct VideoKey: RawRepresentable, Codable, Equatable, Identifiable, Hashable {
   }
 }
 
-struct Video: Codable, Identifiable, Equatable {
+struct Video: Codable, Identifiable, Equatable, Hashable {
   let key: VideoKey
   let title: String
   let parentTitle: String?
@@ -167,16 +167,23 @@ struct Video: Codable, Identifiable, Equatable {
       return .zero
     }
   }
+
+  func hash(into hasher: inout Hasher) {
+    hasher.combine(key.rawValue)
+  }
 }
 
 extension Video {
-  static func preview() -> Video {
+  static func preview(id: String = UUID().uuidString) -> Video {
     Video(
-      key: VideoKey(rawValue: "key"), title: "Film", parentTitle: "Film", grandparentTitle: "Film",
-      thumb: "Ding", art: "ding", Media: [
+      key: VideoKey(rawValue: id), title: "Dit is een titel van een hele lange film",
+      parentTitle: nil, grandparentTitle: nil,
+      thumb: "https://static.posters.cz/image/750/posters/pulp-fiction-cover-i1288.jpg",
+      art: "ding",
+      Media: [
         PlexVideo.Media.preview(),
       ],
-      ratingKey: RatingKey(rawValue: "1234"),
+      ratingKey: RatingKey(rawValue: id),
       viewOffset: NumberLike(value: 1000),
 
       lastViewedAt: NumberLike(value: 1000),

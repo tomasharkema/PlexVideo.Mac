@@ -19,7 +19,9 @@ struct Thumb: View {
       i.resizable()
         .frame(width: width, height: height)
     }) {
-      Rectangle().foregroundColor(.clear).background(Color.clear)
+      Rectangle()
+        .foregroundColor(.clear)
+        .background(Color.clear)
         .frame(width: width, height: height)
     }
     .background(Color.black.opacity(0.6))
@@ -28,10 +30,16 @@ struct Thumb: View {
       async {
         url = try await Api.shared.imageUrl(
           item: video,
-          width: Int(width ?? 120) * 2,
-          height: Int(height ?? 180) * 2
+          width: Int(width ?? thumbSize.width) * 2,
+          height: Int(height ?? thumbSize.height) * 2
         )
       }
     }
+  }
+}
+
+struct Thumb_Preview: PreviewProvider {
+  static var previews: some View {
+    Thumb(video: Video.preview(), width: nil, height: nil, url: URL(string: Video.preview().thumb))
   }
 }

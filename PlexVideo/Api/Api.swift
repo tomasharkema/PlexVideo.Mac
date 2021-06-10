@@ -63,7 +63,7 @@ class Api {
   }
 
   func videoQueryItems(videoKey: VideoKey, videoUuid: VideoSessionUUID, offset: Int,
-                       vr: String) -> [URLQueryItem]
+                       vr: String? = "4096x2160") -> [URLQueryItem]
   {
     return [
       URLQueryItem(name: "videoResolution", value: vr),
@@ -78,7 +78,7 @@ class Api {
       URLQueryItem(name: "directPlay", value: "1"),
       URLQueryItem(name: "includeCodecs", value: "1"),
       URLQueryItem(name: "audioBoost", value: "100"),
-      URLQueryItem(name: "autoAdjustQuality", value: "0"),
+      URLQueryItem(name: "autoAdjustQuality", value: "1"),
       URLQueryItem(name: "location", value: "lan"),
       URLQueryItem(name: "fastSeek", value: "1"),
       URLQueryItem(name: "directStreamAudio", value: "1"),
@@ -94,7 +94,7 @@ class Api {
     videoKey: VideoKey,
     videoUuid: VideoSessionUUID,
     offset: Int,
-    videoResolution: String
+    videoResolution: String? = "4096x2160"
   ) async throws -> Root<Metadata<Video>> {
     return try await requestor.request(
       url: serverLocator.root()
@@ -109,8 +109,6 @@ class Api {
   }
 
   func videoUrl(video: Video, videoUuid: VideoSessionUUID, offset: Int) async throws -> URL {
-    let initialResolution = "4096x2160"
-
     guard let media = video.Media?.first, let part = media.Part.first else {
       throw PlexError.noMedia
     }
@@ -122,8 +120,7 @@ class Api {
     let resu = try await decision(
       videoKey: video.key,
       videoUuid: videoUuid,
-      offset: offset,
-      videoResolution: initialResolution
+      offset: offset
     )
 
     print(resu)
@@ -135,8 +132,7 @@ class Api {
       videoQueryItems(
         videoKey: video.key,
         videoUuid: videoUuid,
-        offset: offset,
-        vr: initialResolution
+        offset: offset
       )
     )
   }

@@ -67,20 +67,35 @@ class Requestor {
       mutualRequest.timeoutInterval = timeoutInterval
     }
     let request = mutualRequest
+    do {
+      let (data, r) = try await URLSession.shared.data(for: request, delegate: nil)
 
-    let (data, r) = try await URLSession.shared.data(for: request, delegate: nil)
-
-    if (((r as? HTTPURLResponse)?.allHeaderFields["Content-Type"]) as? String)?
-      .contains("xml") == true
-    {
-      do {
-        return try XMLDecoder().decode(D.self, from: data)
-      } catch {
-        print(error)
-        print(error)
+      if (((r as? HTTPURLResponse)?.allHeaderFields["Content-Type"]) as? String)?
+        .contains("xml") == true
+      {
+        do {
+          return try XMLDecoder().decode(D.self, from: data)
+        } catch {
+          print(error)
+          print(error)
+        }
       }
-    }
 
-    return try JSONDecoder().decode(D.self, from: data)
+      return try JSONDecoder().decode(D.self, from: data)
+    } catch let error as URLError {
+      print(error)
+//      print(error.code)
+//      if error.code == .cannotConnectToHost || error.code == .cannotFindHost || error.code == .dnsLookupFailed {
+//        print("HOST NOT FOUND!")
+//        asyncDetached {
+//          await ServerLocator.locator.invalidate()
+//        }
+//      }
+//
+      throw error
+    } catch {
+      print(error as? URLError)
+      throw error
+    }
   }
 }
