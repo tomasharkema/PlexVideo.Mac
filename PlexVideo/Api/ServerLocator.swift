@@ -6,122 +6,122 @@
 //
 
 import Foundation
+import AsyncAwaitHelpers
 
 enum ServerLocatorError: LocalizedError {
   case noUrl
-}
-
-actor ServerLocatorData {
-  var lastUsedRoot: URL?
-  var retrieveLastUsedHostTask: Task.Handle<URL?, Never>?
-
-  func set(lastUsedRoot: URL?) {
-    self.lastUsedRoot = lastUsedRoot
-  }
-
-  func set(retrieveLastUsedHostTask: Task.Handle<URL?, Never>?) {
-    self.retrieveLastUsedHostTask = retrieveLastUsedHostTask
-  }
-
-//  public func run<T>(resultType: T.Type = T.self, body: (ServerLocatorData) throws -> T) async rethrows -> T {
-//    return try body(self)
-//  }
 }
 
 class ServerLocator: ObservableObject {
   static let locator = ServerLocator()
   private let requestor = Requestor.shared
 
-  private(set) var hasForceTried: Bool = false
-
-  private var data = ServerLocatorData()
+  private(set) var lastTriedRootDate: Date?
+  private(set) var lastForceTryDate: Date?
+  private(set) var lastConfirmedUrl: URL?
+  private let pingOnce = Once<URL, (Root<Version>, TimeInterval), Error>()
 
   @MainActor @Published private(set) var connection: Connection?
 
-  func root(force: Bool = false) async throws -> URL {
-    do {
-      if let lastUsed = await retrieveLastUsedHost(force: force), !force {
-        if !hasForceTried {
-          hasForceTried = true
-          asyncDetached(priority: .background, operation: {
-            try await root(force: true)
-          })
-        }
+  private let rootOnce = OnceSingle<URL, Error>()
+  private let rootForceOnce = OnceSingle<URL, Error>()
+  private let invalidateOnce = OnceSingle<Void, Never>()
 
-        return lastUsed
+  func root(force: Bool = false) async throws -> URL {
+    if force {
+      return try await rootForceOnce.onceKeepOriginal(Task {
+        guard let url = try await chooseServer() else {
+          throw ServerLocatorError.noUrl
+        }
+        lastForceTryDate = Date()
+        return url
+      }).value
+    }
+
+    if let lastConfirmedUrl = lastConfirmedUrl {
+      return lastConfirmedUrl
+    }
+
+    return try await rootOnce.onceKeepOriginal(Task {
+      // phase 1: check for last used root and if its still viable...
+      do {
+        if let lastUsed = await Storage.shared.lastUsedRoot {
+          if lastTriedRootDate == nil {
+            _ = try await ping(server: lastUsed)
+            lastTriedRootDate = Date()
+          }
+          lastConfirmedUrl = lastUsed
+          return lastUsed
+        }
+      } catch {
+        await MainActor.run {
+          Storage.shared.lastUsedRoot = nil
+        }
+        print("lastUsedRoot not viable... continuing! \(error)")
       }
 
+      // phase 2: check if saved local and remote ip's are still viable
+      do {
+        if let localHost = await Storage.shared.lastUsedLocalHost,
+           let remoteHost = await Storage.shared.lastUsedRemoteHost,
+           let url = try await selectHost(l: localHost, r: remoteHost)
+        {
+          return url
+        }
+      } catch {
+        await MainActor.run {
+          Storage.shared.lastUsedLocalHost = nil
+          Storage.shared.lastUsedRemoteHost = nil
+        }
+        print("lastUsedLocalHost and lastUsedRemoteHost not viable... continuing! \(error)")
+      }
+
+      // phase 3: refetch potential servers to connect to
       guard let url = try await chooseServer() else {
         throw ServerLocatorError.noUrl
       }
-
-      await data.set(lastUsedRoot: url)
       return url
+    }).value
+  }
+
+  private func ping(server: URL) async throws -> (Root<Version>, TimeInterval) {
+    return try await pingOnce.onceKeepOriginal(key: server, keepInCache: 60) {
+      let date = Date()
+      return (
+        try await self.requestor.request(url: server, timeoutInterval: 2, invalidateAfterError: false),
+        abs(date.timeIntervalSinceNow)
+      )
+    }.value
+  }
+
+  private func selectHost(l: URL, r: URL) async throws -> URL? {
+    async let local = ping(server: l)
+    async let remote = ping(server: r)
+
+    do {
+      _ = try await local
+      await MainActor.run {
+        Storage.shared.lastUsedRoot = l
+      }
+      return l
     } catch {
-      print("ERROR!", error)
+      print("local not succeeded \(error)")
+    }
+
+    do {
+      _ = try await remote
+      await MainActor.run {
+        Storage.shared.lastUsedRoot = r
+      }
+      return r
+    } catch {
+      print("remote not succeeded \(error)")
       throw error
     }
   }
 
-  private func ping(server: URL) async -> Result<(Root<Version>, TimeInterval), Error> {
-    do {
-      let date = Date()
-      return .success((
-        try await requestor.request(url: server, timeoutInterval: 2),
-        Date().timeIntervalSince(date)
-      ))
-    } catch {
-      return .failure(error)
-    }
-  }
-
-  private func selectHost(l: URL, r: URL) async -> URL? {
-    async let local = ping(server: l)
-    async let remote = ping(server: r)
-
-    if case .success = await local {
-      await data.set(lastUsedRoot: l)
-      return l
-    } else if case .success = await remote {
-      await data.set(lastUsedRoot: r)
-      return r
-    } else {
-      return nil
-    }
-  }
-
-  private func retrieveLastUsedHost(force: Bool = false) async -> URL? {
-    if let lastUsedRoot = await data.lastUsedRoot, !force {
-      return lastUsedRoot
-    }
-
-    if let hangingTask = await data.retrieveLastUsedHostTask {
-      return try? await hangingTask.get()
-    }
-
-    let task = asyncDetached { () -> URL? in
-      defer { async { await data.set(retrieveLastUsedHostTask: nil) } }
-      if let lastUsedLocalHost = await Storage.shared.lastUsedLocalHost,
-         let lastUsedRemoteHost = await Storage.shared.lastUsedRemoteHost,
-         let localHost = URL(string: lastUsedLocalHost),
-         let remoteHost = URL(string: lastUsedRemoteHost),
-         !force
-      {
-        return await selectHost(l: localHost, r: remoteHost)
-      }
-      return nil
-    }
-
-//    await data.run {
-//      $0.retrieveLastUsedHostTask = task
-//    }
-
-    await data.set(retrieveLastUsedHostTask: task)
-    return await task.get()
-  }
-
   func devices() async throws -> [Device] {
-    return try await requestor.request(
+    try await requestor.request(
       url: URL(string: "https://plex.tv/api/v2/resources")!,
       queryItems: [
         URLQueryItem(name: "includeHttps", value: "1"),
@@ -130,11 +130,24 @@ class ServerLocator: ObservableObject {
     )
   }
 
-  private func chooseServer() async throws -> URL? {
-    let d = try await devices()
-    print(d)
+  private func executePings(servers: [(Connection, URL)]) async throws
+    -> (Connection, URL)?
+  {
+    try await whenAny(servers.map { server in
+      return { () -> (Connection, URL)? in
+        do {
+          _ = try await self.ping(server: server.1)
+          return (server.0, server.1)
+        } catch {
+          print(error)
+          return nil
+        }
+      }
+    })
+  }
 
-    let servers = d
+  private func chooseServer() async throws -> URL? {
+    let servers = try await devices()
       .filter {
         $0.provides.contains("server")
       }
@@ -149,74 +162,47 @@ class ServerLocator: ObservableObject {
       $0.0.local
     })
 
-    // TODO: fix async let
+    async let localPings = executePings(servers: serversGroupedByLocal[true] ?? [])
+    async let remotePings = executePings(servers: serversGroupedByLocal[false] ?? [])
 
-    async let localPings = withTaskGroup(of: [(Connection, URL, TimeInterval)]
-      .self) { group -> [(Connection, URL, TimeInterval)] in
-      for server in serversGroupedByLocal[true] ?? [] {
-        group.async {
-          if case let .success(r) = await self.ping(server: server.1) {
-            return [(server.0, server.1, r.1)]
-          } else {
-            return []
-          }
-        }
-      }
-      return await group.reduce([], +)
+    let choice: (Connection, URL)?
+
+    if let local = try? await localPings {
+      choice = local
+    } else if let remote = try await remotePings {
+      choice = remote
+    } else {
+      choice = nil
     }
-
-    async let remotePings = withTaskGroup(of: [(Connection, URL, TimeInterval)]
-      .self) { group -> [(Connection, URL, TimeInterval)] in
-      for server in serversGroupedByLocal[false] ?? [] {
-        group.async {
-          if case let .success(r) = await self.ping(server: server.1) {
-            return [(server.0, server.1, r.1)]
-          } else {
-            return []
-          }
-        }
-      }
-      return await group.reduce([], +)
-    }
-
-    let local = await localPings.sorted {
-      $0.2 < $1.2
-    }.first
-
-    let remote = await remotePings.sorted {
-      $0.2 < $1.2
-    }.first
-
-    DispatchQueue.main.async {
-      Storage.shared.lastUsedLocalHost = local?.1.absoluteString
-      Storage.shared.lastUsedRemoteHost = remote?.1.absoluteString
-    }
-
-    let choice = local ?? remote
 
     await MainActor.run {
+      Storage.shared.lastUsedRoot = choice?.1
+      
       self.connection = choice?.0
+    }
+
+    let local = try? await localPings
+    let remote = try? await remotePings
+
+    await MainActor.run {
+      Storage.shared.lastUsedLocalHost = local?.1
+      Storage.shared.lastUsedRemoteHost = remote?.1
     }
 
     return choice?.1
   }
 
-  private var invalidateTask: Task.Handle<Void, Never>?
   func invalidate() async {
-    if let invalidateTask = invalidateTask {
-      await invalidateTask.get()
-      return
-    }
-    invalidateTask = async {
-      await data.set(lastUsedRoot: nil)
-//      lastUsedRoot = nil
-
+    _ = await invalidateOnce.onceKeepOriginal(Task {
+      lastConfirmedUrl = nil
+      await MainActor.run {
+        Storage.shared.lastUsedRoot = nil
+      }
       do {
-        try await root(force: true)
+        _ = try await root(force: true)
       } catch {
         print(error)
       }
-      invalidateTask = nil
-    }
+    }).value
   }
 }

@@ -28,7 +28,7 @@ struct Progress: Codable {
   }
 
   var isZero: Bool {
-    return seconds.isZero && date.timeIntervalSince1970.isZero
+    seconds.isZero && date.timeIntervalSince1970.isZero
   }
 
   static let zero = Progress(seconds: 0, date: Date(timeIntervalSince1970: 0))

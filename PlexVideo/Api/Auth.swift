@@ -23,7 +23,7 @@ class Auth {
       throw AuthError.limitReached
     }
 
-    Thread.sleep(forTimeInterval: requestDelay)
+    try await Task.sleep(time: requestDelay)
 
     do {
       let token: PinToken = try await requestor.request(

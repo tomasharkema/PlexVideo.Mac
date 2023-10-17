@@ -1,0 +1,41 @@
+{
+  "pins" : [
+    {
+      "identity" : "initmacro",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/LeonardoCardoso/InitMacro",
+      "state" : {
+        "branch" : "main",
+        "revision" : "873caf7bbdbb63cd2851a0efc4bbf4bdbea9d863"
+      }
+    },
+    {
+      "identity" : "processed",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/SwiftedMind/Processed",
+      "state" : {
+        "revision" : "044882f9d1b04c5538b48f311aa8d89e5d04a025",
+        "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "swift-syntax",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-syntax.git",
+      "state" : {
+        "revision" : "74203046135342e4a4a627476dd6caf8b28fe11b",
+        "version" : "509.0.0"
+      }
+    },
+    {
+      "identity" : "swiftui-cached-async-image",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/lorenzofiamingo/swiftui-cached-async-image",
+      "state" : {
+        "revision" : "467a3d17479887943ab917a379e62bbaff60ac8a",
+        "version" : "2.1.1"
+      }
+    }
+  ],
+  "version" : 2
+}

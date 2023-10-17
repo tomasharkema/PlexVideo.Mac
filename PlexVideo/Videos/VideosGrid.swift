@@ -6,16 +6,29 @@
 //
 
 import SwiftUI
+import PlexApi
+import PlexCore
+import PlexShared
+import Processed
 
-let thumbSize = CGSize(width: 120, height: 180)
-
+@MainActor
 struct VideosGrid: View {
-  @Binding var activeVideo: Video?
+  @Binding
+  private var activeVideo: Video?
 
-  let searchResults: [Video]?
-  let continueWatching: [Video]
-  let videos: [Video]
-  let openVideo: (Video) -> Void
+  @Binding
+  private var viewModel: VideosViewModel
+
+//  let searchResults: LoadableState<[Video]>
+//  public let continueWatching: [Video]
+//  public let videos: [Video]
+  public let openVideo: (Video) -> Void
+
+  init(activeVideo: Binding<Video?>, viewModel: Binding<VideosViewModel>, openVideo: @escaping (Video) -> Void) {
+    self._activeVideo = activeVideo
+    self._viewModel = viewModel
+    self.openVideo = openVideo
+  }
 
   private func section(text: String?, videos: [Video]) -> some View {
     Section(content: {
@@ -27,8 +40,8 @@ struct VideosGrid: View {
           label: {
             VideoListItem(
               video: video,
-              width: thumbSize.width,
-              height: thumbSize.height,
+              width: ThumbViewModel.thumbSize.width,
+              height: ThumbViewModel.thumbSize.height,
               activeVideo: $activeVideo
             )
           }
@@ -38,46 +51,54 @@ struct VideosGrid: View {
       }
     }, header: {
       if let text = text {
-        Text(text).font(Font.system(size: 32, weight: .semibold, design: .default)).alignmentGuide(
-          HorizontalAlignment.leading,
-          computeValue: {
-            $0[.leading]
-          }
-        )
+        HStack {
+          Text(text).foregroundColor(Color.white)
+            .font(.title2.weight(.medium).smallCaps())
+          Spacer()
+        }
       }
     })
   }
 
   var body: some View {
     LazyVGrid(columns: [
-      GridItem(.adaptive(minimum: thumbSize.width), spacing: 10),
+      GridItem(.adaptive(minimum: ThumbViewModel.thumbSize.width), spacing: 10),
     ], spacing: 10) {
-      if let searchResult = searchResults {
+
+      switch viewModel.searchResults {
+      case .absent:
+        section(text: "Continue Watching", videos: viewModel.data.data?.continueWatching ?? [])
+        section(text: "All", videos: viewModel.data.data?.videos ?? [])
+
+      case .loading:
+        ProgressView()
+
+      case .loaded(let searchResult):
         section(text: nil, videos: searchResult)
-      } else {
-        section(text: "Continue Watching", videos: continueWatching)
-        section(text: "All", videos: videos)
+
+      case .error(let error):
+        Text(error.localizedDescription)
       }
     }
   }
 }
 
-struct VideosGrid_Preview: PreviewProvider {
-  static var previews: some View {
-    VideosGrid(activeVideo: .constant(nil), searchResults: nil, continueWatching: [
-      Video.preview(id: "A"),
-      Video.preview(),
-      Video.preview(),
-      Video.preview(),
-      Video.preview(),
-      Video.preview(),
-    ], videos: [
-      Video.preview(id: "A"),
-      Video.preview(),
-      Video.preview(),
-      Video.preview(),
-      Video.preview(),
-      Video.preview(),
-    ], openVideo: { _ in })
-  }
-}
+//struct VideosGrid_Preview: PreviewProvider {
+//  static var previews: some View {
+//    VideosGrid(activeVideo: .constant(nil), searchResults: .absent, continueWatching: [
+//      Video.preview(id: "A"),
+//      Video.preview(),
+//      Video.preview(),
+//      Video.preview(),
+//      Video.preview(),
+//      Video.preview(),
+//    ], videos: [
+//      Video.preview(id: "A"),
+//      Video.preview(),
+//      Video.preview(),
+//      Video.preview(),
+//      Video.preview(),
+//      Video.preview(),
+//    ], openVideo: { _ in })
+//  }
+//}

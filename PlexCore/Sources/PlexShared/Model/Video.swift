@@ -1,0 +1,72 @@
+//
+//  Video.swift
+//
+//
+//  Created by Tomas Harkema on 16/10/2023.
+//
+
+import Foundation
+import InitMacro
+
+@Init(public: true)
+public struct Video: Codable, Identifiable, Equatable, Hashable {
+  public let key: VideoKey
+  public let title: String
+  public let titleSort: String?
+  public let parentTitle: String?
+  public let grandparentTitle: String?
+  public let thumb: String?
+  public let art: String?
+  public let Media: [Media]?
+  public let ratingKey: RatingKey
+  public let viewOffset: NumberLike?
+  public let lastViewedAt: NumberLike?
+  public let leafCount: NumberLike?
+  public let viewedLeafCount: NumberLike?
+  public let OnDeck: MetadataSingle<OnDeck>?
+  public let grandparentKey: VideoKey?
+  public let parentKey: VideoKey?
+  public let childCount: NumberLike?
+  public let grandparentThumb: String?
+
+  public var id: String {
+    key.rawValue
+  }
+
+  public var displayTitle: String {
+    grandparentTitle ?? parentTitle ?? title
+  }
+
+  public func getProgress(storage storageProgress: Progress?) -> Progress {
+    let remoteProgress = Progress(video: self)
+
+    let viableStorageProgress: Progress?
+    if let storageProgress = storageProgress {
+      if abs(storageProgress.date.timeIntervalSinceNow) < 7 * 24 * 60 * 60 {
+        viableStorageProgress = storageProgress
+      } else {
+        viableStorageProgress = nil
+      }
+
+    } else {
+      viableStorageProgress = nil
+    }
+
+    switch (remoteProgress, viableStorageProgress) {
+    case let (remote?, storage?) where storage.date > remote.date:
+      return storage
+    case let (remote?, .some(_)):
+      return remote
+    case let (remote?, .none):
+      return remote
+    case let (.none, storage?):
+      return storage
+    case (.none, .none):
+      return .zero
+    }
+  }
+
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(key.rawValue)
+  }
+}

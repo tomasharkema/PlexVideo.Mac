@@ -7,8 +7,9 @@
 
 import CoreMedia
 import Foundation
-import UIKit
-import XMLCoder
+//import UIKit
+// import XMLCoder
+import AsyncAwaitHelpers
 
 struct VideoSessionUUID: RawRepresentable {
   let rawValue: String
@@ -28,27 +29,33 @@ struct DeviceInfo {
   let product = "PlexVideo"
 }
 
+@MainActor
+class ImageCache {
+  static let shared = ImageCache()
+  var thumbCache: [VideoKey: URL] = [:]
+}
+
 class Api {
-  static var shared = Api()
+  static let shared = Api()
   private let serverLocator = ServerLocator.locator
   private let requestor = Requestor.shared
 
   func sections() async throws -> Root<DirectoryContainer> {
-    return try await requestor.request(
+    try await requestor.request(
       url: serverLocator.root()
         .appendingPathComponent("/library/sections")
     )
   }
 
   func all(key: SectionKey) async throws -> Root<Metadata<Video>> {
-    return try await requestor.request(
+    try await requestor.request(
       url: serverLocator.root()
         .appendingPathComponent("/library/sections/\(key.rawValue)/all")
     )
   }
 
   func onDeck(ratingKey: RatingKey) async throws -> Root<Metadata<Video>> {
-    return try await requestor.request(
+    try await requestor.request(
       url: serverLocator.root()
         .appendingPathComponent("/library/metadata/\(ratingKey.rawValue)"),
       queryItems: [URLQueryItem(name: "includeOnDeck", value: "1")]
@@ -56,7 +63,7 @@ class Api {
   }
 
   private func status() async throws -> Root<Metadata<SessionStatus>> {
-    return try await requestor.request(
+    try await requestor.request(
       url: serverLocator.root()
         .appendingPathComponent("/status/sessions")
     )
@@ -65,7 +72,7 @@ class Api {
   func videoQueryItems(videoKey: VideoKey, videoUuid: VideoSessionUUID, offset: Int,
                        vr: String? = "4096x2160") -> [URLQueryItem]
   {
-    return [
+    [
       URLQueryItem(name: "videoResolution", value: vr),
       URLQueryItem(name: "path", value: videoKey.rawValue),
       URLQueryItem(name: "partIndex", value: "0"),
@@ -96,7 +103,7 @@ class Api {
     offset: Int,
     videoResolution: String? = "4096x2160"
   ) async throws -> Root<Metadata<Video>> {
-    return try await requestor.request(
+    try await requestor.request(
       url: serverLocator.root()
         .appendingPathComponent("/video/:/transcode/universal/decision"),
       queryItems: videoQueryItems(
@@ -109,23 +116,21 @@ class Api {
   }
 
   func videoUrl(video: Video, videoUuid: VideoSessionUUID, offset: Int) async throws -> URL {
-    guard let media = video.Media?.first, let part = media.Part.first else {
-      throw PlexError.noMedia
-    }
+//    guard let media = videob
 
-    let isNativeFormat = ["hls"].contains(media.protocol) || ["mov", "mp4"]
-      .contains(media.container) && ["mpeg4", "h264", "drmi", "hevc"]
-      .contains(media.videoCodec) && ["aac", "ac3", "drms"].contains(media.audioCodec)
+//    let isNativeFormat = ["hls"].contains(media.protocol) || ["mov", "mp4"]
+//      .contains(media.container) && ["mpeg4", "h264", "drmi", "hevc"]
+//      .contains(media.videoCodec) && ["aac", "ac3", "drms"].contains(media.audioCodec)
 
-    let resu = try await decision(
-      videoKey: video.key,
-      videoUuid: videoUuid,
-      offset: offset
-    )
+//    let resu = try await decision(
+//      videoKey: video.key,
+//      videoUuid: videoUuid,
+//      offset: offset
+//    )
+//
+//    print(resu)
 
-    print(resu)
-
-    return try await requestor._requestUrl(
+    try await requestor._requestUrl(
       url: serverLocator.root()
         .appendingPathComponent("/video/:/transcode/universal/start.m3u8"),
       queryItems:
@@ -140,7 +145,7 @@ class Api {
   func imageUrl(item: Video, width: Int, height: Int) async throws
     -> URL
   {
-    return try await requestor._requestUrl(
+    let url = try await requestor._requestUrl(
       url: serverLocator.root()
         .appendingPathComponent("/photo/:/transcode"),
       queryItems: [
@@ -150,38 +155,40 @@ class Api {
         URLQueryItem(name: "upscale", value: "1"),
       ]
     )
+
+    Task { @MainActor in
+      ImageCache.shared.thumbCache[item.key] = url
+    }
+    return url
   }
 
   func timeline(video: Video, time: CMTime,
-                state: PlayingState) async -> Result<Root<TranscodeSession>, Error>
+                state: PlayingState) async throws -> Root<TranscodeSessions>
   {
-    do {
-      return .success(try await requestor.request(
+    return try await requestor.request(
         url: serverLocator.root()
           .appendingPathComponent("/:/timeline"),
         queryItems: [
           URLQueryItem(name: "time", value: "\(Int(time.seconds * 1000))"),
           URLQueryItem(name: "ratingKey", value: video.ratingKey.rawValue),
-          URLQueryItem(name: "duration", value: "\(Int(video.Media?.first?.duration.value ?? 0))"),
+          URLQueryItem(
+            name: "duration",
+            value: "\(Int(video.Media?.first?.duration.value ?? 0))"
+          ),
           URLQueryItem(name: "state", value: state.rawValue),
           URLQueryItem(name: "key", value: video.key.rawValue),
           URLQueryItem(name: "context", value: "library%3Acontent.library"),
         ]
-      ))
-
-    } catch {
-      print(error)
-      return .failure(error)
-    }
+      )
   }
 
   func continueWatching(contentDirectoryIDs: [SectionKey]) async throws -> Root<Hub<Video>> {
-    return try await requestor.request(
+    try await requestor.request(
       url: serverLocator.root().appendingPathComponent("/hubs/continueWatching"),
       queryItems: [
         URLQueryItem(
           name: "contentDirectoryID",
-          value: contentDirectoryIDs.map { $0.rawValue }.joined(separator: ",")
+          value: contentDirectoryIDs.map(\.rawValue).joined(separator: ",")
         ),
         URLQueryItem(name: "includeMeta", value: "1"),
       ]

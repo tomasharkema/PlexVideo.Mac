@@ -7,43 +7,43 @@
 
 import Foundation
 import SwiftUI
+import PlexApi
+import PlexShared
+import PlexCore
 
+@MainActor
 struct Videos: View {
-  @StateObject var viewModel = VideosViewModel()
+  @State 
+  private var viewModel = VideosViewModel()
 
-  @State var video: Video?
-
-  @State var isLoading: Bool = true
+  @State 
+  private var video: Video?
 
   var body: some View {
-    NavigationView {
+    NavigationStack {
       VideosGridScreen(
-        viewModel: viewModel,
+        viewModel: $viewModel,
         video: $video
-      ).overlay(ConnectionOverlay()).overlay(ProgressView().opacity(isLoading ? 1 : 0))
+      )
+      .overlay(ConnectionOverlay())
+      //.overlay(ProgressView().opacity(viewModel.data.isLoading ? 1 : 0))
     }
-    .navigationViewStyle(StackNavigationViewStyle())
     .overlay(
       PlayerOverlay(video: $video),
       alignment: Alignment(horizontal: .center, vertical: .bottom)
     )
-    .onAppear {
-      async {
-        isLoading = true
-        try await viewModel.load()
-        isLoading = false
-      }
+    .task {
+      await viewModel.load(silently: false)
     }
     .onChange(of: viewModel.savedLastPlayed) {
+      // on startup, start the last saved playing video
       if video == nil {
-        video = $0
+        video = viewModel.savedLastPlayed
       }
     }
     .onChange(of: video) {
-      if $0 == nil {
-        asyncDetached(priority: .background) {
-          try await Storage.shared.setLastPlayed(lastPlayed: nil)
-        }
+      if video == nil {
+        self.viewModel.resetLastPlayed()
       }
     }
   }

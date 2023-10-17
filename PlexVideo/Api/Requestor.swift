@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import XMLCoder
+// import XMLCoder
 
 class Requestor {
   static let shared = Requestor()
@@ -53,7 +53,8 @@ class Requestor {
     method: String = "GET",
     queryItems: [URLQueryItem]? = nil,
     sendDefaultQueries: Bool = true,
-    timeoutInterval: TimeInterval? = nil
+    timeoutInterval: TimeInterval? = nil,
+    invalidateAfterError: Bool = true
   ) async throws -> D {
     var mutualRequest =
       URLRequest(url: await _requestUrl(
@@ -68,33 +69,42 @@ class Requestor {
     }
     let request = mutualRequest
     do {
-      let (data, r) = try await URLSession.shared.data(for: request, delegate: nil)
+      async let (data, _) = URLSession.shared.data(for: request, delegate: nil)
 
-      if (((r as? HTTPURLResponse)?.allHeaderFields["Content-Type"]) as? String)?
-        .contains("xml") == true
-      {
-        do {
-          return try XMLDecoder().decode(D.self, from: data)
-        } catch {
-          print(error)
-          print(error)
-        }
-      }
-
-      return try JSONDecoder().decode(D.self, from: data)
-    } catch let error as URLError {
-      print(error)
-//      print(error.code)
-//      if error.code == .cannotConnectToHost || error.code == .cannotFindHost || error.code == .dnsLookupFailed {
-//        print("HOST NOT FOUND!")
-//        asyncDetached {
-//          await ServerLocator.locator.invalidate()
+//      if (((r as? HTTPURLResponse)?.allHeaderFields["Content-Type"]) as? String)?
+//        .contains("xml") == true
+//      {
+//        do {
+//          return try XMLDecoder().decode(D.self, from: data)
+//        } catch {
+//          print(error)
+//          print(error)
 //        }
 //      }
+      do {
+        return try await JSONDecoder().decode(D.self, from: data)
+      } catch {
+        let json = try? await String(data: data, encoding: .utf8)!
+        print(error, request.url!, json)
+        throw error
+      }
+    } catch let error as URLError {
+      print(error)
+      print(error.code)
+
+      if invalidateAfterError,
+         error.code == .cannotConnectToHost || error.code == .cannotFindHost || error
+         .code == .dnsLookupFailed
+      {
+        print("HOST NOT FOUND!")
+        Task {
+          await ServerLocator.locator.invalidate()
+        }
+      }
 //
       throw error
     } catch {
-      print(error as? URLError)
+      print(error, url)
       throw error
     }
   }

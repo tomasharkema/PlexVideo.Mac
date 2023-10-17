@@ -6,96 +6,103 @@
 //
 
 import Foundation
+import AsyncAwaitHelpers
+import PlexApi
+import PlexShared
+import Inject
 
 // FIXME: Tryout asyncDetached! Should be async let. But that crashes the compiler
 
-class VideoDataService {
-  nonisolated func progress(for video: Video) async throws -> Progress {
-    return video.getProgress(storage: try await Storage.shared.getSavedOffset(video: video))
+final class VideoDataService {
+
+  @Injected(\.api)
+  private var api
+
+  @Injected(\.storage)
+  private var storage
+
+  nonisolated func progress(for video: Video) async throws -> PlexShared.Progress {
+    assert(!Thread.isMainThread)
+    return video.getProgress(storage: try await self.storage.getSavedOffset(video: video))
   }
 
   private func getSections() async throws -> [Directory] {
-    return try await Api.shared.sections().MediaContainer.Directory.filter {
+    try await self.api.sections(deviceInfo: .current).MediaContainer.Directory.filter {
       $0.type == "movie" || $0.type == "show"
     }
   }
 
-  func getContinueWatching(sections: Task
-    .Handle<[Directory], Error>) async throws -> [(VideoKey, Progress)]
-  {
-    return try await whenAll(tasks: Api.shared
-      .continueWatching(contentDirectoryIDs: sections.get().map { $0.key })
+  func getContinueWatching(sections: [Directory]) async throws -> [Video] {
+    try await self.api
+      .continueWatching(contentDirectoryIDs: sections.map(\.key), deviceInfo: .current)
       .MediaContainer.Hub
-      .flatMap { $0.Metadata }
-      .map { v in
-        asyncDetached(priority: .userInitiated) {
-          try await (v.key, v.getProgress(storage: self.progress(for: v)))
-        }
-      })
+      .flatMap(\.Metadata)
   }
 
-  func fetchVideos(sections: Task.Handle<[Directory], Error>) async throws -> [Video] {
-    return try await Array(whenAll(tasks: sections.get().map { s in
-      asyncDetached(priority: .userInitiated) {
-        (try await Api.shared.all(key: s.key)).MediaContainer.Metadata
+  func getContinueWatchingAndProgress(sections: [Directory]) async throws
+  -> [(VideoKey, PlexShared.Progress)]
+  {
+    try await getContinueWatching(sections: sections)
+      .map { v in
+        {
+          Task(priority: .userInitiated) {
+            try await (v.key, v.getProgress(storage: self.progress(for: v)))
+          }
+        }
+      }.whenAll()
+  }
+
+  func fetchVideos(sections: [Directory]) async throws -> [Video] {
+    try await Array(sections.map { s in
+      Task {
+        (try await self.api.all(key: s.key, deviceInfo: .current)).MediaContainer.Metadata
       }
-    }).joined())
+    }.whenAll().joined())
   }
 
   func getVideoList() async throws -> (onDeck: [Video], all: [Video]) {
-    let sections = asyncDetached(priority: .userInitiated) { try await getSections() }
-    let continueWatchingResultKeyValue = asyncDetached(priority: .userInitiated) {
-      try await getContinueWatching(sections: asyncDetached(priority: .userInitiated) {
-        try await sections.get()
-      })
-    }
-    let continueWatching = asyncDetached(priority: .userInitiated) {
-      Dictionary(uniqueKeysWithValues: try await continueWatchingResultKeyValue.get())
-    }
+    let sections = try await getSections()
 
-    let videos = asyncDetached(priority: .userInitiated) {
-      try await fetchVideos(sections: sections)
-    }
+    async let videosAsync = fetchVideos(sections: sections)
+    async let continueWatchingResultKeyValueAsync =
+      getContinueWatchingAndProgress(sections: sections)
 
-    let videosByKey = asyncDetached(priority: .userInitiated) {
-      try await Dictionary(uniqueKeysWithValues: videos.get().map {
-        ($0.key, $0)
-      })
-    }
+    let (videos, continueWatchingResultKeyValue) = try await (
+      videosAsync,
+      continueWatchingResultKeyValueAsync
+    )
 
-    let progressArrayMissing =
-      asyncDetached(priority: .userInitiated) {
-        try await Array(whenAll(tasks: videos.get().map { video in
-          asyncDetached(priority: .userInitiated) { () -> [(VideoKey, Progress)] in
-            let progress = try await video.getProgress(storage: self.progress(for: video))
-            let cw = try await continueWatching.get()
+    let continueWatching = [VideoKey: PlexShared.Progress](uniqueKeysWithValues: continueWatchingResultKeyValue)
+    let videosByKey = Dictionary(uniqueKeysWithValues: videos.map {
+      ($0.key, $0)
+    })
 
-            if !progress.isZero, cw[video.key] == nil {
-              return [(video.key, progress)]
-            } else {
-              return []
-            }
+    async let progressArrayMissing = Array(videos.map { video in
+      Task { () -> [(VideoKey, PlexShared.Progress)] in
+          let progress = try await video
+            .getProgress(storage: self.progress(for: video))
+
+          if !progress.isZero, continueWatching[video.key] == nil {
+            return [(video.key, progress)]
+          } else {
+            return []
           }
-        }).joined())
+      }
+    }.whenAll().joined())
+
+    let fixedContinue = try await [continueWatchingResultKeyValue, progressArrayMissing]
+      .joined()
+      .sorted {
+        $0.1.date > $1.1.date
+      }
+      .flatMap {
+        videosByKey[$0.0].map { [$0] } ?? []
       }
 
-    let fixedContinue: Task.Handle<[Video], Error> = asyncDetached(priority: .userInitiated) {
-      let vbk = try await videosByKey.get()
-      return try await [continueWatchingResultKeyValue.get(), progressArrayMissing.get()].joined()
-        .sorted {
-          $0.1.date > $1.1.date
-        }
-        .flatMap {
-          vbk[$0.0].map { [$0] } ?? []
-        }
+    let videosSorted = videos.sorted {
+      $0.titleSort ?? $0.title < $1.titleSort ?? $1.title
     }
 
-    let videosSorted = asyncDetached(priority: .userInitiated) {
-      try await videos.get().sorted {
-        $0.titleSort ?? $0.title < $1.titleSort ?? $1.title
-      }
-    }
-
-    return try await (fixedContinue.get(), videosSorted.get())
+    return (fixedContinue, videosSorted)
   }
 }

@@ -8,7 +8,10 @@
 import AVKit
 import Foundation
 import SwiftUI
+import PlexApi
+import PlexShared
 
+#if os(iOS)
 struct VideoPlayer: UIViewControllerRepresentable {
   let video: Video
   let player: AVPlayer
@@ -25,63 +28,65 @@ struct VideoPlayer: UIViewControllerRepresentable {
       self.fullscreen = fullscreen
     }
 
-    func playerViewControllerWillStartPictureInPicture(
-      _ playerViewController: AVPlayerViewController
-    ) {
-      pip(true)
-      playerViewController.videoGravity = .resizeAspect
-    }
+//    func playerViewControllerWillStartPictureInPicture(
+//      _ playerViewController: AVPlayerViewController
+//    ) {
+//      pip(true)
+//      playerViewController.videoGravity = .resizeAspect
+//    }
+//
+//    func playerViewControllerWillStopPictureInPicture(
+//      _ playerViewController: AVPlayerViewController
+//    ) {
+//      pip(false)
+//      playerViewController.videoGravity = .resizeAspectFill
+//    }
 
-    func playerViewControllerWillStopPictureInPicture(
-      _ playerViewController: AVPlayerViewController
-    ) {
-      pip(false)
-      playerViewController.videoGravity = .resizeAspectFill
-    }
+//    func playerViewController(
+//      _: AVPlayerViewController,
+//      willBeginFullScreenPresentationWithAnimationCoordinator _: UIViewControllerTransitionCoordinator
+//    ) {
+//      fullscreen(true)
+////      coordinator.animate(alongsideTransition: { _ in
+////        playerViewController.videoGravity = .resizeAspect
+////      }, completion: nil)
+//    }
 
-    func playerViewController(
-      _ playerViewController: AVPlayerViewController,
-      willBeginFullScreenPresentationWithAnimationCoordinator coordinator: UIViewControllerTransitionCoordinator
-    ) {
-      fullscreen(true)
-      coordinator.animate(alongsideTransition: { _ in
-        playerViewController.videoGravity = .resizeAspect
-      }, completion: nil)
-    }
+//    func playerViewController(
+//      _ playerViewController: AVPlayerViewController,
+//      willEndFullScreenPresentationWithAnimationCoordinator coordinator: UIViewControllerTransitionCoordinator
+//    ) {
+//      coordinator.animate(alongsideTransition: { _ in }, completion: {
+//        if $0.isCancelled {
+//          self.fullscreen(true)
+//          playerViewController.videoGravity = .resizeAspect
+//        } else {
+//          self.fullscreen(false)
+//          playerViewController.videoGravity = .resizeAspectFill
+//        }
+//      })
+//    }
 
-    func playerViewController(
-      _ playerViewController: AVPlayerViewController,
-      willEndFullScreenPresentationWithAnimationCoordinator coordinator: UIViewControllerTransitionCoordinator
-    ) {
-      coordinator.animate(alongsideTransition: { _ in }, completion: {
-        if $0.isCancelled {
-          self.fullscreen(true)
-          playerViewController.videoGravity = .resizeAspect
-        } else {
-          self.fullscreen(false)
-          playerViewController.videoGravity = .resizeAspectFill
-        }
-      })
-    }
-
-    func playerViewControllerRestoreUserInterfaceForFullScreenExit(_: AVPlayerViewController) async
-      -> Bool
-    {
-      // Custom UI restoration logic
-      return true
-    }
-
-    func playerViewControllerRestoreUserInterfaceForPictureInPictureStop(
-      _: AVPlayerViewController
-    ) async
-      -> Bool
-    {
-      return true
-    }
+//    func playerViewControllerRestoreUserInterfaceForFullScreenExit(
+//      _: AVPlayerViewController
+//    ) async
+//      -> Bool
+//    {
+//      // Custom UI restoration logic
+//      true
+//    }
+//
+//    func playerViewControllerRestoreUserInterfaceForPictureInPictureStop(
+//      _: AVPlayerViewController
+//    ) async
+//      -> Bool
+//    {
+//      true
+//    }
   }
 
   func makeCoordinator() -> Coordinator {
-    return Coordinator {
+    Coordinator {
       isPip = $0
     } fullscreen: {
       isFullscreen = $0
@@ -91,12 +96,13 @@ struct VideoPlayer: UIViewControllerRepresentable {
   func makeUIViewController(context: Context) -> AVPlayerViewController {
     let vc = AVPlayerViewController()
     vc.canStartPictureInPictureAutomaticallyFromInline = true
-    vc.entersFullScreenWhenPlaybackBegins = true
+//    vc.entersFullScreenWhenPlaybackBegins = true
     vc.allowsPictureInPicturePlayback = true
     vc.updatesNowPlayingInfoCenter = true
     vc.player = player
     vc.delegate = context.coordinator
-    vc.videoGravity = .resizeAspectFill
+//    vc.videoGravity = .resizeAspectFill
+    vc.videoGravity = .resizeAspect
     vc.title = video.displayTitle
 
 //    player.addPeriodicTimeObserver(
@@ -112,11 +118,11 @@ struct VideoPlayer: UIViewControllerRepresentable {
     DispatchQueue.main.async {
       isPip = false
       vc.player?.play()
-      vc.perform(
-        NSSelectorFromString("enterFullScreenAnimated:completionHandler:"),
-        with: true,
-        with: nil
-      )
+//      vc.perform(
+//        NSSelectorFromString("enterFullScreenAnimated:completionHandler:"),
+//        with: true,
+//        with: nil
+//      )
     }
 
     return vc
@@ -131,3 +137,5 @@ struct VideoPlayer: UIViewControllerRepresentable {
     uiViewController.allowsPictureInPicturePlayback = false
   }
 }
+
+#endif

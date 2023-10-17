@@ -7,15 +7,21 @@
 
 import Foundation
 import SwiftUI
+//import AsyncAwaitHelpers
+import PlexApi
+import Inject
 
+@MainActor
 struct ConnectionOverlay: View {
-  @State var showOverlay: Bool = false
-  @StateObject var connection = ServerLocator.locator
+  @State 
+  var showOverlay: Bool = false
+
+  @State private var viewModel = ConnectionOverlayViewModel()
 
   var body: some View {
     Rectangle().foregroundColor(.clear).overlay(
       HStack {
-        if let connection = connection.connection {
+        if let connection = viewModel.serverLocator.connection {
           Text("\(connection.local ? "Local" : "Remote") connection")
             .font(.subheadline.bold().lowercaseSmallCaps())
             .foregroundColor(.white)
@@ -24,24 +30,32 @@ struct ConnectionOverlay: View {
             .background(connection.local ? Color.green : Color.yellow)
             .cornerRadius(10)
             .onAppear {
-              let old = self.connection.connection
+              let old = self.viewModel.serverLocator.connection
               showOverlay = true
-              DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-                if old == self.connection.connection {
-                  showOverlay = false
-                }
+
+                Task { @MainActor in
+                  try await Task.sleep(time: 5)
+                  if old == self.viewModel.serverLocator.connection {
+                    showOverlay = false
+                  }
               }
             }
         }
       }
-      .onChange(of: connection.connection) {
+      .onChange(of: viewModel.serverLocator.connection) {
         showOverlay = $0 != nil
       }
       .offset(y: showOverlay ? 10 : -100)
       .opacity(showOverlay ? 1 : 0)
-      .animation(.easeInOut, value: connection.connection)
+      .animation(.easeInOut, value: viewModel.serverLocator.connection)
       .animation(.easeInOut, value: showOverlay),
       alignment: .top
     )
   }
+}
+
+@MainActor @Observable
+final class ConnectionOverlayViewModel {
+  @ObservationIgnored @Injected(\.serverLocator)
+  var serverLocator
 }

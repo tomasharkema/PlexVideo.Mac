@@ -40,7 +40,7 @@ struct Directory: Codable, Identifiable {
   let type: String
 
   var id: String {
-    return uuid
+    uuid
   }
 }
 
@@ -74,14 +74,14 @@ struct NumberLike: Codable, Equatable {
   }
 
   func encode(to encoder: Encoder) throws {
-    var s = try encoder.singleValueContainer()
+    var s = encoder.singleValueContainer()
     try s.encode(value)
   }
 }
 
 extension Double {
   var doubleLike: NumberLike {
-    return NumberLike(value: self)
+    NumberLike(value: self)
   }
 }
 
@@ -109,7 +109,7 @@ struct OnDeck: Codable, Identifiable, Equatable {
   let grandparentThumb: String?
 
   var id: String {
-    return key.rawValue
+    key.rawValue
   }
 }
 
@@ -131,8 +131,8 @@ struct Video: Codable, Identifiable, Equatable, Hashable {
   let titleSort: String?
   let parentTitle: String?
   let grandparentTitle: String?
-  let thumb: String
-  let art: String
+  let thumb: String?
+  let art: String?
   let Media: [Media]?
   let ratingKey: RatingKey
   let viewOffset: NumberLike?
@@ -146,25 +146,37 @@ struct Video: Codable, Identifiable, Equatable, Hashable {
   let grandparentThumb: String?
 
   var id: String {
-    return key.rawValue
+    key.rawValue
   }
 
   var displayTitle: String {
-    return grandparentTitle ?? parentTitle ?? title
+    grandparentTitle ?? parentTitle ?? title
   }
 
   func getProgress(storage storageProgress: Progress?) -> Progress {
     let remoteProgress = Progress(video: self)
 
-    switch (remoteProgress, storageProgress) {
-    case let (r?, s?) where s.date >= r.date:
-      return s
-    case let (r?, s?):
-      return r
-    case let (r?, .none):
-      return r
-    case let (.none, s?):
-      return s
+    let viableStorageProgress: Progress?
+    if let storageProgress = storageProgress {
+      if abs(storageProgress.date.timeIntervalSinceNow) < 7 * 24 * 60 * 60 {
+        viableStorageProgress = storageProgress
+      } else {
+        viableStorageProgress = nil
+      }
+
+    } else {
+      viableStorageProgress = nil
+    }
+
+    switch (remoteProgress, viableStorageProgress) {
+    case let (remote?, storage?) where storage.date > remote.date:
+      return storage
+    case let (remote?, .some(_)):
+      return remote
+    case let (remote?, .none):
+      return remote
+    case let (.none, storage?):
+      return storage
     case (.none, .none):
       return .zero
     }
@@ -178,7 +190,8 @@ struct Video: Codable, Identifiable, Equatable, Hashable {
 extension Video {
   static func preview(id: String = UUID().uuidString) -> Video {
     Video(
-      key: VideoKey(rawValue: id), title: "Dit is een titel van een hele lange film", titleSort: "is",
+      key: VideoKey(rawValue: id), title: "Dit is een titel van een hele lange film",
+      titleSort: "is",
       parentTitle: nil, grandparentTitle: nil,
       thumb: "https://static.posters.cz/image/750/posters/pulp-fiction-cover-i1288.jpg",
       art: "ding",
@@ -220,7 +233,7 @@ struct Media: Codable, Equatable {
 
 extension Media {
   static func preview() -> Media {
-    return Media(
+    Media(
       id: NumberLike(value: 0),
       duration: NumberLike(value: 2000),
       bitrate: NumberLike(value: 1000),
@@ -303,20 +316,24 @@ struct Session: Codable {
   let bandwidth: Int
 }
 
+struct TranscodeSessions: Codable {
+  let TranscodeSession: [TranscodeSession]
+}
+
 struct TranscodeSession: Codable {
-  let key: String
-  let throttled: Bool
-  let complete: Bool
+  let key: String?
+  let throttled: Bool?
+  let complete: Bool?
   let progress: Float
   let size: Int
-  let speed: Int
+  let speed: Float
   let duration: Int
-  let context: Int
+  let context: String
   let sourceVideoCodec: String
   let sourceAudioCodec: String
   let videoDecision: String
   let audioDecision: String
-  let subtitleDecision: String
+  let subtitleDecision: String?
   let `protocol`: String
   let container: String
   let videoCodec: String

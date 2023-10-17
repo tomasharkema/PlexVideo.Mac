@@ -6,40 +6,67 @@
 //
 
 import SwiftUI
+import PlexApi
+import Inject
+import PlexShared
+import PlexCore
+import CachedAsyncImage
 
 struct Thumb: View {
+  @State
+  private var viewModel: ThumbViewModel
+
+  private let video: Video
+  private let width: CGFloat?
+  private let height: CGFloat?
+
+  @MainActor
+  init(video: Video, width: CGFloat?, height: CGFloat?) {
+    self.video = video
+    self.width = width
+    self.height = height
+    self._viewModel = .init(wrappedValue: ThumbViewModel(video: video, width: width, height: height))
+  }
+
+  var body: some View {
+        CachedAsyncImage(
+          url: viewModel.url,
+//          scale: 2,
+          transaction: Transaction(animation: .linear),
+          content: { phase in
+            if let image = phase.image {
+              image
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+            } else if phase.error != nil {
+              Color.red
+            } else {
+              Color.black.opacity(0.6)//.overlay(ProgressView())
+            }
+          }
+        )
+    .frame(width: width, height: height)
+    .task(id: video) {
+      self.viewModel.width = width
+      self.viewModel.height = height
+      await viewModel.start()
+    }
+  }
+}
+
+struct VideoWidthHeight: Equatable {
   let video: Video
   let width: CGFloat?
   let height: CGFloat?
-
-  @State var url: URL?
-
-  var body: some View {
-    AsyncImage(url: url, content: { (i: Image) in
-      i.resizable()
-        .frame(width: width, height: height)
-    }) {
-      Rectangle()
-        .foregroundColor(.clear)
-        .background(Color.clear)
-        .frame(width: width, height: height)
-    }
-    .background(Color.black.opacity(0.6))
-    .frame(width: width, height: height)
-    .onAppear {
-      async {
-        url = try await Api.shared.imageUrl(
-          item: video,
-          width: Int(width ?? thumbSize.width) * 2,
-          height: Int(height ?? thumbSize.height) * 2
-        )
-      }
-    }
-  }
 }
 
-struct Thumb_Preview: PreviewProvider {
-  static var previews: some View {
-    Thumb(video: Video.preview(), width: nil, height: nil, url: URL(string: Video.preview().thumb))
-  }
-}
+//struct Thumb_Preview: PreviewProvider {
+//  static var previews: some View {
+//    Thumb(
+//      video: Video.preview(),
+//      width: nil,
+//      height: nil,
+//      url: Video.preview().thumb.flatMap { URL(string: $0) }
+//    )
+//  }
+//}
