@@ -32,14 +32,14 @@ struct Thumb: View {
         CachedAsyncImage(
           url: viewModel.url,
 //          scale: 2,
-//          transaction: Transaction(animation: .linear),
+          transaction: Transaction(animation: .linear(duration: 0.2)),
           content: { phase in
             if let image = phase.image {
               image
                 .resizable()
                 .aspectRatio(contentMode: .fill)
             } else if phase.error != nil {
-              Color.red
+              Color.red.opacity(0.3)
             } else {
               Color.black.opacity(0.6)//.overlay(ProgressView())
             }
