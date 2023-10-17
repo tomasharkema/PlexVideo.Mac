@@ -32,7 +32,7 @@ struct Thumb: View {
         CachedAsyncImage(
           url: viewModel.url,
 //          scale: 2,
-          transaction: Transaction(animation: .linear),
+//          transaction: Transaction(animation: .linear),
           content: { phase in
             if let image = phase.image {
               image

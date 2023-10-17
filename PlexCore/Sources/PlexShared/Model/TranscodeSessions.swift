@@ -6,9 +6,12 @@
 //
 
 import Foundation
+import MetaCodable
 
-public struct TranscodeSessions: Codable {
-  public let TranscodeSession: [TranscodeSession]
+@Codable
+public struct TranscodeSessions {
+  @CodedAt("TranscodeSession")
+  public let transcodeSession: [TranscodeSession]
 }
 
 public struct TranscodeSession: Codable {

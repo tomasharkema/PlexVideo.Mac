@@ -9,36 +9,36 @@ import Foundation
 
 public struct DoubleLikeError: Error {}
 
-public struct NumberLike: Codable, Equatable {
+public struct NumberLike: Codable, Equatable, Sendable {
   public let value: Double
 
   public init(value: Double) {
     self.value = value
   }
 
-  public init(from decoder: Decoder) throws {
-    let s = try decoder.singleValueContainer()
+  public init(from decoder: any Decoder) throws {
+    let container = try decoder.singleValueContainer()
 
-    if let v = try? s.decode(Double.self) {
-      value = v
-      return
-    } else if let v = try? s.decode(Int.self) {
-      value = Double(v)
-      return
-    } else if let v = try? s.decode(String.self), let value = Double(v) {
+    if let value = try? container.decode(Double.self) {
       self.value = value
       return
-    } else if let v = try? s.decode(Bool.self) {
-      value = v ? 1 : 0
+    } else if let value = try? container.decode(Int.self) {
+      self.value = Double(value)
+      return
+    } else if let value = try? container.decode(String.self), let value = Double(value) {
+      self.value = value
+      return
+    } else if let value = try? container.decode(Bool.self) {
+      self.value = value ? 1 : 0
       return
     }
 
     throw DoubleLikeError()
   }
 
-  public func encode(to encoder: Encoder) throws {
-    var s = encoder.singleValueContainer()
-    try s.encode(value)
+  public func encode(to encoder: any Encoder) throws {
+    var container = encoder.singleValueContainer()
+    try container.encode(value)
   }
 }
 

@@ -6,7 +6,6 @@
 //
 
 import Foundation
-//import AsyncAwaitHelpers
 import PlexApi
 import Inject
 import PlexShared
@@ -60,7 +59,7 @@ public final class VideosViewModel: ObservableObject, LoadableSupport {
     do {
       let onDeckResponse = try await self.api.onDeck(ratingKey: video.ratingKey, deviceInfo: .current)
 
-      if let res = onDeckResponse.MediaContainer.Metadata.first?.OnDeck?.Metadata {
+      if let res = onDeckResponse.mediaContainer.metadata.first?.onDeck?.metadata {
         return Video(onDeck: res)
       } else {
         return video
@@ -86,14 +85,14 @@ public final class VideosViewModel: ObservableObject, LoadableSupport {
       return
     }
 
-    guard case let .loaded(s) = await self.data else {
+    guard case let .loaded(data) = await self.data else {
       await self.reset(\.searchResults)
       return
     }
 
     await self.load(\.searchResults, silently: true, priority: .medium) {
       try Task.checkCancellation()
-      let result = s.videos.filter {
+      let result = data.videos.filter {
         return $0.title.lowercased().contains(query.lowercased())
       }
       try Task.checkCancellation()
@@ -129,13 +128,13 @@ extension Video {
       grandparentTitle: onDeck.grandparentTitle,
       thumb: onDeck.thumb,
       art: onDeck.art,
-      Media: onDeck.Media,
+      media: onDeck.media,
       ratingKey: onDeck.ratingKey,
       viewOffset: onDeck.viewOffset,
       lastViewedAt: onDeck.lastViewedAt,
       leafCount: onDeck.leafCount,
       viewedLeafCount: onDeck.viewedLeafCount,
-      OnDeck: nil,
+      onDeck: nil,
       grandparentKey: onDeck.grandparentKey,
       parentKey: onDeck.parentKey,
       childCount: onDeck.childCount,
@@ -144,27 +143,27 @@ extension Video {
   }
 }
 
-enum ViewError: LocalizedError, Equatable {
-  case error(LocalizedError)
-
-  static func == (lhs: ViewError, rhs: ViewError) -> Bool {
-    switch (lhs, rhs) {
-    case let (.error(l), .error(r)):
-      return l.localizedDescription == r.localizedDescription
-    }
-  }
-
-  func errorDescription() -> String? {
-    switch self {
-    case let .error(error):
-      return error.errorDescription
-    }
-  }
-
-  var localizedDescription: String? {
-    switch self {
-    case let .error(error):
-      return error.localizedDescription
-    }
-  }
-}
+//enum ViewError: LocalizedError, Equatable {
+//  case error(any LocalizedError)
+//
+//  static func == (lhs: ViewError, rhs: ViewError) -> Bool {
+//    switch (lhs, rhs) {
+//    case let (.error(lhs), .error(rhs)):
+//      return lhs.localizedDescription == rhs.localizedDescription
+//    }
+//  }
+//
+//  func errorDescription() -> String? {
+//    switch self {
+//    case let .error(error):
+//      return error.errorDescription
+//    }
+//  }
+//
+//  var localizedDescription: String? {
+//    switch self {
+//    case let .error(error):
+//      return error.localizedDescription
+//    }
+//  }
+//}

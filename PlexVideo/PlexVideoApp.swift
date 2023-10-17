@@ -5,11 +5,11 @@
 //  Created by Tomas Harkema on 27/05/2021.
 //
 
+import Foundation
 import SwiftUI
 import Inject
 import PlexShared
 
-@MainActor
 @main
 struct PlexVideoApp: App {
 
@@ -31,11 +31,12 @@ struct PlexVideoApp: App {
   var body: some Scene {
     WindowGroup {
       GeometryReader { proxy in
-        ContentView(storage: storage)
-          .accentColor(Color("plexTintColor"))
+        ContentView()
+          .tint(Color(.plexTint))
           .environment(\.mainWindowSize, proxy.size)
       }
     }
+//    .tint(Color(.plexTintColor))
   }
 }
 

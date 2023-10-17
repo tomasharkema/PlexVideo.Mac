@@ -20,7 +20,7 @@ public final class Requestor {
   @Injected(\.storage)
   private var storage
 
-  func _requestUrl(
+  func requestUrl(
     url: URL,
     deviceInfo: DeviceInfo,
     queryItems: [URLQueryItem]? = nil,
@@ -29,8 +29,8 @@ public final class Requestor {
     let token = await storage.getToken()
     let uuid = await storage.uuid
 
-    return _requestUrl(
-      url: url, deviceInfo: deviceInfo, 
+    return requestUrl(
+      url: url, deviceInfo: deviceInfo,
       queryItems: queryItems,
       sendDefaultQueries: sendDefaultQueries,
       uuid: uuid,
@@ -38,7 +38,7 @@ public final class Requestor {
     )
   }
 
-  func _requestUrl(
+  func requestUrl(
     url: URL,
     deviceInfo: DeviceInfo,
     queryItems: [URLQueryItem]? = nil,
@@ -65,10 +65,6 @@ public final class Requestor {
       URLQueryItem(name: "X-Plex-Version", value: deviceInfo.appVersion),
       URLQueryItem(name: "X-Plex-Language", value: "nl"),
       URLQueryItem(name: "X-Plex-Device-Name", value: deviceInfo.name),
-//      URLQueryItem(
-//        name: "X-Plex-Client-Profile-Extra",
-//        value: "add-limitation(scope=videoAudioCodec&scopeName=*&type=upperBound&name=audio.channels&value=8&replace=true)+add-transcode-target(type=musicProfile&context=streaming&protocol=hls&container=mpegts&audioCodec=aac,aac_latm,ac3,alac,flac,dca,vorbis,opus,eac3,mp1,mp2,mp3)+add-direct-play-profile(type=musicProfile&container=mp4&audioCodec=aac,aac_latm,ac3,alac,flac,dca,vorbis,opus,eac3,mp1,mp2,mp3)+add-direct-play-profile(type=musicProfile&container=flac&audioCodec=aac,aac_latm,ac3,alac,flac,dca,vorbis,opus,eac3,mp1,mp2,mp3)+add-transcode-target(type=videoProfile&context=streaming&protocol=hls&container=mp4&videoCodec=hevc&audioCodec=aac,aac_latm,ac3,alac,flac,dca,vorbis,opus,eac3,mp1,mp2,mp3&id=hevcmp4)+add-transcode-target(type=videoProfile&context=streaming&protocol=hls&container=mpegts&videoCodec=h264&audioCodec=aac,aac_latm,ac3,alac,flac,dca,vorbis,opus,eac3,mp1,mp2,mp3)+add-direct-play-profile(type=videoProfile&container=mp4,mov&videoCodec=h264,mpeg4&audioCodec=aac,aac_latm,ac3,alac,flac,dca,vorbis,opus,eac3,mp1,mp2,mp3&subtitleCodec=mov_text,tx3g,ttxt,text)"
-//      ),
     ] : []) + (queryItems ?? [])
 
     let url = components.url!
@@ -93,7 +89,7 @@ public final class Requestor {
 
     var mutualRequest =
       URLRequest(
-        url: await _requestUrl(
+        url: await requestUrl(
           url: url,
           deviceInfo: deviceInfo,
           queryItems: queryItems,
@@ -161,3 +157,11 @@ extension InjectedValues {
 private struct RequestorKey: InjectionKey {
   static var currentValue: Requestor = .init()
 }
+
+// swiftlint:disable:next line_length
+//      URLQueryItem(
+//        name: "X-Plex-Client-Profile-Extra",
+//        value:
+// swiftlint:disable:next line_length
+// "add-limitation(scope=videoAudioCodec&scopeName=*&type=upperBound&name=audio.channels&value=8&replace=true)+add-transcode-target(type=musicProfile&context=streaming&protocol=hls&container=mpegts&audioCodec=aac,aac_latm,ac3,alac,flac,dca,vorbis,opus,eac3,mp1,mp2,mp3)+add-direct-play-profile(type=musicProfile&container=mp4&audioCodec=aac,aac_latm,ac3,alac,flac,dca,vorbis,opus,eac3,mp1,mp2,mp3)+add-direct-play-profile(type=musicProfile&container=flac&audioCodec=aac,aac_latm,ac3,alac,flac,dca,vorbis,opus,eac3,mp1,mp2,mp3)+add-transcode-target(type=videoProfile&context=streaming&protocol=hls&container=mp4&videoCodec=hevc&audioCodec=aac,aac_latm,ac3,alac,flac,dca,vorbis,opus,eac3,mp1,mp2,mp3&id=hevcmp4)+add-transcode-target(type=videoProfile&context=streaming&protocol=hls&container=mpegts&videoCodec=h264&audioCodec=aac,aac_latm,ac3,alac,flac,dca,vorbis,opus,eac3,mp1,mp2,mp3)+add-direct-play-profile(type=videoProfile&container=mp4,mov&videoCodec=h264,mpeg4&audioCodec=aac,aac_latm,ac3,alac,flac,dca,vorbis,opus,eac3,mp1,mp2,mp3&subtitleCodec=mov_text,tx3g,ttxt,text)"
+//      ),

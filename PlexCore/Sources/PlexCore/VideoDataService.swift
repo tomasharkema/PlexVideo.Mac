@@ -6,14 +6,11 @@
 //
 
 import Foundation
-//import AsyncAwaitHelpers
 import PlexApi
 import PlexShared
 import Inject
 
-// FIXME: Tryout asyncDetached! Should be async let. But that crashes the compiler
-
-public final class VideoDataService {
+public final class VideoDataService: Sendable {
 
   @Injected(\.api)
   private var api
@@ -27,7 +24,7 @@ public final class VideoDataService {
   }
 
   private func getSections(deviceInfo: DeviceInfo) async throws -> [Directory] {
-    try await self.api.sections(deviceInfo: deviceInfo).MediaContainer.Directory.filter {
+    try await self.api.sections(deviceInfo: deviceInfo).mediaContainer.directory.filter {
       $0.type == "movie" || $0.type == "show"
     }
   }
@@ -35,27 +32,28 @@ public final class VideoDataService {
   func getContinueWatching(sections: [Directory], deviceInfo: DeviceInfo) async throws -> [Video] {
     try await self.api
       .continueWatching(contentDirectoryIDs: sections.map(\.key), deviceInfo: deviceInfo)
-      .MediaContainer.Hub
-      .flatMap(\.Metadata)
+      .mediaContainer.hub
+      .flatMap(\.metadata)
   }
 
-  func getContinueWatchingAndProgress(sections: [Directory], deviceInfo: DeviceInfo) async throws
-  -> [(VideoKey, PlexShared.Progress)]
-  {
+  func getContinueWatchingAndProgress(
+    sections: [Directory], deviceInfo: DeviceInfo
+  ) async throws -> [(VideoKey, PlexShared.Progress)] {
+
     try await getContinueWatching(sections: sections, deviceInfo: deviceInfo)
-      .map { v in
+      .map { watchingVideo in
         {
           Task(priority: .userInitiated) {
-            try await (v.key, v.getProgress(storage: self.progress(for: v)))
+            try await (watchingVideo.key, watchingVideo.getProgress(storage: self.progress(for: watchingVideo)))
           }
         }
       }.whenAll()
   }
 
   func fetchVideos(sections: [Directory], deviceInfo: DeviceInfo) async throws -> [Video] {
-    try await Array(sections.map { s in
+    try await Array(sections.map { section in
       Task {
-        (try await self.api.all(key: s.key, deviceInfo: deviceInfo)).MediaContainer.Metadata
+        (try await self.api.all(key: section.key, deviceInfo: deviceInfo)).mediaContainer.metadata
       }
     }.whenAll().joined())
   }

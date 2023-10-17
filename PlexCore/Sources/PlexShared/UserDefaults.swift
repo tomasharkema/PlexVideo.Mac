@@ -10,7 +10,7 @@ import Foundation
 extension UserDefaults {
   nonisolated func set<CodableType: Codable>(
     value: CodableType,
-    key: String, 
+    key: String,
     _ encoder: JSONEncoder = .init()
   ) async throws {
     let data = try encoder.encode(value)
@@ -18,14 +18,14 @@ extension UserDefaults {
   }
 
   nonisolated func object<CodableType: Codable>(
-    _ c: CodableType.Type, 
-    key: String, 
+    _ codableType: CodableType.Type,
+    key: String,
     _ decoder: JSONDecoder = .init()
   ) async throws -> CodableType? {
     guard let data = data(forKey: key) else {
       return nil
     }
 
-    return try decoder.decode(c, from: data)
+    return try decoder.decode(codableType, from: data)
   }
 }

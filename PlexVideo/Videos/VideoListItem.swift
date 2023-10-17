@@ -5,6 +5,7 @@
 //  Created by Tomas Harkema on 06/06/2021.
 //
 
+import Foundation
 import SwiftUI
 import PlexShared
 
@@ -22,10 +23,10 @@ struct VideoListItem: View {
       Spacer()
       HStack {
         if let viewOffset = video.viewOffset?.value,
-           let duration = video.Media?.first?.duration.value
+           let duration = video.media?.first?.duration.value
         {
           Rectangle()
-            .foregroundColor(Color("plexTintColor"))
+            .foregroundColor(Color(.plexTint))
             .frame(
               width: width *
               (CGFloat(viewOffset) /
@@ -56,8 +57,8 @@ struct VideoListItem: View {
 //        .shadow(radius: 10).padding(3)
     }
     .padding(5)
-    .background(activeVideo?.key == video.key ? Color("plexTintColor") : Color.clear)
-    .background(hovered ? Color("plexTintColor").opacity(0.6) : Color.clear)
+    .background(activeVideo?.key == video.key ? Color(.plexTint) : Color.clear)
+    .background(hovered ? Color(.plexTint).opacity(0.6) : Color.clear)
     .cornerRadius(5)
     .onHover { h in
       withAnimation {

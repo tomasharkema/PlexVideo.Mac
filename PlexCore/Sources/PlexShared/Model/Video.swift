@@ -7,9 +7,10 @@
 
 import Foundation
 import InitMacro
+import MetaCodable
 
-@Init(public: true)
-public struct Video: Codable, Identifiable, Equatable, Hashable {
+@Init(public: true) @Codable
+public struct Video: Identifiable, Equatable, Hashable, Sendable {
   public let key: VideoKey
   public let title: String
   public let titleSort: String?
@@ -17,13 +18,15 @@ public struct Video: Codable, Identifiable, Equatable, Hashable {
   public let grandparentTitle: String?
   public let thumb: String?
   public let art: String?
-  public let Media: [Media]?
+  @CodedAt("Media")
+  public let media: [Media]?
   public let ratingKey: RatingKey
   public let viewOffset: NumberLike?
   public let lastViewedAt: NumberLike?
   public let leafCount: NumberLike?
   public let viewedLeafCount: NumberLike?
-  public let OnDeck: MetadataSingle<OnDeck>?
+  @CodedAt("OnDeck")
+  public let onDeck: MetadataSingle<OnDeck>?
   public let grandparentKey: VideoKey?
   public let parentKey: VideoKey?
   public let childCount: NumberLike?

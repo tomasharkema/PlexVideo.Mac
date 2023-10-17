@@ -7,13 +7,17 @@
 
 import Foundation
 
-public struct Progress: Codable {
+public struct Progress: Codable, Sendable {
+  
+  public static let zero = Progress(seconds: 0, date: Date(timeIntervalSince1970: 0))
+  
   public let seconds: Double
   public let date: Date
 
-  public init(seconds: Double,
-       date: Date)
-  {
+  public init(
+    seconds: Double,
+       date: Date
+  ) {
     self.seconds = seconds
     self.date = date
   }
@@ -30,6 +34,4 @@ public struct Progress: Codable {
   public var isZero: Bool {
     seconds.isZero && date.timeIntervalSince1970.isZero
   }
-
-  public static let zero = Progress(seconds: 0, date: Date(timeIntervalSince1970: 0))
 }

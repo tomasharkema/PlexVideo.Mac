@@ -54,8 +54,8 @@ public final class VideoDetailViewModel: LoadableSupport {
     player.addPeriodicTimeObserver(
       forInterval: CMTime(value: 10, timescale: 1),
       queue: .global(qos: .background),
-      using: { s in
-        Task { await self.updateTimeline(s: s) }
+      using: { time in
+        Task { await self.updateTimeline(time: time) }
       }
     )
     player.isClosedCaptionDisplayEnabled = true
@@ -64,8 +64,8 @@ public final class VideoDetailViewModel: LoadableSupport {
     return player
   }
 
-  private func updateTimeline(s: CMTime) async {
-    lastTime = s
+  private func updateTimeline(time: CMTime) async {
+    lastTime = time
 
     guard let video = video,
           let player = player.data
@@ -77,13 +77,13 @@ public final class VideoDetailViewModel: LoadableSupport {
     await self.load(\.updateTimeline, silently: true, priority: .medium) {
 
       async let savedOffsetAsync = self.storage.setSavedOffset(
-        progress: Progress(seconds: s.seconds, date: Date()),
+        progress: Progress(seconds: time.seconds, date: Date()),
         video: video
       )
 
       async let timelineUpdate = self.api.timeline(
         video: video,
-        time: s,
+        time: time,
         state: player.timeControlStatus == .playing ? .playing : .paused,
         deviceInfo: .current
       )

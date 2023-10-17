@@ -7,9 +7,11 @@
 
 import Foundation
 import InitMacro
+import MetaCodable
 
 @Init(public: true)
-public struct Media: Codable, Equatable {
+@Codable
+public struct Media: Equatable, Sendable {
   public let id: NumberLike
   public let duration: NumberLike
   public let bitrate: NumberLike
@@ -27,5 +29,7 @@ public struct Media: Codable, Equatable {
   public let `protocol`: String?
   public let indirect: String?
   public let selected: Bool?
-  public let Part: [Part]
+
+  @CodedAt("Part")
+  public let part: [Part]
 }

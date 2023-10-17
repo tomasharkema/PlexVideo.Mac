@@ -6,8 +6,10 @@
 //
 
 import Foundation
+import MetaCodable
 
-public struct OnDeck: Codable, Identifiable, Equatable {
+@Codable
+public struct OnDeck: Identifiable, Equatable {
   public let key: VideoKey
   public let title: String
   public let titleSort: String?
@@ -15,7 +17,10 @@ public struct OnDeck: Codable, Identifiable, Equatable {
   public let grandparentTitle: String?
   public let thumb: String
   public let art: String
-  public let Media: [Media]?
+
+  @CodedAt("Media")
+  public let media: [Media]?
+
   public let ratingKey: RatingKey
   public let viewOffset: NumberLike?
   public let lastViewedAt: NumberLike?

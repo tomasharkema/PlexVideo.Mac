@@ -14,7 +14,8 @@ import UIKit
 
 public extension DeviceInfo {
 
-  static var current = DeviceInfo(name: UIDevice.current.name)
+  @MainActor
+  static let current = DeviceInfo(name: UIDevice.current.name)
 
 }
 
@@ -24,7 +25,7 @@ import AppKit
 
 public extension DeviceInfo {
 
-  static var current = DeviceInfo(name: Host.current().localizedName ?? "")
+  static let current = DeviceInfo(name: Host.current().localizedName ?? "")
 
 }
 

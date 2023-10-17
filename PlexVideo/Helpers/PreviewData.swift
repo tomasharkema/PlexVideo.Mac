@@ -16,7 +16,7 @@ extension Video {
       parentTitle: nil, grandparentTitle: nil,
       thumb: "https://static.posters.cz/image/750/posters/pulp-fiction-cover-i1288.jpg",
       art: "ding",
-      Media: [
+      media: [
         PlexShared.Media.preview(),
       ],
       ratingKey: RatingKey(rawValue: id),
@@ -25,7 +25,7 @@ extension Video {
       lastViewedAt: NumberLike(value: 1000),
       leafCount: NumberLike(value: 1000),
       viewedLeafCount: Date().timeIntervalSince1970.doubleLike,
-      OnDeck: nil,
+      onDeck: nil,
       grandparentKey: nil, parentKey: nil, childCount: nil, grandparentThumb: nil
     )
   }
@@ -51,7 +51,7 @@ extension Media {
       protocol: "mkv",
       indirect: "0",
       selected: true,
-      Part: [
+      part: [
       ]
     )
   }

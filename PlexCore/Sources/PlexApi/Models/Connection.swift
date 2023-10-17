@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct Connection: Codable, Equatable {
+public struct Connection: Codable, Equatable, Sendable {
   public let `protocol`: String
   public let address: String
   public let port: Int

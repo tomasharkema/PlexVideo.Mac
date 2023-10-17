@@ -25,6 +25,8 @@ public final class Auth {
   @Injected(\.requestor)
   private var requestor
 
+  nonisolated init() {}
+
   public func pollForPin(
     deviceInfo: DeviceInfo, pinId: String, requestDelay: Double, maxRetries: Int
   ) async throws -> String {
@@ -141,7 +143,6 @@ extension InjectedValues {
   }
 }
 
-@MainActor
 private struct AuthKey: InjectionKey {
   static var currentValue: Auth = .init()
 }

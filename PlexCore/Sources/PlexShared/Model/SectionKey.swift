@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct SectionKey: RawRepresentable, Codable {
+public struct SectionKey: RawRepresentable, Codable, Sendable {
   public let rawValue: String
 
   public init(rawValue: String) {

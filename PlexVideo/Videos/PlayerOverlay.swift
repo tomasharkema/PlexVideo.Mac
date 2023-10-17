@@ -53,6 +53,10 @@ struct PlayerOverlay: View {
     .background(Color.black.opacity(0.6))
   }
 
+  private var minHeight: CGFloat {
+    min(screenWidth - 50, 400) * (1 / (video?.media?.first?.aspectRatio?.value ?? (16 / 9)))
+  }
+
   var body: some View {
     ZStack(alignment: Alignment(horizontal: .trailing, vertical: .bottom)) {
       videoView()
@@ -65,7 +69,7 @@ struct PlayerOverlay: View {
           .padding(.bottom, 10)
           .frame(
             width: min(screenWidth - 50, 400),
-            height: min(screenWidth - 50, 400) * (1 / (video?.Media?.first?.aspectRatio?.value ?? (16 / 9)))
+            height: minHeight
           )
           .offset(y: isPip ? min(screenWidth - 50, 400) * 0.3 : 0)
           .animation(.easeInOut, value: isPip)

@@ -29,13 +29,13 @@ public final class ServerLocator: ObservableObject {
   private(set) var lastTriedRootDate: Date?
   private(set) var lastForceTryDate: Date?
   private(set) var lastConfirmedUrl: URL?
-  private let pingOnce = Once<URL, (Root<Version>, TimeInterval), Error>()
+  private let pingOnce = Once<URL, (Root<Version>, TimeInterval), any Error>()
 
   @Published
   public private(set) var connection: Connection?
 
-  private let rootOnce = OnceSingle<URL, Error>()
-  private let rootForceOnce = OnceSingle<URL, Error>()
+  private let rootOnce = OnceSingle<URL, any Error>()
+  private let rootForceOnce = OnceSingle<URL, any Error>()
   private let invalidateOnce = OnceSingle<Void, Never>()
 
   public nonisolated init() { }
@@ -76,9 +76,9 @@ public final class ServerLocator: ObservableObject {
 
       // phase 2: check if saved local and remote ip's are still viable
       do {
-        if let localHost = await storage.lastUsedLocalHost,
-           let remoteHost = await storage.lastUsedRemoteHost,
-           let url = try await selectHost(l: localHost, r: remoteHost, deviceInfo: deviceInfo)
+        if let localHost = storage.lastUsedLocalHost,
+           let remoteHost = storage.lastUsedRemoteHost,
+           let url = try await selectHost(localUrl: localHost, remoteUrl: remoteHost, deviceInfo: deviceInfo)
         {
           return url
         }
@@ -109,16 +109,16 @@ public final class ServerLocator: ObservableObject {
     }.value
   }
 
-  private func selectHost(l: URL, r: URL, deviceInfo: DeviceInfo) async throws -> URL? {
-    async let local = ping(server: l, deviceInfo: deviceInfo)
-    async let remote = ping(server: r, deviceInfo: deviceInfo)
+  private func selectHost(localUrl: URL, remoteUrl: URL, deviceInfo: DeviceInfo) async throws -> URL? {
+    async let local = ping(server: localUrl, deviceInfo: deviceInfo)
+    async let remote = ping(server: remoteUrl, deviceInfo: deviceInfo)
 
     do {
       _ = try await local
       await MainActor.run {
-        storage.lastUsedRoot = l
+        storage.lastUsedRoot = localUrl
       }
-      return l
+      return localUrl
     } catch {
       logger.error("local not succeeded \(error)")
     }
@@ -126,9 +126,9 @@ public final class ServerLocator: ObservableObject {
     do {
       _ = try await remote
       await MainActor.run {
-        storage.lastUsedRoot = r
+        storage.lastUsedRoot = remoteUrl
       }
-      return r
+      return remoteUrl
     } catch {
       logger.error("remote not succeeded \(error)")
       throw error

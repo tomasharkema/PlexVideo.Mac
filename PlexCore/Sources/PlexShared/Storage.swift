@@ -24,7 +24,7 @@ public final class Storage: ObservableObject {
   @AppStorage("lastUsedRoot")
   public var lastUsedRoot: URL?
 
-  public init() { }
+  public nonisolated init() { }
 
   public var uuid: String {
     let saved = UserDefaults.standard.string(forKey: "uuid")
@@ -80,6 +80,5 @@ public extension InjectedValues {
 }
 
 private struct StorageKey: InjectionKey {
-  @MainActor
   static var currentValue: Storage = .init()
 }

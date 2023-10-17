@@ -18,12 +18,6 @@ struct Session: Codable {
   let bandwidth: Int
 }
 
-struct SessionStatus: Codable {
-  let Player: Player
-  let Session: Session
-  let TranscodeSession: TranscodeSession
-}
-
 struct PinToken: Codable {
   let authToken: String?
   let clientIdentifier: String
@@ -50,7 +44,7 @@ struct PinToken: Codable {
    */
 }
 
-struct Device: Codable {
+struct Device: Codable, Sendable {
   let name: String
   let provides: String
   let publicAddress: String

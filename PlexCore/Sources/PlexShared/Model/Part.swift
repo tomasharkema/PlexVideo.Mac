@@ -5,9 +5,10 @@
 //  Created by Tomas Harkema on 16/10/2023.
 //
 
-//import Foundation
+import MetaCodable
 
-public struct Part: Codable, Equatable {
+@Codable
+public struct Part: Equatable, Sendable {
   public let id: NumberLike
   public let key: String?
   public let duration: NumberLike?
@@ -18,5 +19,7 @@ public struct Part: Codable, Equatable {
   public let indexes: String?
   public let videoProfile: String?
   public let decision: String?
-  public let Stream: [Stream]?
+
+  @CodedAt("Stream")
+  public let stream: [Stream]?
 }

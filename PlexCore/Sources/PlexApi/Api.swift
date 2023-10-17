@@ -7,9 +7,6 @@
 
 import CoreMedia
 import Foundation
-//import UIKit
-// import XMLCoder
-//import AsyncAwaitHelpers
 import Inject
 import PlexShared
 
@@ -21,8 +18,8 @@ public final class Api {
   @Injected(\.requestor)
   private var requestor
 
-  @Injected(\.imageCache)
-  private var imageCache
+//  @Injected(\.imageCache)
+//  private var imageCache
 
   public func sections(deviceInfo: DeviceInfo) async throws -> Root<DirectoryContainer> {
     try await requestor.request(
@@ -58,14 +55,14 @@ public final class Api {
   }
 
   func videoQueryItems(
-    videoKey: VideoKey, 
+    videoKey: VideoKey,
     videoUuid: VideoSessionUUID,
     offset: Int,
-    vr: String? = "4096x2160",
+    videoResolution: String? = "4096x2160",
     subtitles: String?
   ) -> [URLQueryItem] {
     [
-      URLQueryItem(name: "videoResolution", value: vr),
+      URLQueryItem(name: "videoResolution", value: videoResolution),
       URLQueryItem(name: "path", value: videoKey.rawValue),
       URLQueryItem(name: "partIndex", value: "0"),
       URLQueryItem(
@@ -128,7 +125,7 @@ public final class Api {
 //
 //    print(resu)
 
-    try await requestor._requestUrl(
+    try await requestor.requestUrl(
       url: serverLocator.root(deviceInfo: deviceInfo)
         .appendingPathComponent("/video/:/transcode/universal/start.m3u8"),
       deviceInfo: deviceInfo,
@@ -146,13 +143,13 @@ public final class Api {
     root: URL,
     item: Video,
     width: Int,
-    height: Int, 
+    height: Int,
     deviceInfo: DeviceInfo,
     uuid: String?,
     token: String?
   ) -> URL {
 
-    let url = requestor._requestUrl(
+    let url = requestor.requestUrl(
       url: root.appendingPathComponent("/photo/:/transcode"),
       deviceInfo: deviceInfo,
       queryItems: [
@@ -165,9 +162,9 @@ public final class Api {
       token: token
     )
 
-    Task(priority: .background) { @MainActor in
-      imageCache.thumbCache[item.key] = url
-    }
+//    Task(priority: .background) { @MainActor in
+//      self.imageCache.thumbCache[item.key] = url
+//    }
     
     return url
   }
@@ -185,7 +182,7 @@ public final class Api {
           URLQueryItem(name: "ratingKey", value: video.ratingKey.rawValue),
           URLQueryItem(
             name: "duration",
-            value: "\(Int(video.Media?.first?.duration.value ?? 0))"
+            value: "\(Int(video.media?.first?.duration.value ?? 0))"
           ),
           URLQueryItem(name: "state", value: state.rawValue),
           URLQueryItem(name: "key", value: video.key.rawValue),

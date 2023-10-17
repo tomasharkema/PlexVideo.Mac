@@ -74,9 +74,9 @@ public final class ThumbViewModel: LoadableSupport {
   @Injected(\.api)
   private var api
 
-  @ObservationIgnored
-  @Injected(\.imageCache)
-  private var imageCache
+//  @ObservationIgnored
+//  @Injected(\.imageCache)
+//  private var imageCache
 
   private let urlLoader = ImageUrlLoader.shared
 
@@ -105,9 +105,9 @@ public final class ThumbViewModel: LoadableSupport {
     }
 
 //    do {
-      if url == nil {
-        url = imageCache.thumbCache[video.key]
-      }
+//      if url == nil {
+//        url = imageCache.thumbCache[video.key]
+//      }
       
       url = self.api.imageUrl(
         root: root,

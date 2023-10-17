@@ -5,10 +5,13 @@
 //  Created by Tomas Harkema on 16/10/2023.
 //
 
-import Foundation
+import MetaCodable
 
-public struct Root<T: Codable>: Codable {
-  public let MediaContainer: T
+@Codable
+public struct Root<MediaContainerType: Codable> {
+
+  @CodedAt("MediaContainer")
+  public let mediaContainer: MediaContainerType
 
   public let allowSync: String?
   public let directPlayDecisionCode: Int?
@@ -24,3 +27,5 @@ public struct Root<T: Codable>: Codable {
   public let transcodeDecisionCode: Int?
   public let transcodeDecisionText: String?
 }
+
+extension Root: Sendable where MediaContainerType: Sendable { }

@@ -6,8 +6,11 @@
 //
 
 import Foundation
+import MetaCodable
 
-public struct MetadataSingle<T: Codable & Equatable>: Codable, Equatable {
+@Codable
+public struct MetadataSingle<T: Codable & Equatable>: Equatable {
   
-  public let Metadata: T
+  @CodedAt("Metadata")
+  public let metadata: T
 }

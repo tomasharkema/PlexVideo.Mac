@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct DeviceInfo {
+public struct DeviceInfo: Sendable {
 //  @MainActor
 //  static let shared = DeviceInfo()
 

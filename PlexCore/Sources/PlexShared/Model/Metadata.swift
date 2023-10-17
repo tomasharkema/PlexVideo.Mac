@@ -6,11 +6,16 @@
 //
 
 import Foundation
+import MetaCodable
 
-public struct Metadata<MetadataType: Codable>: Codable {
-  public let Metadata: [MetadataType]
+@Codable
+public struct Metadata<MetadataType: Codable> {
+  @CodedAt("Metadata")
+  public let metadata: [MetadataType]
 }
 
-public struct Hub<MetadataType: Codable>: Codable {
-  public let Hub: [Metadata<MetadataType>]
+@Codable
+public struct Hub<MetadataType: Codable> {
+  @CodedAt("Hub")
+  public let hub: [Metadata<MetadataType>]
 }

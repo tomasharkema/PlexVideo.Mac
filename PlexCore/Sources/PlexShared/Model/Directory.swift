@@ -6,12 +6,15 @@
 //
 
 import Foundation
+import MetaCodable
 
-public struct DirectoryContainer: Codable {
-  public let Directory: [Directory]
+@Codable
+public struct DirectoryContainer {
+  @CodedAt("Directory")
+  public let directory: [Directory]
 }
 
-public struct Directory: Codable, Identifiable {
+public struct Directory: Codable, Identifiable, Sendable {
   public let key: SectionKey
   public let title: String
   public let uuid: String
