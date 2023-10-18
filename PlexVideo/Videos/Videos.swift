@@ -13,23 +13,25 @@ import PlexCore
 
 @MainActor
 struct Videos: View {
-  @State 
-  private var viewModel = VideosViewModel()
+//  @State 
+//  private var viewModel = VideosViewModel()
 
-  @State 
+  @Environment(VideosViewModel.self)
+  private var viewModel
+  
+  @State
   private var video: Video?
 
   var body: some View {
     NavigationStack {
       VideosGridScreen(
-        viewModel: $viewModel,
         video: $video
       )
       .overlay(ConnectionOverlay())
       //.overlay(ProgressView().opacity(viewModel.data.isLoading ? 1 : 0))
     }
     .overlay(
-      PlayerOverlay(video: $video),
+      PlayerOverlay(),
       alignment: Alignment(horizontal: .center, vertical: .bottom)
     )
     .task {

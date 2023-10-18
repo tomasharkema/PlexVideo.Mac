@@ -32,7 +32,7 @@ public final class VideosViewModel: ObservableObject, LoadableSupport {
 
   public private(set) var savedLastPlayed: Video?
 
-  public init() {}
+  public nonisolated init() {}
 
   public func load(silently: Bool) async {
     _ = await self.load(\.data, silently: silently, priority: .userInitiated) { yield in
@@ -53,22 +53,6 @@ public final class VideosViewModel: ObservableObject, LoadableSupport {
         throw error
       }
     }.value
-  }
-
-  public func openVideo(video: Video) async throws -> Video? {
-    do {
-      let onDeckResponse = try await self.api.onDeck(ratingKey: video.ratingKey, deviceInfo: .current)
-
-      if let res = onDeckResponse.mediaContainer.metadata.first?.onDeck?.metadata {
-        return Video(onDeck: res)
-      } else {
-        return video
-      }
-
-    } catch {
-      self.logger.error("open video error: \(error)")
-      return video
-    }
   }
 
   public nonisolated func searchText(_ searchText: String) async {
@@ -143,7 +127,7 @@ extension Video {
   }
 }
 
-//enum ViewError: LocalizedError, Equatable {
+// enum ViewError: LocalizedError, Equatable {
 //  case error(any LocalizedError)
 //
 //  static func == (lhs: ViewError, rhs: ViewError) -> Bool {
@@ -166,4 +150,4 @@ extension Video {
 //      return error.localizedDescription
 //    }
 //  }
-//}
+// }

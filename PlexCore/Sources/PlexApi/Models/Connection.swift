@@ -6,12 +6,14 @@
 //
 
 import Foundation
+import MetaCodable
 
-public struct Connection: Codable, Equatable, Sendable {
+@Codable
+public struct Connection: Equatable, Sendable {
   public let `protocol`: String
   public let address: String
   public let port: Int
-  public let uri: String
+  public let uri: URL
   public let local: Bool
   public let relay: Bool
   public let IPv6: Bool

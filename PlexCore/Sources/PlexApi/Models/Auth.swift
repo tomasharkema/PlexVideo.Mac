@@ -19,13 +19,13 @@ public final class Auth {
 
   private let logger = Logger(subsystem: "PlexVideo", category: "Auth")
 
-  @Injected(\.storage)
+  @Injected(\.authStorageProviding)
   private var storage
 
   @Injected(\.requestor)
   private var requestor
 
-  nonisolated init() {}
+  public nonisolated init() { }
 
   public func pollForPin(
     deviceInfo: DeviceInfo, pinId: String, requestDelay: Double, maxRetries: Int
@@ -37,7 +37,7 @@ public final class Auth {
       throw AuthError.limitReached
     }
 
-    try await Task.sleep(time: requestDelay)
+    try await Task.sleep(for: .seconds(requestDelay))
 
     let deviceUuid = storage.uuid
 
@@ -49,11 +49,11 @@ public final class Auth {
       URLQueryItem(name: "X-Plex-Platform", value: deviceInfo.platform),
       URLQueryItem(name: "X-Plex-Platform-Version", value: deviceInfo.version),
       URLQueryItem(name: "X-Plex-Device-Name", value: deviceInfo.product),
-      URLQueryItem(name: "X-Plex-Version", value: deviceInfo.appVersion),
+      URLQueryItem(name: "X-Plex-Version", value: deviceInfo.appVersion)
     ]
-    
+
     let url = urlComponents.url!
-    print(url)
+    
     do {
       let token: PinToken = try await requestor.request(
         url: url,
@@ -63,9 +63,7 @@ public final class Auth {
       )
 
       if let authToken = token.authToken {
-        await MainActor.run {
-          storage.plexToken = authToken
-        }
+        storage.plexToken = authToken
         return authToken
       } else {
         return try await pollForPin(
@@ -100,7 +98,7 @@ public final class Auth {
       URLQueryItem(name: "X-Plex-Platform-Version", value: deviceInfo.version),
       URLQueryItem(name: "X-Plex-Device-Name", value: deviceInfo.product),
       URLQueryItem(name: "X-Plex-Version", value: deviceInfo.appVersion),
-      URLQueryItem(name: "strong", value: "True"),
+      URLQueryItem(name: "strong", value: "True")
     ]
 
     let url = urlComponents.url!
@@ -121,7 +119,7 @@ public final class Auth {
       URLQueryItem(name: "context[device][product]", value: deviceInfo.product),
       URLQueryItem(name: "context[device][platform]", value: deviceInfo.platform),
       URLQueryItem(name: "context[device][platformVersion]", value: deviceInfo.version),
-      URLQueryItem(name: "context[device][version]", value: deviceInfo.appVersion),
+      URLQueryItem(name: "context[device][version]", value: deviceInfo.appVersion)
     ]
 
     let urlWeb = urlComponentsWeb.url!
@@ -136,13 +134,29 @@ public final class Auth {
   }
 }
 
-extension InjectedValues {
-  public var auth: Auth {
+public extension InjectedValues {
+  var auth: Auth {
     get { Self[AuthKey.self] }
     set { Self[AuthKey.self] = newValue }
   }
 }
 
 private struct AuthKey: InjectionKey {
-  static var currentValue: Auth = .init()
+  static var currentValue: Auth? = .init()
+}
+
+public protocol AuthStorageProviding: AnyObject {
+  var uuid: String { get }
+  var plexToken: String? { get set }
+}
+
+public extension InjectedValues {
+  var authStorageProviding: any AuthStorageProviding {
+    get { Self[AuthStorageProvidingKey.self] }
+    set { Self[AuthStorageProvidingKey.self] = newValue }
+  }
+}
+
+public struct AuthStorageProvidingKey: InjectionKey {
+  public static var currentValue: (any AuthStorageProviding)?
 }

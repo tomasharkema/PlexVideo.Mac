@@ -10,115 +10,73 @@ import PlexApi
 import Inject
 import PlexShared
 import Processed
+import Combine
+import SwiftUI
 
 @MainActor
-public final class ImageUrlLoader {
-
-  public static let shared = ImageUrlLoader()
-
-  struct State {
-    let root: Task<URL?, Never>
-    let uuid: Task<String, Never>
-    let token: Task<String?, Never>
-  }
-
-  private var state: State?
-
-  @Injected(\.serverLocator)
-  private var serverLocator
-
-  @Injected(\.storage)
-  private var storage
-
-  private func getStateTask() -> State {
-    if let state {
-      return state
-    } else {
-      
-      let rootTask = Task {
-        try? await serverLocator.root(force: false, deviceInfo: .current)
-      }
-      
-      let uuidTask = Task {
-        storage.uuid
-      }
-      let tokenTask = Task {
-        storage.plexToken
-      }
-
-      Task {
-        if await rootTask.value == nil {
-          try await Task.sleep(time: 1)
-          _ = getStateTask()
-        }
-      }
-
-      return State(root: rootTask, uuid: uuidTask, token: tokenTask)
-    }
-  }
-
-  func getInfo() async -> (root: URL?, uuid: String, token: String?) {
-    let state = getStateTask()
-
-    return await (root: state.root.value, uuid: state.uuid.value, token: state.token.value)
-  }
-}
-
-
-@Observable @MainActor
+@Observable
 public final class ThumbViewModel: LoadableSupport {
 
   public static let thumbSize = CGSize(width: 120, height: 180)
+
+  private let imageStore = ImageStore.shared
 
   @ObservationIgnored
   @Injected(\.api)
   private var api
 
-//  @ObservationIgnored
-//  @Injected(\.imageCache)
-//  private var imageCache
+  @ObservationIgnored
+  @Injected(\.serverLocator)
+  private var serverLocator
 
-  private let urlLoader = ImageUrlLoader.shared
+  @ObservationIgnored
+  @Injected(\.storage)
+  private var storage
 
   private let video: Video
 
-  public private(set) var url: URL?
+  public let initialImage: PlexImage?
+  public private(set) var image: PlexImage?
 
-  public var width: CGFloat?
-  public var height: CGFloat?
-
-  public init(video: Video, width: CGFloat?, height: CGFloat?) {
+  public init(video: Video) {
     self.video = video
-    self.width = width
-    self.height = height
+    self.initialImage = imageStore.fetchByID(video.assetId)?.image
   }
 
   public func start() async {
+    do {
+      if let cachedAsset = imageStore.fetchByID(video.assetId) {
+        image = cachedAsset.image
+        return
+      }
 
-    let info = await urlLoader.getInfo()
-    let uuid = info.uuid
+      let uuid = storage.uuid
+      guard let root = serverLocator.connection, let token = storage.plexToken else {
+        return
+      }
 
-    guard let root = info.root,
-          let token = info.token
-    else {
-      return
-    }
+      var size = ThumbViewModel.thumbSize
+      size.width *= 2
+      size.height *= 2
 
-//    do {
-//      if url == nil {
-//        url = imageCache.thumbCache[video.key]
-//      }
-      
-      url = self.api.imageUrl(
-        root: root,
+      let url = self.api.imageUrl(
+        root: root.uri,
         item: self.video,
-        width: Int(self.width ?? Self.thumbSize.width) * 2,
-        height: Int(self.height ?? Self.thumbSize.height) * 2,
+        width: Int(size.width),
+        height: Int(size.height),
         deviceInfo: DeviceInfo.current,
-        uuid: uuid, token: token
+        uuid: uuid,
+        token: token
       )
-//    } catch {
-//      print(error)
-//    }
+
+      let (asset, remote) = try await imageStore.loadAssetByID(video.assetId, url, size: size)
+
+      withTransaction(remote ? .init(animation: .easeInOut) : .init()) {
+        self.image = asset.image
+      }
+
+    } catch {
+      print(error)
+    }
   }
 }

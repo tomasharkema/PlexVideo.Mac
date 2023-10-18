@@ -5,25 +5,21 @@
 //  Created by Tomas Harkema on 05/06/2021.
 //
 
-import AVKit
-import SwiftUI
 #if canImport(UIKit)
 import UIKit
 #endif
+
+import AVKit
+import SwiftUI
 import PlexApi
 import PlexShared
 import PlexCore
 
 @MainActor
 struct VideoDetail: View {
-  @State
-  private var viewModel = VideoDetailViewModel()
-
-  let video: Video?
   
-  @Binding var isPip: Bool
-  @Binding var isFullscreen: Bool
-  @State var videoBounds: CGRect?
+  @Environment(CurrentVideoViewModel.self)
+  private var viewModel
 
   var body: some View {
     HStack {
@@ -36,20 +32,13 @@ struct VideoDetail: View {
         ProgressView()
 
       case .loaded(let player):
-        if let video {
+        if let video = viewModel.video {
 #if os(iOS)
-          VideoPlayer(
-            video: video,
-            player: player,
-            isPip: $isPip,
-            isFullscreen: $isFullscreen,
-            videoBounds: $videoBounds
-          )
+          VideoPlayer()
+#elseif os(macOS)
+          MacosVideoPlayerContainer()
 #else
-          BackupVideoPlayer(
-            video: video,
-            player: player
-          )
+          BackupVideoPlayer()
 #endif
         } else {
           EmptyView()
@@ -62,8 +51,8 @@ struct VideoDetail: View {
 
       }
     }
-    .task(id: video) {
-      await viewModel.load(video: video)
+    .task(id: viewModel.video) {
+      await viewModel.load(video: viewModel.video)
     }
 //    .onChange(of: isFullscreen) {
 //      AppDelegate.orientationLock = $0 ? .landscape : .portrait
@@ -92,13 +81,10 @@ struct VideoDetail: View {
 //        forKey: "orientation"
 //      )
 //    }
-    .task(id: videoBounds) {
-      await viewModel.updateBounds(bounds: videoBounds)
-    }
-    .task(id: video) {
-      await viewModel.load(video: video)
+    .task(id: viewModel.videoBounds) {
+      await viewModel.updateBounds(bounds: viewModel.videoBounds)
     }
     .background(Color.black)
-    .id(video?.key)
+    .id(viewModel.video?.key)
   }
 }

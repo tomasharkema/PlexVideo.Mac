@@ -8,14 +8,27 @@
 import Foundation
 import SwiftUI
 import PlexShared
+import PlexCore
 
+@MainActor
 struct VideoListItem: View {
-  let video: Video
-  let width: CGFloat
-  let height: CGFloat
 
-  @State var hovered = false
-  @Binding var activeVideo: Video?
+  @Environment(CurrentVideoViewModel.self)
+  private var currentVideoViewModel
+  
+  @State
+  private var hovered = false
+
+  let video: Video
+//  let width: CGFloat
+//  let height: CGFloat
+
+  init(video: Video) {
+    self.video = video
+  }
+
+//width: ThumbViewModel.thumbSize.width,
+//height: ThumbViewModel.thumbSize.height
 
   @ViewBuilder
   private func progressOverlay() -> some View {
@@ -28,7 +41,7 @@ struct VideoListItem: View {
           Rectangle()
             .foregroundColor(Color(.plexTint))
             .frame(
-              width: width *
+              width: ThumbViewModel.thumbSize.width *
               (CGFloat(viewOffset) /
                CGFloat(duration)),
               height: 5,
@@ -44,20 +57,22 @@ struct VideoListItem: View {
 
   var body: some View {
     VStack(alignment: .leading) {
-      Thumb(video: video, width: width, height: height)
+      Thumb(video: video)
         .overlay(progressOverlay())
         .cornerRadius(5.0)
-//        .shadow(radius: 10)
+        .shadow(radius: 10)
+        .drawingGroup()
+
       Text(video.displayTitle)
         .font(.footnote)
         .fontWeight(.regular)
-        .lineLimit(1)
+        .lineLimit(2, reservesSpace: true)
         .truncationMode(.tail)
         .dynamicTypeSize(.small)
-//        .shadow(radius: 10).padding(3)
+        .shadow(radius: 10).padding(3)
     }
     .padding(5)
-    .background(activeVideo?.key == video.key ? Color(.plexTint) : Color.clear)
+    .background(currentVideoViewModel.video?.key == video.key ? Color(.plexTint) : Color.clear)
     .background(hovered ? Color(.plexTint).opacity(0.6) : Color.clear)
     .cornerRadius(5)
     .onHover { h in
@@ -65,6 +80,12 @@ struct VideoListItem: View {
         hovered = h
       }
     }
+  }
+}
+
+extension VideoListItem: Equatable {
+  static nonisolated func == (lhs: Self, rhs: Self) -> Bool {
+    lhs.video == rhs.video
   }
 }
 

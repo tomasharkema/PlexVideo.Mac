@@ -8,21 +8,23 @@
 import Foundation
 import Inject
 import SwiftUI
+import PlexApi
+import PlexShared
 
 @MainActor
-public final class Storage: ObservableObject {
+public final class Storage: ObservableObject, ServerLocatorStorageProviding, RequestorStorageProviding, AuthStorageProviding {
 
   @AppStorage("plexTokenV2")
   public var plexToken: String?
 
-  @AppStorage("lastUsedLocalHost")
-  public var lastUsedLocalHost: URL?
+  @AppStorage("lastUsedLocalConnection")
+  public var lastUsedLocalConnection: Connection?
 
-  @AppStorage("lastUsedRemoteHost")
-  public var lastUsedRemoteHost: URL?
+  @AppStorage("lastUsedRemoteConnection")
+  public var lastUsedRemoteConnection: Connection?
 
-  @AppStorage("lastUsedRoot")
-  public var lastUsedRoot: URL?
+  @AppStorage("lastUsedConnection")
+  public var lastUsedConnection: Connection?
 
   public nonisolated init() { }
 
@@ -80,5 +82,30 @@ public extension InjectedValues {
 }
 
 private struct StorageKey: InjectionKey {
-  static var currentValue: Storage = .init()
+  static var currentValue: Storage? = .init()
+}
+
+extension Connection: RawRepresentable {
+  public init?(rawValue: String) {
+    guard let data = rawValue.data(using: .utf8) else {
+      return nil
+    }
+
+    do {
+      self = try JSONDecoder().decode(Connection.self, from: data)
+    } catch {
+      print(error)
+      return nil
+    }
+  }
+
+  public var rawValue: String {
+    do {
+      let data = try JSONEncoder().encode(self)
+      return String(data: data, encoding: .utf8) ?? ""
+    } catch {
+      print("error", error)
+      return ""
+    }
+  }
 }

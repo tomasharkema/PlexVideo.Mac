@@ -17,8 +17,8 @@ public final class Requestor {
   @Injected(\.serverLocator)
   private var serverLocator
 
-  @Injected(\.storage)
-  private var storage
+  @Injected(\.requestorStorageProviding)
+  private var storage: any RequestorStorageProviding
 
   func requestUrl(
     url: URL,
@@ -64,14 +64,14 @@ public final class Requestor {
       URLQueryItem(name: "X-Plex-Username", value: "teumaauss"),
       URLQueryItem(name: "X-Plex-Version", value: deviceInfo.appVersion),
       URLQueryItem(name: "X-Plex-Language", value: "nl"),
-      URLQueryItem(name: "X-Plex-Device-Name", value: deviceInfo.name),
+      URLQueryItem(name: "X-Plex-Device-Name", value: deviceInfo.name)
     ] : []) + (queryItems ?? [])
 
     let url = components.url!
-    
-//#if DEBUG
+
+// #if DEBUG
 //    logger.info("BUILT URL \(url)")
-//#endif
+// #endif
 
     return url
   }
@@ -106,7 +106,9 @@ public final class Requestor {
 //    let request = mutualRequest
     do {
       let session = URLSession.shared
-      let (data, _) = try await session.data(for: mutualRequest, delegate: nil)
+      let (data, response) = try await session.data(for: mutualRequest)
+
+      try HTTPError.throwFor(urlResponse: response)
 
 //      if (((r as? HTTPURLResponse)?.allHeaderFields["Content-Type"]) as? String)?
 //        .contains("xml") == true
@@ -122,7 +124,7 @@ public final class Requestor {
         return try JSONDecoder().decode(DecodableType.self, from: data)
       } catch {
         #if DEBUG
-        logger.error("JSON ERROR: \(error) \(url) \(String(data: data, encoding: .utf8) ?? "")")
+        logger.error("JSON ERROR:\nurl: \(url)\nerror: \(error)\njson: \(String(data: data, encoding: .utf8) ?? "")")
         #endif
         throw error
       }
@@ -131,8 +133,7 @@ public final class Requestor {
 
       if invalidateAfterError,
          error.code == .cannotConnectToHost || error.code == .cannotFindHost || error
-         .code == .dnsLookupFailed
-      {
+         .code == .dnsLookupFailed {
         logger.warning("NO HOST FOUND")
         Task {
           await serverLocator.invalidate(deviceInfo: deviceInfo)
@@ -147,6 +148,23 @@ public final class Requestor {
   }
 }
 
+@MainActor
+public protocol RequestorStorageProviding {
+  func getToken() -> String?
+  var uuid: String { get }
+}
+
+public extension InjectedValues {
+  var requestorStorageProviding: any RequestorStorageProviding {
+    get { Self[RequestorStorageProvidingKey.self] }
+    set { Self[RequestorStorageProvidingKey.self] = newValue }
+  }
+}
+
+public struct RequestorStorageProvidingKey: InjectionKey {
+  public static var currentValue: (any RequestorStorageProviding)?
+}
+
 extension InjectedValues {
   public var requestor: Requestor {
     get { Self[RequestorKey.self] }
@@ -155,7 +173,7 @@ extension InjectedValues {
 }
 
 private struct RequestorKey: InjectionKey {
-  static var currentValue: Requestor = .init()
+  static var currentValue: Requestor? = .init()
 }
 
 // swiftlint:disable:next line_length

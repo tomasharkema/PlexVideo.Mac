@@ -25,7 +25,7 @@ public final class LoginViewModel: NSObject, ObservableObject, LoadableSupport, 
   @Injected(\.storage)
   private var storage
 
-  @Published 
+  @Published
   public private(set) var url: URL?
 
   private var authSession: ASWebAuthenticationSession?
@@ -50,19 +50,19 @@ public final class LoginViewModel: NSObject, ObservableObject, LoadableSupport, 
     await self.load(\.loginState, priority: .medium) {
 
       let (url, pin) = try await self.auth.authUrl(deviceInfo: deviceInfo)
-      
+
       self.url = url
 
       self.authSession = ASWebAuthenticationSession(
         url: url,
         callbackURLScheme: "plexvideo",
-        completionHandler: { [weak self] url, error in
+        completionHandler: { [weak self] _, error in
           if let error = error {
             self?.gotSessionError(error: error)
           }
         }
       )
-      
+
       self.authSession?.presentationContextProvider = self
       self.authSession?.start()
 

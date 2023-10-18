@@ -8,17 +8,15 @@
 import SwiftUI
 import PlexShared
 import Inject
+import PlexCore
 
 struct ContentView: View {
-//  @StateObject var storage: Storage
   
-  @Injected(\.storage)
-  private var storage
+  @InjectedState(\.storage)
+  private var storage: Storage
 
-//  init(storage: Storage) {
-//    self._storage = .init(wrappedValue: storage)
-//  }
-
+  public init() { }
+  
   var body: some View {
     if let _ = storage.plexToken {
       Videos()
@@ -28,8 +26,8 @@ struct ContentView: View {
   }
 }
 
-struct ContentView_Previews: PreviewProvider {
-  static var previews: some View {
-    ContentView(/*storage: .init()*/)
-  }
-}
+//struct ContentView_Previews: PreviewProvider {
+//  static var previews: some View {
+//    ContentView(/*storage: .init()*/)
+//  }
+//}

@@ -10,7 +10,7 @@ import MetaCodable
 
 @Codable
 public struct MetadataSingle<T: Codable & Equatable>: Equatable {
-  
+
   @CodedAt("Metadata")
   public let metadata: T
 }

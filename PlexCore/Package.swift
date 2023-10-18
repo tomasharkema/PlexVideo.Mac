@@ -41,7 +41,7 @@ let package = Package(
 
       .package(url: "https://github.com/LeonardoCardoso/InitMacro", branch: "main"),
       .package(url: "https://github.com/SwiftedMind/Processed", from: "1.0.0"),
-      .package(url: "https://github.com/lorenzofiamingo/swiftui-cached-async-image", from: "2.1.1"),
+//      .package(url: "https://github.com/lorenzofiamingo/swiftui-cached-async-image", from: "2.1.1"),
       .package(url: "https://github.com/tomasharkema/MetaCodable", from: "0.0.1"),
       //    .package(url: "https://github.com/SwiftyLab/MetaCodable", from: "1.0.0"),
 
@@ -83,7 +83,7 @@ let package = Package(
           "Processed",
 //          "XMLCoder",
 
-          .product(name: "CachedAsyncImage", package: "swiftui-cached-async-image"),
+//          .product(name: "CachedAsyncImage", package: "swiftui-cached-async-image"),
         ],
         swiftSettings: swiftSettings,
         plugins: swiftUiPlugin

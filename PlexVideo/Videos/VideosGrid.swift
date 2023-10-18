@@ -13,37 +13,31 @@ import Processed
 
 @MainActor
 struct VideosGrid: View {
-  @Binding
-  private var activeVideo: Video?
 
-  @Binding
-  private var viewModel: VideosViewModel
+  @Environment(VideosViewModel.self)
+  private var viewModel
+
+  @Environment(CurrentVideoViewModel.self)
+  private var currentVideoViewModel
 
 //  let searchResults: LoadableState<[Video]>
 //  public let continueWatching: [Video]
 //  public let videos: [Video]
-  public let openVideo: (Video) -> Void
+//  public let openVideo: (Video) -> Void
 
-  init(activeVideo: Binding<Video?>, viewModel: Binding<VideosViewModel>, openVideo: @escaping (Video) -> Void) {
-    self._activeVideo = activeVideo
-    self._viewModel = viewModel
-    self.openVideo = openVideo
-  }
+  init() { }
 
   private func section(text: String?, videos: [Video]) -> some View {
     Section(content: {
       ForEach(videos) { video in
         Button(
           action: {
-            openVideo(video)
+            currentVideoViewModel.open(video: video)
           },
           label: {
             VideoListItem(
-              video: video,
-              width: ThumbViewModel.thumbSize.width,
-              height: ThumbViewModel.thumbSize.height,
-              activeVideo: $activeVideo
-            )
+              video: video
+            ).equatable()
           }
         )
         .buttonStyle(PlainButtonStyle())

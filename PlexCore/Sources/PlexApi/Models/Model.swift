@@ -7,6 +7,7 @@
 
 import Foundation
 import PlexShared
+import MetaCodable
 
 struct Player: Codable {
   let machineIdentifier: String
@@ -42,13 +43,6 @@ struct PinToken: Codable {
    product: string,
    trusted: boolean
    */
-}
-
-struct Device: Codable, Sendable {
-  let name: String
-  let provides: String
-  let publicAddress: String
-  let connections: [Connection]
 }
 
 struct Version: Codable {

@@ -15,35 +15,36 @@ import PlexShared
 @MainActor
 struct VideosGridScreen: View {
 
-  @Binding
-  private var viewModel: VideosViewModel
-
-  @State 
+  @Environment(VideosViewModel.self)
+  private var videosViewModel: VideosViewModel
+  
+  @State
+  private var gridViewModel = VideosGridScreenViewModel()
+  
+  @State
   private var searchText: String = ""
 
   @Binding
   private var video: Video?
 
-  @State
-  private var gridViewModel = VideosGridScreenViewModel()
-
-  init(viewModel: Binding<VideosViewModel>, video: Binding<Video?>) {
-    self._viewModel = viewModel
+  init(video: Binding<Video?>) {
     self._video = video
   }
 
   @ViewBuilder
   private var navigationBarElements: some View {
     HStack {
-      if case .loading = viewModel.data {
+#if os(macOS)
+      if case .loading = videosViewModel.data {
         ProgressView()
       } else {
         Button("Reload", action: {
           Task {
-            await viewModel.load(silently: true)
+            await videosViewModel.load(silently: true)
           }
         })
       }
+#endif
       Button("Logout", action: {
         gridViewModel.logout()
       })
@@ -53,24 +54,13 @@ struct VideosGridScreen: View {
   var body: some View {
     ScrollView {
       Group {
-        switch viewModel.data {
+        switch videosViewModel.data {
         case .loaded(let data):
-          VideosGrid(
-            activeVideo: $video,
-            viewModel: $viewModel,
-            openVideo: { v in
-              Task {
-                let newVideo = try await viewModel.openVideo(video: v)
-                withAnimation {
-                  self.video = newVideo
-                }
-              }
-            }
-          )
-          .padding()
-          .animation(.easeInOut, value: data)
-          .animation(.easeInOut, value: viewModel.searchResults)
-          .animation(.easeInOut, value: searchText)
+          VideosGrid()
+            .padding()
+            .animation(.easeInOut, value: data)
+            .animation(.easeInOut, value: videosViewModel.searchResults)
+            .animation(.easeInOut, value: searchText)
           
         case .loading:
           ProgressView()
@@ -86,10 +76,10 @@ struct VideosGridScreen: View {
       .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     .refreshable {
-      await viewModel.load(silently: true)
+      await videosViewModel.load(silently: true)
     }
     .task(id: searchText) {
-      await self.viewModel.searchText(searchText)
+      await self.videosViewModel.searchText(searchText)
     }
 #if os(iOS)
     .searchable(text: $searchText, placement: .navigationBarDrawer)
@@ -106,18 +96,5 @@ struct VideosGridScreen: View {
       navigationBarElements
     }
 #endif
-  }
-}
-
-@MainActor @Observable
-final class VideosGridScreenViewModel {
-  @ObservationIgnored
-  @Injected(\.storage)
-  private var storage
-
-  init() { }
-
-  func logout() {
-    storage.logout()
   }
 }

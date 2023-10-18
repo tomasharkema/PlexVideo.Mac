@@ -8,28 +8,18 @@
 import SwiftUI
 import PlexApi
 import PlexShared
+import PlexCore
 
+@MainActor
 struct PlayerOverlay: View {
-  @Binding private var video: Video?
 
-  @State private var isPip = false
-  @State private var isFullscreen = false
-
-  @Environment(\.mainWindowSize)
-  private var mainWindowSize
-
-  init(video: Binding<Video?>) {
-    self._video = video
-  }
-
-  private var screenWidth: CGFloat {
-    mainWindowSize.width
-  }
+  @Environment(CurrentVideoViewModel.self)
+  private var viewModel
 
   @ViewBuilder
   private func videoView() -> some View {
-    if let video {
-      VideoDetail(video: video, isPip: $isPip, isFullscreen: $isFullscreen)
+    if let video = viewModel.video {
+      VideoDetail()
     } else {
       EmptyView()
     }
@@ -38,23 +28,29 @@ struct PlayerOverlay: View {
   @ViewBuilder
   private func videoOverlay() -> some View {
     HStack {
-      Button(action: {
-        withAnimation {
-          self.video = nil
-        }
-      }, label: {
-        Image(systemName: "xmark")
-          .foregroundColor(.white)
-          .font(.title)
-          .padding(10)
-      })
-      .buttonStyle(PlainButtonStyle())
+      HStack {
+        Button(action: {
+          viewModel.stopPlaying()
+        }, label: {
+          Image(systemName: "xmark")
+            .foregroundColor(.white)
+            .font(.title)
+            .padding(10)
+        })
+        .buttonStyle(PlainButtonStyle())
+
+        Button(action: {
+          viewModel.fullscreen()
+        }, label: {
+          Image(systemName: "arrow.up.left.and.arrow.down.right")
+            .foregroundColor(.white)
+            .font(.title)
+            .padding(10)
+        })
+        .buttonStyle(PlainButtonStyle())
+      }
     }
     .background(Color.black.opacity(0.6))
-  }
-
-  private var minHeight: CGFloat {
-    min(screenWidth - 50, 400) * (1 / (video?.media?.first?.aspectRatio?.value ?? (16 / 9)))
   }
 
   var body: some View {
@@ -68,13 +64,13 @@ struct PlayerOverlay: View {
         //        .shadow(radius: 10)
           .padding(.bottom, 10)
           .frame(
-            width: min(screenWidth - 50, 400),
-            height: minHeight
+            width: min(viewModel.screenWidth - 50, 400),
+            height: viewModel.minHeight
           )
-          .offset(y: isPip ? min(screenWidth - 50, 400) * 0.3 : 0)
-          .animation(.easeInOut, value: isPip)
+          .offset(y: viewModel.isPip ? min(viewModel.screenWidth - 50, 400) * 0.3 : 0)
+          .animation(.easeInOut, value: viewModel.isPip)
     }
-    .offset(y: video == nil ? min(screenWidth - 50, 400) : 0)
-    .animation(.easeInOut, value: video)
+    .offset(y: viewModel.video == nil ? min(viewModel.screenWidth - 50, 400) : 0)
+    .animation(.easeInOut, value: viewModel.video)
   }
 }

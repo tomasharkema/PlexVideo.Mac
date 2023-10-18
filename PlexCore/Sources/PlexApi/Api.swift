@@ -18,12 +18,9 @@ public final class Api {
   @Injected(\.requestor)
   private var requestor
 
-//  @Injected(\.imageCache)
-//  private var imageCache
-
   public func sections(deviceInfo: DeviceInfo) async throws -> Root<DirectoryContainer> {
     try await requestor.request(
-      url: serverLocator.root(deviceInfo: deviceInfo)
+      url: serverLocator.root(deviceInfo: deviceInfo).uri
         .appendingPathComponent("/library/sections"),
       deviceInfo: deviceInfo
     )
@@ -31,7 +28,7 @@ public final class Api {
 
   public func all(key: SectionKey, deviceInfo: DeviceInfo) async throws -> Root<Metadata<Video>> {
     try await requestor.request(
-      url: serverLocator.root(deviceInfo: deviceInfo)
+      url: serverLocator.root(deviceInfo: deviceInfo).uri
         .appendingPathComponent("/library/sections/\(key.rawValue)/all"),
       deviceInfo: deviceInfo
     )
@@ -39,7 +36,7 @@ public final class Api {
 
   public func onDeck(ratingKey: RatingKey, deviceInfo: DeviceInfo) async throws -> Root<Metadata<Video>> {
     try await requestor.request(
-      url: serverLocator.root(deviceInfo: deviceInfo)
+      url: serverLocator.root(deviceInfo: deviceInfo).uri
         .appendingPathComponent("/library/metadata/\(ratingKey.rawValue)"),
       deviceInfo: deviceInfo,
       queryItems: [URLQueryItem(name: "includeOnDeck", value: "1")]
@@ -48,7 +45,7 @@ public final class Api {
 
   private func status(deviceInfo: DeviceInfo) async throws -> Root<Metadata<SessionStatus>> {
     try await requestor.request(
-      url: serverLocator.root(deviceInfo: deviceInfo)
+      url: serverLocator.root(deviceInfo: deviceInfo).uri
         .appendingPathComponent("/status/sessions"),
       deviceInfo: deviceInfo
     )
@@ -82,7 +79,7 @@ public final class Api {
       URLQueryItem(name: "mediaBufferSize", value: "40000"),
       URLQueryItem(name: "videoQuality", value: "100"),
       URLQueryItem(name: "offset", value: "\(offset)"),
-      URLQueryItem(name: "addDebugOverlay", value: "0"),
+      URLQueryItem(name: "addDebugOverlay", value: "0")
     ]
   }
 
@@ -126,7 +123,7 @@ public final class Api {
 //    print(resu)
 
     try await requestor.requestUrl(
-      url: serverLocator.root(deviceInfo: deviceInfo)
+      url: serverLocator.root(deviceInfo: deviceInfo).uri
         .appendingPathComponent("/video/:/transcode/universal/start.m3u8"),
       deviceInfo: deviceInfo,
       queryItems:
@@ -148,33 +145,26 @@ public final class Api {
     uuid: String?,
     token: String?
   ) -> URL {
-
-    let url = requestor.requestUrl(
+    requestor.requestUrl(
       url: root.appendingPathComponent("/photo/:/transcode"),
       deviceInfo: deviceInfo,
       queryItems: [
         URLQueryItem(name: "url", value: item.grandparentThumb ?? item.thumb),
         URLQueryItem(name: "width", value: "\(width)"),
         URLQueryItem(name: "height", value: "\(height)"),
-//        URLQueryItem(name: "upscale", value: "1"),
+        URLQueryItem(name: "upscale", value: "1")
       ],
       uuid: uuid,
       token: token
     )
-
-//    Task(priority: .background) { @MainActor in
-//      self.imageCache.thumbCache[item.key] = url
-//    }
-    
-    return url
   }
 
   public func timeline(
     video: Video, time: CMTime,
     state: PlayingState, deviceInfo: DeviceInfo
   ) async throws -> Root<TranscodeSessions> {
-    return try await requestor.request(
-      url: serverLocator.root(deviceInfo: deviceInfo)
+    try await requestor.request(
+      url: serverLocator.root(deviceInfo: deviceInfo).uri
           .appendingPathComponent("/:/timeline"),
         deviceInfo: deviceInfo,
         queryItems: [
@@ -186,30 +176,24 @@ public final class Api {
           ),
           URLQueryItem(name: "state", value: state.rawValue),
           URLQueryItem(name: "key", value: video.key.rawValue),
-          URLQueryItem(name: "context", value: "library%3Acontent.library"),
+          URLQueryItem(name: "context", value: "library%3Acontent.library")
         ]
       )
   }
 
   public func continueWatching(contentDirectoryIDs: [SectionKey], deviceInfo: DeviceInfo) async throws -> Root<Hub<Video>> {
     try await requestor.request(
-      url: serverLocator.root(deviceInfo: deviceInfo).appendingPathComponent("/hubs/continueWatching"),
+      url: serverLocator.root(deviceInfo: deviceInfo).uri.appendingPathComponent("/hubs/continueWatching"),
       deviceInfo: deviceInfo,
       queryItems: [
         URLQueryItem(
           name: "contentDirectoryID",
           value: contentDirectoryIDs.map(\.rawValue).joined(separator: ",")
         ),
-        URLQueryItem(name: "includeMeta", value: "1"),
+        URLQueryItem(name: "includeMeta", value: "1")
       ]
     )
   }
-}
-
-public enum PlayingState: String {
-  case playing
-  case paused
-  case stopped
 }
 
 enum PlexError: Error {
@@ -224,5 +208,5 @@ public extension InjectedValues {
 }
 
 private struct ApiKey: InjectionKey {
-  static var currentValue: Api = .init()
+  static var currentValue: Api? = .init()
 }

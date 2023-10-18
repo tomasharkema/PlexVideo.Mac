@@ -41,8 +41,7 @@ public final class VideoDataService: Sendable {
   ) async throws -> [(VideoKey, PlexShared.Progress)] {
 
     try await getContinueWatching(sections: sections, deviceInfo: deviceInfo)
-      .map { watchingVideo in
-        {
+      .map { watchingVideo in {
           Task(priority: .userInitiated) {
             try await (watchingVideo.key, watchingVideo.getProgress(storage: self.progress(for: watchingVideo)))
           }
@@ -113,5 +112,5 @@ public extension InjectedValues {
 }
 
 private struct VideoDataServiceKey: InjectionKey {
-  static var currentValue: VideoDataService = .init()
+  static var currentValue: VideoDataService? = .init()
 }

@@ -9,57 +9,47 @@ import Foundation
 import SwiftUI
 import Inject
 import PlexShared
+import PlexCore
+import PlexApi
 
+@MainActor
 @main
 struct PlexVideoApp: App {
 
-  #if os(iOS)
-  @UIApplicationDelegateAdaptor(AppDelegate.self)
-  var appDelegate
-  #endif
-
-  @Injected(\.storage)
-  private var injectedStorage
+//  #if os(iOS)
+//  @UIApplicationDelegateAdaptor(AppDelegate.self)
+//  var appDelegate
+//  #endif
+  
+  @State
+  private var dependencyInjector = DependencyInjector()
 
   @State
-  private var storage = Storage()
+  private var videosViewModel = VideosViewModel()
 
-  init() {
-    injectedStorage = storage
-  }
+  @State
+  private var currentVideoViewModel = CurrentVideoViewModel()
 
   var body: some Scene {
     WindowGroup {
-      GeometryReader { proxy in
-        ContentView()
-          .tint(Color(.plexTint))
-          .environment(\.mainWindowSize, proxy.size)
-      }
+      ContentView()
+        .tint(Color(.plexTint))
+        .environment(videosViewModel)
+        .environment(currentVideoViewModel)
+        .environmentObject(dependencyInjector)
     }
-//    .tint(Color(.plexTintColor))
   }
 }
 
-#if os(iOS)
-class AppDelegate: NSObject, UIApplicationDelegate {
-  static var orientationLock = UIInterfaceOrientationMask.all
-
-  func application(
-    _: UIApplication,
-    supportedInterfaceOrientationsFor _: UIWindow?
-  ) -> UIInterfaceOrientationMask {
-    AppDelegate.orientationLock
-  }
-}
-#endif
-
-private struct MainWindowSizeKey: EnvironmentKey {
-  static let defaultValue: CGSize = .zero
-}
-
-extension EnvironmentValues {
-  var mainWindowSize: CGSize {
-    get { self[MainWindowSizeKey.self] }
-    set { self[MainWindowSizeKey.self] = newValue }
-  }
-}
+//#if os(iOS)
+//class AppDelegate: NSObject, UIApplicationDelegate {
+//  static var orientationLock = UIInterfaceOrientationMask.all
+//
+//  func application(
+//    _: UIApplication,
+//    supportedInterfaceOrientationsFor _: UIWindow?
+//  ) -> UIInterfaceOrientationMask {
+//    AppDelegate.orientationLock
+//  }
+//}
+//#endif

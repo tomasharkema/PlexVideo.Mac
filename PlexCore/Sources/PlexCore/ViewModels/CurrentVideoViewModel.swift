@@ -1,5 +1,5 @@
 //
-//  VideoDetailViewModel.swift
+//  CurrentVideoViewModel.swift
 //  PlexVideo
 //
 //  Created by Tomas Harkema on 07/06/2021.
@@ -7,30 +7,72 @@
 
 import AVKit
 import Foundation
-//import AsyncAwaitHelpers
 import PlexApi
 import PlexShared
 import Inject
 import Processed
+import SwiftUI
+import OSLog
+import Combine
 
-@MainActor @Observable
-public final class VideoDetailViewModel: LoadableSupport {
+@MainActor
+@Observable
+public final class CurrentVideoViewModel: LoadableSupport {
 
-  @ObservationIgnored @Injected(\.storage)
+  private let logger = Logger(subsystem: "PlexVideo", category: "CurrentVideoViewModel")
+
+  @ObservationIgnored
+  @Injected(\.storage)
   private var storage
 
-  @ObservationIgnored @Injected(\.api)
+  @ObservationIgnored
+  @Injected(\.api)
   private var api
 
+  @ObservationIgnored
+  private var playingCancellables = Set<AnyCancellable>()
+
+  public var video: Video?
+  public var isPip = false
+  public var isFullscreen = false
+  public var videoBounds: CGRect?
+  private var currentSize: String?
+
   private var uuid = VideoSessionUUID(rawValue: UUID().uuidString)
-  private var video: Video?
   private var lastTime: CMTime?
 
   public private(set) var player: LoadableState<AVPlayer> = .absent
 
   private var updateTimeline: LoadableState<Void> = .absent
 
+  private var playerStatus: AVPlayer.Status = .unknown {
+    didSet {
+      switch playerStatus {
+      case .failed:
+        print("playerStatus failed", player.data?.error)
+
+      case .readyToPlay:
+        print("playerStatus readyToPlay")
+
+      case .unknown:
+        print("playerStatus unknown")
+      }
+    }
+  }
+
   public init() { }
+
+  private func onceReadyToPlay(time: Double) {
+    guard let player = player.data else {
+      return
+    }
+
+    player.seek(to: CMTime(
+      seconds: time,
+      preferredTimescale: 1
+    ))
+    player.play()
+  }
 
   private func createPlayer(video: Video, url: URL) async throws -> AVPlayer {
     let item = AVPlayerItem(asset: AVURLAsset(url: url))
@@ -43,14 +85,6 @@ public final class VideoDetailViewModel: LoadableSupport {
 
     let time: Double = video.getProgress(storage: saved).seconds
 
-    Task { @MainActor in
-      player.seek(to: CMTime(
-        seconds: time,
-        preferredTimescale: 1
-      ))
-      player.playImmediately(atRate: 1.0)
-    }
-
     player.addPeriodicTimeObserver(
       forInterval: CMTime(value: 10, timescale: 1),
       queue: .global(qos: .background),
@@ -60,6 +94,24 @@ public final class VideoDetailViewModel: LoadableSupport {
     )
     player.isClosedCaptionDisplayEnabled = true
     player.appliesMediaSelectionCriteriaAutomatically = true
+
+    let statusObserve = player.publisher(for: \.status)
+
+    statusObserve.first {
+      $0 == .readyToPlay
+    }.sink { _ in
+      Task { @MainActor in
+        self.onceReadyToPlay(time: time)
+      }
+    }.store(in: &playingCancellables)
+
+    statusObserve
+      .sink { status in
+        Task { @MainActor in
+          self.playerStatus = status
+        }
+      }
+      .store(in: &playingCancellables)
 
     return player
   }
@@ -96,7 +148,7 @@ public final class VideoDetailViewModel: LoadableSupport {
   public func load(video: Video?) async {
     guard let video else {
       unload()
-      return 
+      return
     }
 
     self.video = video
@@ -121,7 +173,11 @@ public final class VideoDetailViewModel: LoadableSupport {
     }.value
   }
 
-  func unload() {
+  private func unload() {
+    for cancellable in playingCancellables {
+      cancellable.cancel()
+    }
+    playingCancellables.removeAll()
 
     if let video = video, let lastTime = lastTime, let _ = self.storage.plexToken {
       Task(priority: .background) {
@@ -130,11 +186,41 @@ public final class VideoDetailViewModel: LoadableSupport {
       }
     }
     lastTime = nil
-
+    self.video = nil
+    self.player.data?.pause()
     self.reset(\.player)
   }
 
-  private var currentSize: String?
+  public func open(video: Video) {
+    Task {
+      do {
+        let newVideo = try await self.openVideo(video: video)
+
+        withTransaction(.init(animation: .easeInOut)) {
+          self.video = newVideo
+        }
+      } catch {
+        print(error)
+      }
+    }
+  }
+
+  private func openVideo(video: Video) async throws -> Video? {
+    do {
+      let onDeckResponse = try await self.api.onDeck(ratingKey: video.ratingKey, deviceInfo: .current)
+
+      if let res = onDeckResponse.mediaContainer.metadata.first?.onDeck?.metadata {
+        return Video(onDeck: res)
+      } else {
+        return video
+      }
+
+    } catch {
+      self.logger.error("open video error: \(error)")
+      return video
+    }
+  }
+
   public func updateBounds(bounds: CGRect?) async {
     guard let _ = video, let _ = lastTime else {
       return
@@ -163,5 +249,28 @@ public final class VideoDetailViewModel: LoadableSupport {
 //    } catch {
 //      print(error)
 //    }
+  }
+
+  public func stopPlaying() {
+    unload()
+  }
+
+  public func fullscreen() {
+    withTransaction(.init(animation: .linear)) {
+      isFullscreen = true
+    }
+  }
+
+  public var screenWidth: CGFloat {
+#if os(iOS)
+    return UIScreen.main.bounds.width
+#endif
+#if os(macOS)
+    return NSScreen.main?.frame.width ?? 1920
+#endif
+  }
+
+  public var minHeight: CGFloat {
+    min(screenWidth - 50, 400) * (1 / (video?.media?.first?.aspectRatio?.value ?? (16 / 9)))
   }
 }

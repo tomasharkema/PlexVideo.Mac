@@ -25,6 +25,7 @@ import AppKit
 
 public extension DeviceInfo {
 
+  @MainActor
   static let current = DeviceInfo(name: Host.current().localizedName ?? "")
 
 }

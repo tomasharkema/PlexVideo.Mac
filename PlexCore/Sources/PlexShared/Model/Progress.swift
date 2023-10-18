@@ -8,9 +8,9 @@
 import Foundation
 
 public struct Progress: Codable, Sendable {
-  
+
   public static let zero = Progress(seconds: 0, date: Date(timeIntervalSince1970: 0))
-  
+
   public let seconds: Double
   public let date: Date
 
