@@ -8,6 +8,7 @@
 import Foundation
 import Inject
 import OSLog
+import PlexShared
 
 enum AuthError: LocalizedError {
   case limitReached
@@ -55,9 +56,9 @@ public final class Auth {
     let url = urlComponents.url!
     
     do {
-      let token: PinToken = try await requestor.request(
+      let token = try await requestor.request(
         url: url,
-        deviceInfo: deviceInfo,
+        PinToken.self,
         sendDefaultQueries: false,
         useCache: false
       )
@@ -103,9 +104,9 @@ public final class Auth {
 
     let url = urlComponents.url!
 
-    let data: PinToken = try await requestor.request(
+    let data = try await requestor.request(
       url: url,
-      deviceInfo: deviceInfo,
+      PinToken.self,
       method: "POST",
       sendDefaultQueries: false,
       useCache: false

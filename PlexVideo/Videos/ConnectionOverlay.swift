@@ -7,7 +7,6 @@
 
 import Foundation
 import SwiftUI
-//import AsyncAwaitHelpers
 import PlexApi
 import Inject
 
@@ -36,7 +35,7 @@ struct ConnectionOverlay: View {
             showOverlay = true
             
             Task { @MainActor in
-              try await Task.sleep(time: 5)
+              try await Task.sleep(for: .seconds(5))
               if old == self.serverLocator.connection {
                 showOverlay = false
               }
@@ -54,11 +53,7 @@ struct ConnectionOverlay: View {
   }
   
   var body: some View {
-    Rectangle().foregroundColor(.clear)
-      .overlay(
-        connectionOverlay,
-        alignment: .top
-      )
+    connectionOverlay
   }
 }
 

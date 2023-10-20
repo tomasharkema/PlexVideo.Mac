@@ -58,7 +58,9 @@ final class MemoryLimitedCache: Cache, Sendable {
   }
 
   func fetchByID(_ id: Asset.ID) -> Asset? {
-    return accessLock.withLock { self.assets[id] }
+    return accessLock.withLock {
+      return self.assets[id]
+    }
   }
 
   // Asset with `id` will have its retention priority increased by 1 until `.cancel` is called.

@@ -41,8 +41,12 @@ extension PlexImage {
     self.init(systemSymbolName: name, accessibilityDescription: nil)
   }
 
-  func preparingForDisplay() -> Self? {
-    self
+  func preparingForDisplay() -> NSImage? {
+    return self
+  }
+
+  func preparingThumbnail(of size: CGSize) -> NSImage? {
+    return self//ImageIO.resizedImageWithHintingAndSubsampling(at: asset, for: size)
   }
 }
 

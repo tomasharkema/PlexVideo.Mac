@@ -9,12 +9,12 @@ import Foundation
 import MetaCodable
 
 @Codable
-public struct TranscodeSessions {
+public struct TranscodeSessions: Sendable {
   @CodedAt("TranscodeSession")
   public let transcodeSession: [TranscodeSession]
 }
 
-public struct TranscodeSession: Codable {
+public struct TranscodeSession: Codable, Sendable {
   public let key: String?
   public let throttled: Bool?
   public let complete: Bool?

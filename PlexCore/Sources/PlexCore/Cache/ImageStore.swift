@@ -12,10 +12,16 @@ import PlexShared
 import Processed
 import CryptoKit
 
+#if os(iOS)
+import UIKit
+#endif
+
 enum AssetError: Swift.Error {
   case preparingImageFailed
   case assetNotFound
 }
+
+extension FileManager: @unchecked Sendable { }
 
 final class ImageStore: Sendable {
 
@@ -33,6 +39,8 @@ final class ImageStore: Sendable {
     let cachesDirectory = try! fileManager.url(
       for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: true
     ).appendingPathComponent("asset-images", isDirectory: true)
+
+    print(cachesDirectory)
 
     if !fileManager.fileExists(atPath: cachesDirectory.path) {
       // swiftlint:disable:next force_try
@@ -111,37 +119,44 @@ final class ImageStore: Sendable {
 //      throw AssetError.preparingImageFailed
 //    }
 
-    let asset = localAssets.url(forID: id)
 
-    let remote: Bool
-    if !fileManager.fileExists(atPath: asset.path) {
-      remote = true
-      try await fetchAsset(id: id, url: url)
-      guard localAssets.fetchByID(id) != nil else {
+      let asset = self.localAssets.url(forID: id)
+
+      let remote: Bool
+      if !fileManager.fileExists(atPath: asset.path) {
+        remote = true
+        await Task.yield()
+        try await fetchAsset(id: id, url: url)
+        guard localAssets.fetchByID(id) != nil else {
+          throw AssetError.assetNotFound
+        }
+        await Task.yield()
+      } else {
+        remote = false
+      }
+
+//      let data = try Data(contentsOf: asset)
+      #if os(iOS)
+      let image = await UIImageReader.default.image(contentsOf: asset)?.preparingThumbnail(of: size)
+      #endif
+      #if os(macOS)
+    let image = ImageIO.resizedImageWithHintingAndSubsampling(at: asset, for: size) //.preloadImage(at: asset, for: size)//.resizedImageWithHintingAndSubsampling(at: asset, for: size)
+      #endif
+
+      guard
+        let image //= asset.//ImageIO.resizedImageWithHintingAndSubsampling(at: asset, for: size)?.preparingForDisplay()
+      else {
         throw AssetError.assetNotFound
       }
-    } else {
-      remote = false
-    }
 
-//    await Task.yield()
+      let prepared = Asset(id: id, image: image)
+      Task(priority: .low) {
+        self.preparedImages.add(asset: prepared)
+      }
 
-    guard let image = ImageIO.resizedImageWithHintingAndSubsampling(at: asset, for: size) else {
-      throw AssetError.assetNotFound
-    }
-
-    guard let preparedImage = image.preparingForDisplay() else {
-      throw AssetError.preparingImageFailed
-    }
-
-    let prepared = Asset(id: id, image: preparedImage)
-    Task(priority: .low) {
-      self.preparedImages.add(asset: prepared)
-    }
     return (asset: prepared, remote: remote)
   }
 
-  // TODO: fix cancellation
   func loadAssetByID(_ id: Asset.ID, _ url: URL, size: CGSize) async throws -> (asset: Asset, remote: Bool) {
     try await prepareAssetIfNeeded(id: id, url: url, size: size)
   }

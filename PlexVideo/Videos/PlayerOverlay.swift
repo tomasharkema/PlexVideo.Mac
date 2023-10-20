@@ -19,7 +19,7 @@ struct PlayerOverlay: View {
   @ViewBuilder
   private func videoView() -> some View {
     if let video = viewModel.video {
-      VideoDetail()
+      VideoDetail(video: video)
     } else {
       EmptyView()
     }
@@ -55,20 +55,18 @@ struct PlayerOverlay: View {
 
   var body: some View {
     ZStack(alignment: Alignment(horizontal: .trailing, vertical: .bottom)) {
-      videoView()
-        .overlay(
-            videoOverlay(),
-            alignment: Alignment(horizontal: .center, vertical: .top)
-          )
-          .cornerRadius(10)
-        //        .shadow(radius: 10)
-          .padding(.bottom, 10)
-          .frame(
-            width: min(viewModel.screenWidth - 50, 400),
-            height: viewModel.minHeight
-          )
-          .offset(y: viewModel.isPip ? min(viewModel.screenWidth - 50, 400) * 0.3 : 0)
-          .animation(.easeInOut, value: viewModel.isPip)
+      ZStack(alignment: Alignment(horizontal: .center, vertical: .top)) {
+        videoView()
+        videoOverlay()
+      }
+      .cornerRadius(10)
+      .padding(.bottom, 10)
+      .frame(
+        width: min(viewModel.screenWidth - 50, 400),
+        height: viewModel.minHeight
+      )
+      .offset(y: viewModel.isPip ? min(viewModel.screenWidth - 50, 400) * 0.3 : 0)
+      .animation(.easeInOut, value: viewModel.isPip)
     }
     .offset(y: viewModel.video == nil ? min(viewModel.screenWidth - 50, 400) : 0)
     .animation(.easeInOut, value: viewModel.video)

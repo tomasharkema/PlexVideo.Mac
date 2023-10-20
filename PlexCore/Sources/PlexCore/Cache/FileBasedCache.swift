@@ -21,11 +21,11 @@ protocol Cache {
 }
 
 final class FileBasedCache: Cache, Sendable {
-  var fileManager: FileManager
-  let imageFormat: UTType
-  let directory: URL
-  var logger: Logger
-  var signposter: OSSignposter
+  private let fileManager: FileManager
+  private let imageFormat: UTType
+  private let directory: URL
+  private let logger: Logger
+  private let signposter: OSSignposter
 
   init(
     directory: URL,

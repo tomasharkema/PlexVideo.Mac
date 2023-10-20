@@ -32,12 +32,31 @@ public final class VideosViewModel: ObservableObject, LoadableSupport {
 
   public private(set) var savedLastPlayed: Video?
 
-  public nonisolated init() {}
+  public init() {}
 
-  public func load(silently: Bool) async {
+  public func reload(silently: Bool, minimalTime: Duration = .seconds(1)) async {
+    await withDiscardingTaskGroup { group in
+      group.addTask {
+        await self.load(silently: true, reload: true)
+      }
+      group.addTask {
+        try? await Task.sleep(for: minimalTime)
+      }
+    }
+  }
+
+  public func load(silently: Bool, reload: Bool) async {
     _ = await self.load(\.data, silently: silently, priority: .userInitiated) { yield in
       async let lastPlayer = self.storage.getLastPlayed()
-      async let (onDeck, all) = self.service.getVideoList(deviceInfo: .current)
+      let (onDeck, all) = try await self.service.getVideoList(reload: reload)
+
+      Task {
+        for (index, video) in all.enumerated() {
+          Task(priority: index < 10 ? .high : .low) {
+            await ThumbViewModel.get(for: video).start()
+          }
+        }
+      }
 
       do {
         self.savedLastPlayed = try await lastPlayer
@@ -46,12 +65,7 @@ public final class VideosViewModel: ObservableObject, LoadableSupport {
         self.savedLastPlayed = nil
       }
 
-      do {
-        yield(.loaded(try await Data(continueWatching: onDeck, videos: all)))
-      } catch {
-        self.logger.error("Videos load error: \(error)")
-        throw error
-      }
+      yield(.loaded(Data(continueWatching: onDeck, videos: all)))
     }.value
   }
 

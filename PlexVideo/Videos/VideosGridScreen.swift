@@ -11,6 +11,7 @@ import PlexApi
 import PlexCore
 import Inject
 import PlexShared
+import PlexUIKit
 
 @MainActor
 struct VideosGridScreen: View {
@@ -19,79 +20,62 @@ struct VideosGridScreen: View {
   private var videosViewModel: VideosViewModel
   
   @State
-  private var gridViewModel = VideosGridScreenViewModel()
-  
-  @State
   private var searchText: String = ""
 
-  @Binding
-  private var video: Video?
-
-  init(video: Binding<Video?>) {
-    self._video = video
+  @ToolbarContentBuilder
+  private var navigationBarElements: some ToolbarContent {
+    ToolbarItemGroup {
+#if os(macOS) || targetEnvironment(macCatalyst)
+      LoadingButton(
+        text: { Image(systemName: "arrow.clockwise") },
+        loadingText: { ProgressView().controlSize(.small) }
+      ) {
+        await videosViewModel.reload(silently: true)
+      }
+      .keyboardShortcut("r", modifiers: .command)
+#endif
+    }
   }
 
   @ViewBuilder
-  private var navigationBarElements: some View {
-    HStack {
-#if os(macOS)
-      if case .loading = videosViewModel.data {
-        ProgressView()
-      } else {
-        Button("Reload", action: {
-          Task {
-            await videosViewModel.load(silently: true)
-          }
-        })
-      }
-#endif
-      Button("Logout", action: {
-        gridViewModel.logout()
-      })
+  private var innerScrollview: some View {
+    switch videosViewModel.data {
+    case .loaded:
+      VideosGrid()
+
+    case .loading, .absent:
+      ProgressView()
+
+    case .error(let error):
+      Text(error.localizedDescription)
+
     }
   }
 
   var body: some View {
     ScrollView {
-      Group {
-        switch videosViewModel.data {
-        case .loaded(let data):
-          VideosGrid()
-            .padding()
-            .animation(.easeInOut, value: data)
-            .animation(.easeInOut, value: videosViewModel.searchResults)
-            .animation(.easeInOut, value: searchText)
-          
-        case .loading:
-          ProgressView()
-          
-        case .error(let error):
-          Text(error.localizedDescription)
-          
-        case .absent:
-          EmptyView()
-          
-        }
-      }
-      .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-    .refreshable {
-      await videosViewModel.load(silently: true)
+      innerScrollview
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     .task(id: searchText) {
       await self.videosViewModel.searchText(searchText)
     }
+    .animation(.easeInOut, value: videosViewModel.data)
+    .animation(.easeInOut, value: videosViewModel.searchResults)
+    .animation(.easeInOut, value: searchText)
+    .navigationTitle("Videos")
+#if !targetEnvironment(macCatalyst)
+    .refreshable {
+      await videosViewModel.reload(silently: true)
+    }
+#endif
 #if os(iOS)
     .searchable(text: $searchText, placement: .navigationBarDrawer)
 #else
-    .searchable(text: $searchText)
-#endif
-#if os(iOS)
-    .navigationBarItems(trailing: navigationBarElements)
-    .navigationBarTitle(Text("Videos"))
+    .searchable(text: $searchText, placement: .toolbar)
 #endif
 #if os(macOS)
-    .navigationTitle("Videos")
     .toolbar {
       navigationBarElements
     }

@@ -9,7 +9,7 @@ import Foundation
 import MetaCodable
 
 @Codable
-public struct Connection: Equatable, Sendable {
+public struct Connection: Equatable, Sendable, Hashable {
   public let `protocol`: String
   public let address: String
   public let port: Int
@@ -17,4 +17,10 @@ public struct Connection: Equatable, Sendable {
   public let local: Bool
   public let relay: Bool
   public let IPv6: Bool
+}
+
+extension Connection: Identifiable {
+  public var id: Int {
+    hashValue
+  }
 }

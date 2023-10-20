@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import PlexApi
 
 #if canImport(UIKit)
 
@@ -25,7 +24,7 @@ import AppKit
 
 public extension DeviceInfo {
 
-  @MainActor
+//  @MainActor
   static let current = DeviceInfo(name: Host.current().localizedName ?? "")
 
 }

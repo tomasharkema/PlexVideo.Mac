@@ -10,7 +10,7 @@ import MetaCodable
 import PlexShared
 
 @Codable
-struct SessionStatus {
+struct SessionStatus: Codable {
   @CodedAt("Player")
   let player: Player
 

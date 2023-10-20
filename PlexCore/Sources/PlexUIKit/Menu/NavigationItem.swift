@@ -1,0 +1,25 @@
+//
+//  NavigationItem.swift
+//
+//
+//  Created by Tomas Harkema on 20/10/2023.
+//
+
+//import Foundation
+
+public struct NavigationItem: Equatable, Hashable, Identifiable, Codable {
+  public let name: String
+  public let image: String
+
+  public  var id: String {
+    name
+  }
+}
+
+extension NavigationItem {
+  public static let home = NavigationItem(name: "Home", image: "house")
+  public static let servers = NavigationItem(name: "Servers", image: "server.rack")
+  public static let settings = NavigationItem(name: "Settings", image: "gearshape")
+
+  public static let menuItems: [NavigationItem] = [.home, .servers, .settings]
+}

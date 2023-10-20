@@ -14,10 +14,12 @@
 		C3337859266CD568007C3D41 /* VideoListItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3337858266CD568007C3D41 /* VideoListItem.swift */; };
 		C354970C2ADDB1B000990615 /* PlexCore in Frameworks */ = {isa = PBXBuildFile; productRef = C354970B2ADDB1B000990615 /* PlexCore */; };
 		C36279DD265FE44400DEF2B6 /* PlexVideoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36279DC265FE44400DEF2B6 /* PlexVideoApp.swift */; };
-		C36279DF265FE44400DEF2B6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36279DE265FE44400DEF2B6 /* ContentView.swift */; };
+		C36279DF265FE44400DEF2B6 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36279DE265FE44400DEF2B6 /* RootView.swift */; };
 		C36279E1265FE44500DEF2B6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C36279E0265FE44500DEF2B6 /* Assets.xcassets */; };
 		C36279EF265FE5DC00DEF2B6 /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36279EE265FE5DC00DEF2B6 /* Login.swift */; };
 		C36279F2265FE6EA00DEF2B6 /* Videos.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36279F1265FE6EA00DEF2B6 /* Videos.swift */; };
+		C36760542AE191C200838645 /* PlexUIKit in Frameworks */ = {isa = PBXBuildFile; productRef = C36760532AE191C200838645 /* PlexUIKit */; };
+		C378F6BF2AE1C8D9000B980F /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C378F6BE2AE1C8D9000B980F /* MainView.swift */; };
 		C391F3CD2ADDEE26000452B5 /* BackupVideoPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C391F3CC2ADDEE26000452B5 /* BackupVideoPlayer.swift */; };
 		C391F3CF2ADE03C3000452B5 /* PreviewData.swift in Sources */ = {isa = PBXBuildFile; fileRef = C391F3CE2ADE03C3000452B5 /* PreviewData.swift */; };
 		C3A8320726722A8D00AB8E19 /* VideosGridScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3A8320626722A8D00AB8E19 /* VideosGridScreen.swift */; };
@@ -26,6 +28,19 @@
 		C3D89C522ADF38CF0028B17A /* DependencyInjector.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D89C512ADF38CF0028B17A /* DependencyInjector.swift */; };
 		C3EACAD626710332003A9299 /* ConnectionOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3EACAD526710332003A9299 /* ConnectionOverlay.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		C36760522AE18EB500838645 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		C32868DF266EC5F000A6F88B /* PlayerOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerOverlay.swift; sourceTree = "<group>"; };
@@ -37,11 +52,12 @@
 		C35FD1FD273D37190091BE96 /* AsyncAwaitHelpers */ = {isa = PBXFileReference; lastKnownFileType = folder; name = AsyncAwaitHelpers; path = ../../AsyncAwaitHelpers; sourceTree = "<group>"; };
 		C36279D9265FE44400DEF2B6 /* PlexVideo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PlexVideo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C36279DC265FE44400DEF2B6 /* PlexVideoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlexVideoApp.swift; sourceTree = "<group>"; };
-		C36279DE265FE44400DEF2B6 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		C36279DE265FE44400DEF2B6 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		C36279E0265FE44500DEF2B6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C36279EB265FE4D100DEF2B6 /* PlexVideo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PlexVideo.entitlements; sourceTree = "<group>"; };
 		C36279EE265FE5DC00DEF2B6 /* Login.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Login.swift; path = PlexVideo/Login.swift; sourceTree = SOURCE_ROOT; };
 		C36279F1265FE6EA00DEF2B6 /* Videos.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Videos.swift; sourceTree = "<group>"; };
+		C378F6BE2AE1C8D9000B980F /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		C391F3CC2ADDEE26000452B5 /* BackupVideoPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupVideoPlayer.swift; sourceTree = "<group>"; };
 		C391F3CE2ADE03C3000452B5 /* PreviewData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewData.swift; sourceTree = "<group>"; };
 		C3A8320626722A8D00AB8E19 /* VideosGridScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideosGridScreen.swift; sourceTree = "<group>"; };
@@ -56,6 +72,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C36760542AE191C200838645 /* PlexUIKit in Frameworks */,
 				C354970C2ADDB1B000990615 /* PlexCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -66,6 +83,7 @@
 		C32B7B5B26729E7400578E5D /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+				C3D89C512ADF38CF0028B17A /* DependencyInjector.swift */,
 				C391F3CE2ADE03C3000452B5 /* PreviewData.swift */,
 			);
 			path = Helpers;
@@ -122,8 +140,8 @@
 				C36279F0265FE6E100DEF2B6 /* Videos */,
 				C36279EB265FE4D100DEF2B6 /* PlexVideo.entitlements */,
 				C36279DC265FE44400DEF2B6 /* PlexVideoApp.swift */,
-				C36279DE265FE44400DEF2B6 /* ContentView.swift */,
-				C3D89C512ADF38CF0028B17A /* DependencyInjector.swift */,
+				C36279DE265FE44400DEF2B6 /* RootView.swift */,
+				C378F6BE2AE1C8D9000B980F /* MainView.swift */,
 				C36279E0265FE44500DEF2B6 /* Assets.xcassets */,
 			);
 			path = PlexVideo;
@@ -172,6 +190,7 @@
 				C36279D5265FE44400DEF2B6 /* Sources */,
 				C36279D6265FE44400DEF2B6 /* Frameworks */,
 				C36279D7265FE44400DEF2B6 /* Resources */,
+				C36760522AE18EB500838645 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -180,6 +199,7 @@
 			name = PlexVideo;
 			packageProductDependencies = (
 				C354970B2ADDB1B000990615 /* PlexCore */,
+				C36760532AE191C200838645 /* PlexUIKit */,
 			);
 			productName = PlexVideo;
 			productReference = C36279D9265FE44400DEF2B6 /* PlexVideo.app */;
@@ -193,7 +213,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1250;
-				LastUpgradeCheck = 1500;
+				LastUpgradeCheck = 1510;
 				TargetAttributes = {
 					C36279D8265FE44400DEF2B6 = {
 						CreatedOnToolsVersion = 12.5;
@@ -242,11 +262,12 @@
 				C391F3CF2ADE03C3000452B5 /* PreviewData.swift in Sources */,
 				C3D776E92ADF566C0073F01C /* MacosVideoPlayerContainer.swift in Sources */,
 				C3337854266BA811007C3D41 /* VideoDetail.swift in Sources */,
-				C36279DF265FE44400DEF2B6 /* ContentView.swift in Sources */,
+				C36279DF265FE44400DEF2B6 /* RootView.swift in Sources */,
 				C36279DD265FE44400DEF2B6 /* PlexVideoApp.swift in Sources */,
 				C36279F2265FE6EA00DEF2B6 /* Videos.swift in Sources */,
 				C32868E2266EC62000A6F88B /* VideosGrid.swift in Sources */,
 				C32868E6266EC67C00A6F88B /* VideoPlayer.swift in Sources */,
+				C378F6BF2AE1C8D9000B980F /* MainView.swift in Sources */,
 				C32868E0266EC5F000A6F88B /* PlayerOverlay.swift in Sources */,
 				C391F3CD2ADDEE26000452B5 /* BackupVideoPlayer.swift in Sources */,
 				C36279EF265FE5DC00DEF2B6 /* Login.swift in Sources */,
@@ -262,6 +283,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -293,6 +315,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				CREATE_INFOPLIST_SECTION_IN_BINARY = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				EAGER_LINKING = YES;
 				EMBED_ASSET_PACKS_IN_PRODUCT_BUNDLE = YES;
@@ -332,6 +355,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -363,6 +387,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				CREATE_INFOPLIST_SECTION_IN_BINARY = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				EAGER_LINKING = YES;
 				EMBED_ASSET_PACKS_IN_PRODUCT_BUNDLE = YES;
@@ -398,10 +423,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = plexTint;
+				CLANG_TIDY_BUGPRONE_REDUNDANT_BRANCH_CONDITION = YES;
+				CLANG_TIDY_MISC_REDUNDANT_EXPRESSION = YES;
 				CODE_SIGN_ENTITLEMENTS = PlexVideo/PlexVideo.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 101;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 3LF943TRKL;
 				"ENABLE_HARDENED_RUNTIME[sdk=macosx*]" = YES;
 				ENABLE_PREVIEWS = YES;
@@ -422,11 +450,12 @@
 				);
 				MARKETING_VERSION = 1.0.1;
 				MERGED_BINARY_TYPE = automatic;
+				OTHER_SWIFT_FLAGS = "-Xfrontend -debug-time-function-bodies -Xfrontend -warn-long-function-bodies=50 -Xfrontend -warn-long-expression-type-checking=50";
 				PRODUCT_BUNDLE_IDENTIFIER = ma.harke.PlexVideo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
-				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MACCATALYST = YES;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
@@ -441,9 +470,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = plexTint;
+				CLANG_TIDY_BUGPRONE_REDUNDANT_BRANCH_CONDITION = YES;
+				CLANG_TIDY_MISC_REDUNDANT_EXPRESSION = YES;
 				CODE_SIGN_ENTITLEMENTS = PlexVideo/PlexVideo.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 101;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 3LF943TRKL;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -467,7 +499,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
-				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MACCATALYST = YES;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
@@ -503,6 +535,10 @@
 		C354970B2ADDB1B000990615 /* PlexCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = PlexCore;
+		};
+		C36760532AE191C200838645 /* PlexUIKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PlexUIKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

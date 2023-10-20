@@ -20,11 +20,6 @@ struct VideosGrid: View {
   @Environment(CurrentVideoViewModel.self)
   private var currentVideoViewModel
 
-//  let searchResults: LoadableState<[Video]>
-//  public let continueWatching: [Video]
-//  public let videos: [Video]
-//  public let openVideo: (Video) -> Void
-
   init() { }
 
   private func section(text: String?, videos: [Video]) -> some View {
@@ -41,10 +36,10 @@ struct VideosGrid: View {
           }
         )
         .buttonStyle(PlainButtonStyle())
-        .id((text ?? "") + video.id)
+//        .id((text ?? "") + video.id)
       }
     }, header: {
-      if let text = text {
+      if let text {
         HStack {
           Text(text).foregroundColor(Color.white)
             .font(.title2.weight(.medium).smallCaps())

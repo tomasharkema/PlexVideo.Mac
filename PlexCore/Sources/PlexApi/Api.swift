@@ -18,36 +18,37 @@ public final class Api {
   @Injected(\.requestor)
   private var requestor
 
-  public func sections(deviceInfo: DeviceInfo) async throws -> Root<DirectoryContainer> {
+  public func sections() async throws -> Root<DirectoryContainer> {
     try await requestor.request(
-      url: serverLocator.root(deviceInfo: deviceInfo).uri
+      url: serverLocator.root().uri
         .appendingPathComponent("/library/sections"),
-      deviceInfo: deviceInfo
+      Root<DirectoryContainer>.self
     )
   }
 
-  public func all(key: SectionKey, deviceInfo: DeviceInfo) async throws -> Root<Metadata<Video>> {
+  public func all(key: SectionKey, reload: Bool) async throws -> Root<Metadata<Video>> {
     try await requestor.request(
-      url: serverLocator.root(deviceInfo: deviceInfo).uri
+      url: serverLocator.root().uri
         .appendingPathComponent("/library/sections/\(key.rawValue)/all"),
-      deviceInfo: deviceInfo
+      Root<Metadata<Video>>.self,
+      useCache: !reload
     )
   }
 
-  public func onDeck(ratingKey: RatingKey, deviceInfo: DeviceInfo) async throws -> Root<Metadata<Video>> {
+  public func onDeck(ratingKey: RatingKey) async throws -> Root<Metadata<Video>> {
     try await requestor.request(
-      url: serverLocator.root(deviceInfo: deviceInfo).uri
+      url: serverLocator.root().uri
         .appendingPathComponent("/library/metadata/\(ratingKey.rawValue)"),
-      deviceInfo: deviceInfo,
+      Root<Metadata<Video>>.self,
       queryItems: [URLQueryItem(name: "includeOnDeck", value: "1")]
     )
   }
 
   private func status(deviceInfo: DeviceInfo) async throws -> Root<Metadata<SessionStatus>> {
     try await requestor.request(
-      url: serverLocator.root(deviceInfo: deviceInfo).uri
+      url: serverLocator.root().uri
         .appendingPathComponent("/status/sessions"),
-      deviceInfo: deviceInfo
+      Root<Metadata<SessionStatus>>.self
     )
   }
 
@@ -92,7 +93,7 @@ public final class Api {
 //    deviceInfo: DeviceInfo
 //  ) async throws -> Root<Metadata<Video>> {
 //    try await requestor.request(
-//      url: serverLocator.root(deviceInfo: deviceInfo)
+//      url: serverLocator.root()
 //        .appendingPathComponent("/video/:/transcode/universal/decision"),
 //      deviceInfo: deviceInfo,
 //      queryItems: videoQueryItems(
@@ -106,7 +107,7 @@ public final class Api {
 //  }
 
   public func videoUrl(
-    video: Video, videoUuid: VideoSessionUUID, offset: Int, deviceInfo: DeviceInfo
+    video: Video, videoUuid: VideoSessionUUID, offset: Int
   ) async throws -> URL {
 //    guard let media = videob
 
@@ -123,9 +124,8 @@ public final class Api {
 //    print(resu)
 
     try await requestor.requestUrl(
-      url: serverLocator.root(deviceInfo: deviceInfo).uri
+      url: serverLocator.root().uri
         .appendingPathComponent("/video/:/transcode/universal/start.m3u8"),
-      deviceInfo: deviceInfo,
       queryItems:
       videoQueryItems(
         videoKey: video.key,
@@ -136,6 +136,7 @@ public final class Api {
     )
   }
 
+  @MainActor
   public func imageUrl(
     root: URL,
     item: Video,
@@ -147,7 +148,6 @@ public final class Api {
   ) -> URL {
     requestor.requestUrl(
       url: root.appendingPathComponent("/photo/:/transcode"),
-      deviceInfo: deviceInfo,
       queryItems: [
         URLQueryItem(name: "url", value: item.grandparentThumb ?? item.thumb),
         URLQueryItem(name: "width", value: "\(width)"),
@@ -161,12 +161,12 @@ public final class Api {
 
   public func timeline(
     video: Video, time: CMTime,
-    state: PlayingState, deviceInfo: DeviceInfo
+    state: PlayingState
   ) async throws -> Root<TranscodeSessions> {
     try await requestor.request(
-      url: serverLocator.root(deviceInfo: deviceInfo).uri
+      url: serverLocator.root().uri
           .appendingPathComponent("/:/timeline"),
-        deviceInfo: deviceInfo,
+      Root<TranscodeSessions>.self,
         queryItems: [
           URLQueryItem(name: "time", value: "\(Int(time.seconds * 1000))"),
           URLQueryItem(name: "ratingKey", value: video.ratingKey.rawValue),
@@ -181,10 +181,10 @@ public final class Api {
       )
   }
 
-  public func continueWatching(contentDirectoryIDs: [SectionKey], deviceInfo: DeviceInfo) async throws -> Root<Hub<Video>> {
+  public func continueWatching(contentDirectoryIDs: [SectionKey]) async throws -> Root<Hub<Video>> {
     try await requestor.request(
-      url: serverLocator.root(deviceInfo: deviceInfo).uri.appendingPathComponent("/hubs/continueWatching"),
-      deviceInfo: deviceInfo,
+      url: serverLocator.root().uri.appendingPathComponent("/hubs/continueWatching"),
+      Root<Hub<Video>>.self,
       queryItems: [
         URLQueryItem(
           name: "contentDirectoryID",

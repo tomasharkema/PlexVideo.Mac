@@ -10,43 +10,48 @@ let swiftSettings: [SwiftSetting] = [
   .enableUpcomingFeature("DisableOutwardActorInference"),
   .enableExperimentalFeature("AccessLevelOnImport"),
   .enableExperimentalFeature("VariadicGenerics"),
-  .unsafeFlags(["-warn-concurrency"], .when(configuration: .debug)),
+  .unsafeFlags([
+    "-warn-concurrency",
+    "-Xfrontend",
+    "-debug-time-function-bodies",
+    "-Xfrontend",
+    "-warn-long-function-bodies=50",
+    "-Xfrontend",
+    "-warn-long-expression-type-checking=50"
+  ], .when(configuration: .debug)),
 ]
 
-// .package(url: "https://github.com/ShenghaiWang/SwiftMacros", from: "1.2.0"),
-// .package(url: "https://github.com/securevale/swift-confidential", from: "0.3.0"),
-// .package(url: "https://github.com/securevale/swift-confidential-plugin", from: "0.3.0"),
-
-let swiftUiDependency: [Package.Dependency] = [
-  .package(url: "https://github.com/realm/SwiftLint", from: "0.53.0"),
+let swiftUiDependencies: [Package.Dependency] = [
+//  .package(url: "https://github.com/realm/SwiftLint", from: "0.53.0"),
 ]
 
-let swiftUiPlugin: [Target.PluginUsage] = [
-  .plugin(name: "SwiftLintPlugin", package: "SwiftLint"),
+let swiftUiPlugins: [Target.PluginUsage] = [
+//  .plugin(name: "SwiftLintPlugin", package: "SwiftLint"),
 ]
 
 let package = Package(
     name: "PlexCore",
     platforms: [.iOS(.v17), .macOS(.v14)],
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "PlexCore",
             targets: ["PlexCore"]
         ),
+        .library(name: "PlexUIKit", targets: ["PlexUIKit"]),
     ],
     dependencies: [
-      .package(path: "../../../AsyncAwaitHelpers"),
+//      .package(path: "../../../AsyncAwaitHelpers"),
       .package(path: "../../../Inject"),
 
       .package(url: "https://github.com/LeonardoCardoso/InitMacro", branch: "main"),
       .package(url: "https://github.com/SwiftedMind/Processed", from: "1.0.0"),
-//      .package(url: "https://github.com/lorenzofiamingo/swiftui-cached-async-image", from: "2.1.1"),
+//      .package(url: "https://github.com/ShenghaiWang/SwiftMacros", from: "1.2.0"),
       .package(url: "https://github.com/tomasharkema/MetaCodable", from: "0.0.1"),
       //    .package(url: "https://github.com/SwiftyLab/MetaCodable", from: "1.0.0"),
+      
+        .package(url: "https://github.com/siteline/swiftui-introspect", from: "1.0.0"),
 
-//      .package(url: "https://github.com/MaxDesiatov/XMLCoder", from: "0.17.0"),
-    ] + swiftUiDependency,
+    ] + swiftUiDependencies,
     targets: [
       .target(
         name: "PlexShared",
@@ -57,20 +62,17 @@ let package = Package(
           "MetaCodable",
         ],
         swiftSettings: swiftSettings,
-        plugins: swiftUiPlugin
+        plugins: swiftUiPlugins
       ),
       .target(
         name: "PlexApi",
         dependencies: [
           "PlexShared",
-
-//          "AsyncAwaitHelpers",
           "Inject",
-//          "XMLCoder",
           "MetaCodable",
         ],
         swiftSettings: swiftSettings,
-        plugins: swiftUiPlugin
+        plugins: swiftUiPlugins
       ),
       .target(
         name: "PlexCore",
@@ -78,16 +80,25 @@ let package = Package(
           "PlexApi",
           "PlexShared",
 
-          "AsyncAwaitHelpers",
+//          "AsyncAwaitHelpers",
           "Inject",
           "Processed",
-//          "XMLCoder",
 
-//          .product(name: "CachedAsyncImage", package: "swiftui-cached-async-image"),
+          .product(name: "SwiftUIIntrospect", package: "swiftui-introspect"),
         ],
         swiftSettings: swiftSettings,
-        plugins: swiftUiPlugin
+        plugins: swiftUiPlugins
       ),
+      .target(
+        name: "PlexUIKit",
+        dependencies: [
+          "PlexShared",
+          "PlexApi",
+          "PlexCore",
+        ],
+        swiftSettings: swiftSettings,
+        plugins: swiftUiPlugins
+      )
 //      .testTarget(
 //          name: "PlexCoreTests",
 //          dependencies: ["PlexCore"]

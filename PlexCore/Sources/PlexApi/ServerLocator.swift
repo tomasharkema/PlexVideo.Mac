@@ -9,9 +9,11 @@ import Foundation
 import Inject
 import PlexShared
 import OSLog
+import PlexShared
 
 enum ServerLocatorError: LocalizedError {
   case noUrl
+  case noDetection
 }
 
 @MainActor
@@ -37,9 +39,20 @@ public final class ServerLocator: ObservableObject {
   @Published
   public private(set) var connection: Connection?
 
-  public nonisolated init() { }
+  @Published
+  public private(set) var devices = [DeviceResponse]()
 
-  public func rootForced(deviceInfo: DeviceInfo) async throws -> Connection {
+  @Published
+  public private(set) var pings = [PingResult]()
+
+  public nonisolated init() {
+    Task {
+//      _ = try await devices()
+      _ = try await rootForced()
+    }
+  }
+
+  public func rootForced() async throws -> Connection {
 
     if let rootForcedTask {
       return try await rootForcedTask.value
@@ -50,7 +63,7 @@ public final class ServerLocator: ObservableObject {
     }
 
     let task = Task {
-      guard let connection = try await chooseServer(deviceInfo: deviceInfo) else {
+      guard let connection = try await chooseServer() else {
         throw ServerLocatorError.noUrl
       }
       lastForceTryDate = Date()
@@ -62,11 +75,39 @@ public final class ServerLocator: ObservableObject {
     return try await task.value
   }
 
-  public func root(force: Bool = false, deviceInfo: DeviceInfo) async throws -> Connection {
+  private func checkLocalAndRemoteIp() async throws -> Result<Connection, any Error> {
+    // phase 2: check if saved local and remote ip's are still viable
+    do {
+      guard let localConnection = self.storage.lastUsedLocalConnection, 
+              let remoteConnection = self.storage.lastUsedRemoteConnection else {
+        return .failure(ServerLocatorError.noDetection)
+      }
+
+      let connection = try await selectHost(
+        localUrl: localConnection,
+        remoteUrl: remoteConnection
+      )
+
+      if let connection {
+        self.connection = connection
+        return .success(connection)
+      } else {
+        return .failure(ServerLocatorError.noUrl)
+      }
+    } catch {
+      storage.lastUsedLocalConnection = nil
+      storage.lastUsedRemoteConnection = nil
+
+      logger.error("lastUsedLocalHost and lastUsedRemoteHost not viable... continuing! \(error)")
+      return .failure(error)
+    }
+  }
+
+  public func root(force: Bool = false) async throws -> Connection {
     if force {
       rootTask?.cancel()
       rootTask = nil
-      return try await rootForced(deviceInfo: deviceInfo)
+      return try await rootForced()
     }
 
     if let connection {
@@ -86,7 +127,7 @@ public final class ServerLocator: ObservableObject {
       do {
         if let lastUsedConnection = storage.lastUsedConnection {
           if lastTriedRootDate == nil {
-            _ = try await ping(server: lastUsedConnection.uri, deviceInfo: deviceInfo)
+            _ = try await ping(server: lastUsedConnection.uri)
             lastTriedRootDate = Date()
           }
           self.connection = lastUsedConnection
@@ -97,23 +138,14 @@ public final class ServerLocator: ObservableObject {
         logger.error("lastUsedRoot not viable... continuing! \(error)")
       }
 
-      // phase 2: check if saved local and remote ip's are still viable
       do {
-        if let localConnection = self.storage.lastUsedLocalConnection,
-           let remoteConnection = self.storage.lastUsedRemoteConnection,
-           let connection = try await selectHost(localUrl: localConnection, remoteUrl: remoteConnection, deviceInfo: deviceInfo) {
-          self.connection = connection
-          return connection
-        }
+        return try await self.checkLocalAndRemoteIp().get()
       } catch {
-        storage.lastUsedLocalConnection = nil
-        storage.lastUsedRemoteConnection = nil
-
-        logger.error("lastUsedLocalHost and lastUsedRemoteHost not viable... continuing! \(error)")
+        logger.error("secondPhase not viable... continuing! \(error)")
       }
 
       // phase 3: refetch potential servers to connect to
-      guard let url = try await chooseServer(deviceInfo: deviceInfo) else {
+      guard let url = try await chooseServer() else {
         throw ServerLocatorError.noUrl
       }
       return url
@@ -124,42 +156,28 @@ public final class ServerLocator: ObservableObject {
     return try await task.value
   }
 
-  private func ping(server: URL, deviceInfo: DeviceInfo) async throws -> (Root<Version>, TimeInterval) {
-//    if let pingingTask {
-//      return try await pingingTask.value
-//    }
-//    
-//    defer {
-//      pingingTask = nil
-//    }
-
-//    let task = Task {
+  private func ping(server: URL) async throws -> PingResult {
       let date = Date()
 
-      let request: Root<Version> = try await self.requestor.request(
+      let request = try await self.requestor.request(
         url: server,
-        deviceInfo: deviceInfo,
+        Root<Version>.self,
         timeoutInterval: 2,
         invalidateAfterError: false,
         useCache: false
       )
 
-      return (
-        request,
-        abs(date.timeIntervalSinceNow)
+      return PingResult(
+        server: request,
+        timeInterval: abs(date.timeIntervalSinceNow)
       )
-//    }
-
-//    pingingTask = task
-
-//    return try await task.value
   }
 
   private func selectHost(
-    localUrl: Connection, remoteUrl: Connection, deviceInfo: DeviceInfo
+    localUrl: Connection, remoteUrl: Connection
   ) async throws -> Connection? {
-    async let local = ping(server: localUrl.uri, deviceInfo: deviceInfo)
-    async let remote = ping(server: remoteUrl.uri, deviceInfo: deviceInfo)
+    async let local = ping(server: localUrl.uri)
+    async let remote = ping(server: remoteUrl.uri)
 
     do {
       _ = try await local
@@ -179,28 +197,36 @@ public final class ServerLocator: ObservableObject {
     }
   }
 
-  func devices(deviceInfo: DeviceInfo) async throws -> [DeviceResponse] {
-    try await requestor.request(
+  nonisolated func devices() async throws -> [DeviceResponse] {
+    let devices = try await requestor.request(
       url: URL(string: "https://plex.tv/api/v2/resources")!,
-      deviceInfo: deviceInfo,
+      [DeviceResponse].self,
       queryItems: [
         URLQueryItem(name: "includeHttps", value: "1"),
         URLQueryItem(name: "includeRelay", value: "1")
       ],
       useCache: false
     )
+    .filter {
+      $0.provides.contains("server")
+    }
+
+    Task { @MainActor in
+      self.devices = devices
+    }
+
+    return devices
   }
 
   private func executePings(
-    servers: [Connection],
-    deviceInfo: DeviceInfo
+    servers: [Connection]
   ) async throws -> Connection? {
 
     return await withTaskGroup(of: Connection?.self) { group in
       for server in servers {
         _ = group.addTaskUnlessCancelled {
           do {
-            _ = try await self.ping(server: server.uri, deviceInfo: deviceInfo)
+            _ = try await self.ping(server: server.uri)
             try Task.checkCancellation()
             return server
           } catch {
@@ -220,29 +246,24 @@ public final class ServerLocator: ObservableObject {
     }
   }
 
-  private func chooseServer(deviceInfo: DeviceInfo) async throws -> Connection? {
-    let servers = try await devices(deviceInfo: deviceInfo)
-      .filter {
-        $0.provides.contains("server")
-      }
+  private func chooseServer() async throws -> Connection? {
+    let servers = try await devices()
       .flatMap { server in
         server.connections.filter { $0.protocol == "https" }
       }
-//      .flatMap { server in
-//        URL(string: server.uri).map { [(server, $0)] } ?? []
-//      }
+    //      .flatMap { server in
+    //        URL(string: server.uri).map { [(server, $0)] } ?? []
+    //      }
 
     let serversGroupedByLocal = Dictionary(grouping: servers, by: {
       $0.local
     })
 
     async let localPings = executePings(
-      servers: serversGroupedByLocal[true] ?? [],
-                                        deviceInfo: deviceInfo
+      servers: serversGroupedByLocal[true] ?? []
     )
     async let remotePings = executePings(
-      servers: serversGroupedByLocal[false] ?? [],
-                                         deviceInfo: deviceInfo
+      servers: serversGroupedByLocal[false] ?? []
     )
 
     let choice: Connection?
@@ -267,7 +288,7 @@ public final class ServerLocator: ObservableObject {
     return choice
   }
 
-  func invalidate(deviceInfo: DeviceInfo) async {
+  func invalidate() async {
 
     if isInvalidating {
       return
@@ -283,7 +304,7 @@ public final class ServerLocator: ObservableObject {
     self.connection = nil
 
     do {
-      _ = try await root(force: true, deviceInfo: deviceInfo)
+      _ = try await root(force: true)
     } catch {
       logger.error("invalidate error: \(error)")
     }

@@ -8,15 +8,9 @@
 import Foundation
 
 struct Asset: Identifiable, Sendable {
-  //  static let noAsset: Asset = Asset(
-  //    id: "none", /*isPlaceholder: false,*/
-  //    image: PlexImage(systemName: "airplane.circle.fill")!
-  //  )
+  let id: String
 
-  var id: String
-  //  var isPlaceholder: Bool
-
-  var image: PlexImage
+  private(set) var image: PlexImage
 
   func withImage(_ image: PlexImage) -> Asset {
     var this = self

@@ -8,11 +8,11 @@
 import AuthenticationServices
 import Foundation
 import SwiftUI
-import AsyncAwaitHelpers
 import Inject
 import PlexApi
 import Processed
 import OSLog
+import PlexShared
 
 @MainActor
 public final class LoginViewModel: NSObject, ObservableObject, LoadableSupport, ASWebAuthenticationPresentationContextProviding {
@@ -85,6 +85,7 @@ public final class LoginViewModel: NSObject, ObservableObject, LoadableSupport, 
     }.value
   }
 
+  @MainActor
   public func presentationAnchor(for _: ASWebAuthenticationSession) -> ASPresentationAnchor {
     ASPresentationAnchor()
   }

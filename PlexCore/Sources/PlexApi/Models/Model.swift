@@ -44,7 +44,3 @@ struct PinToken: Codable {
    trusted: boolean
    */
 }
-
-struct Version: Codable {
-  let version: String
-}

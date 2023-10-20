@@ -1,5 +1,5 @@
 //
-//  VideoListItemn.swift
+//  VideoListItem.swift
 //  PlexVideo
 //
 //  Created by Tomas Harkema on 06/06/2021.
@@ -15,39 +15,36 @@ struct VideoListItem: View {
 
   @Environment(CurrentVideoViewModel.self)
   private var currentVideoViewModel
-  
-  @State
-  private var hovered = false
 
-  let video: Video
-//  let width: CGFloat
-//  let height: CGFloat
+  private let video: Video
 
   init(video: Video) {
     self.video = video
   }
 
-//width: ThumbViewModel.thumbSize.width,
-//height: ThumbViewModel.thumbSize.height
+  private func width(viewOffset: CGFloat, duration: CGFloat) -> CGFloat {
+    ThumbViewModel.thumbSize.width * (viewOffset / duration)
+  }
+
+  @ViewBuilder
+  private func progressBar() -> some View {
+    if let viewOffset = video.viewOffset?.value, let duration = video.media?.first?.duration.value {
+      Rectangle()
+        .foregroundColor(Color(.plexTint))
+        .frame(
+          width: width(viewOffset: viewOffset, duration: duration),
+          height: 5,
+          alignment: .leading
+        )
+    }
+  }
 
   @ViewBuilder
   private func progressOverlay() -> some View {
     VStack {
       Spacer()
       HStack {
-        if let viewOffset = video.viewOffset?.value,
-           let duration = video.media?.first?.duration.value
-        {
-          Rectangle()
-            .foregroundColor(Color(.plexTint))
-            .frame(
-              width: ThumbViewModel.thumbSize.width *
-              (CGFloat(viewOffset) /
-               CGFloat(duration)),
-              height: 5,
-              alignment: .leading
-            )
-        }
+        progressBar()
         Spacer()
       }
       .background(Color.black.opacity(0.2))
@@ -55,31 +52,33 @@ struct VideoListItem: View {
     }
   }
 
+  private var currentVideoBackground: Color {
+    currentVideoViewModel.video?.key == video.key ? Color(.plexTint) : Color.clear
+  }
+
   var body: some View {
     VStack(alignment: .leading) {
-      Thumb(video: video)
-        .overlay(progressOverlay())
-        .cornerRadius(5.0)
-        .shadow(radius: 10)
-        .drawingGroup()
+      ZStack {
+        Thumb(video: video)
+        progressOverlay()
+      }
+      .cornerRadius(5)
+      .frame(width: ThumbViewModel.thumbSize.width, height: ThumbViewModel.thumbSize.height)
 
       Text(video.displayTitle)
-        .font(.footnote)
+        .font(.body)
         .fontWeight(.regular)
         .lineLimit(2, reservesSpace: true)
         .truncationMode(.tail)
-        .dynamicTypeSize(.small)
-        .shadow(radius: 10).padding(3)
+        .padding(3)
     }
+    .frame(width: ThumbViewModel.thumbSize.width)
     .padding(5)
-    .background(currentVideoViewModel.video?.key == video.key ? Color(.plexTint) : Color.clear)
-    .background(hovered ? Color(.plexTint).opacity(0.6) : Color.clear)
+    .background(currentVideoBackground)
+//    .background(hoveredVideoBackground)
     .cornerRadius(5)
-    .onHover { h in
-      withAnimation {
-        hovered = h
-      }
-    }
+    .drawingGroup()
+//    .compositingGroup()
   }
 }
 
@@ -89,19 +88,9 @@ extension VideoListItem: Equatable {
   }
 }
 
-//struct VideoListItem_Preview: PreviewProvider {
-//  static var previews: some View {
-//    LazyVGrid(columns: [
-//      GridItem(.adaptive(minimum: thumbSize.width), spacing: 10),
-//    ], spacing: 10) {
-//      ForEach(0 ..< 12) { _ in
-//        VideoListItem(
-//          video: Video.preview(),
-//          width: thumbSize.width,
-//          height: thumbSize.height,
-//          activeVideo: .constant(Video.preview())
-//        )
-//      }
-//    }
-//  }
-//}
+#Preview(traits: .sizeThatFitsLayout) {
+  VideoListItem(video: .preview())
+    .environment(CurrentVideoViewModel())
+    .preferredColorScheme(.dark)
+    .previewLayout(.sizeThatFits)
+}

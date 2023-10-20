@@ -9,6 +9,7 @@ import Foundation
 // import XMLCoder
 import Inject
 import OSLog
+import PlexShared
 
 public final class Requestor {
 
@@ -22,15 +23,14 @@ public final class Requestor {
 
   func requestUrl(
     url: URL,
-    deviceInfo: DeviceInfo,
     queryItems: [URLQueryItem]? = nil,
     sendDefaultQueries: Bool = true
   ) async -> URL {
     let token = await storage.getToken()
     let uuid = await storage.uuid
 
-    return requestUrl(
-      url: url, deviceInfo: deviceInfo,
+    return await requestUrl(
+      url: url,
       queryItems: queryItems,
       sendDefaultQueries: sendDefaultQueries,
       uuid: uuid,
@@ -38,17 +38,14 @@ public final class Requestor {
     )
   }
 
-  func requestUrl(
-    url: URL,
-    deviceInfo: DeviceInfo,
-    queryItems: [URLQueryItem]? = nil,
-    sendDefaultQueries: Bool = true,
+  @MainActor
+  private func defaultQueryItems(
+    deviceInfo _deviceInfo: DeviceInfo? = nil,
     uuid: String?,
     token: String?
-  ) -> URL {
-
-    var components = URLComponents(url: url, resolvingAgainstBaseURL: true)!
-    components.queryItems = (components.queryItems ?? []) + (sendDefaultQueries ? [
+  ) -> [URLQueryItem] {
+    let deviceInfo = _deviceInfo ?? .current
+    return [
       URLQueryItem(name: "X-Plex-Client-Identifier", value: uuid),
       URLQueryItem(name: "X-Plex-Client-Platform", value: deviceInfo.platform),
       URLQueryItem(name: "X-Plex-Device", value: deviceInfo.device),
@@ -65,7 +62,22 @@ public final class Requestor {
       URLQueryItem(name: "X-Plex-Version", value: deviceInfo.appVersion),
       URLQueryItem(name: "X-Plex-Language", value: "nl"),
       URLQueryItem(name: "X-Plex-Device-Name", value: deviceInfo.name)
-    ] : []) + (queryItems ?? [])
+    ]
+  }
+
+  @MainActor
+  func requestUrl(
+    url: URL,
+    queryItems: [URLQueryItem]? = nil,
+    sendDefaultQueries: Bool = true,
+    uuid: String?,
+    token: String?
+  ) -> URL {
+
+    var components = URLComponents(url: url, resolvingAgainstBaseURL: true)!
+    let defaultQ = sendDefaultQueries ? defaultQueryItems(uuid: uuid, token: token) : []
+    let extraItems = queryItems ?? []
+    components.queryItems = (components.queryItems ?? []) + (defaultQ) + (extraItems)
 
     let url = components.url!
 
@@ -78,7 +90,7 @@ public final class Requestor {
 
   nonisolated func request<DecodableType: Decodable>(
     url: URL,
-    deviceInfo: DeviceInfo,
+    _ type: DecodableType.Type,
     method: String = "GET",
     queryItems: [URLQueryItem]? = nil,
     sendDefaultQueries: Bool = true,
@@ -91,7 +103,6 @@ public final class Requestor {
       URLRequest(
         url: await requestUrl(
           url: url,
-          deviceInfo: deviceInfo,
           queryItems: queryItems,
           sendDefaultQueries: sendDefaultQueries
         ),
@@ -121,7 +132,7 @@ public final class Requestor {
 //        }
 //      }
       do {
-        return try JSONDecoder().decode(DecodableType.self, from: data)
+        return try JSONDecoder().decode(type, from: data)
       } catch {
         #if DEBUG
         logger.error("JSON ERROR:\nurl: \(url)\nerror: \(error)\njson: \(String(data: data, encoding: .utf8) ?? "")")
@@ -136,7 +147,7 @@ public final class Requestor {
          .code == .dnsLookupFailed {
         logger.warning("NO HOST FOUND")
         Task {
-          await serverLocator.invalidate(deviceInfo: deviceInfo)
+          await serverLocator.invalidate()
         }
       }
 //

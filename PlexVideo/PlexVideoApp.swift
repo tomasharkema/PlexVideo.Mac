@@ -11,16 +11,20 @@ import Inject
 import PlexShared
 import PlexCore
 import PlexApi
+import PlexUIKit
 
 @MainActor
 @main
 struct PlexVideoApp: App {
 
-//  #if os(iOS)
-//  @UIApplicationDelegateAdaptor(AppDelegate.self)
-//  var appDelegate
-//  #endif
+  #if os(iOS)
+  @UIApplicationDelegateAdaptor(AppDelegate.self)
+  private var appDelegate
+  #endif
   
+  @Environment(\.scenePhase) 
+  private var scenePhase
+
   @State
   private var dependencyInjector = DependencyInjector()
 
@@ -30,26 +34,64 @@ struct PlexVideoApp: App {
   @State
   private var currentVideoViewModel = CurrentVideoViewModel()
 
+  @ViewBuilder
+  private var rootView: some View {
+    RootView()
+      .tint(Color(.plexTint))
+      .accentColor(.plexTint)
+      .environment(videosViewModel)
+      .environment(currentVideoViewModel)
+      .environmentObject(dependencyInjector)
+  }
+
   var body: some Scene {
-    WindowGroup {
-      ContentView()
-        .tint(Color(.plexTint))
-        .environment(videosViewModel)
-        .environment(currentVideoViewModel)
-        .environmentObject(dependencyInjector)
+#if os(macOS)
+
+    Window("Videos", id: "videos") {
+      rootView
     }
+    .windowStyle(.hiddenTitleBar)
+    
+#else
+    WindowGroup {
+      rootView
+    }
+#endif
+
+#if os(macOS)
+    MenuBarExtra("PlexVideo", systemImage: "recordingtape.circle") {
+      if let video = currentVideoViewModel.video {
+          Text("Now playing: \(video.title)")
+        Divider()
+      }
+      LoadingButton(
+        text: { Image(systemName: "arrow.clockwise") },
+        loadingText: { ProgressView().controlSize(.small) }
+      ) {
+        await self.videosViewModel.reload(silently: true)
+      }
+      .keyboardShortcut("r")
+
+      Divider()
+
+      Button("Quit") {
+        NSApplication.shared.terminate(nil)
+      }
+      .keyboardShortcut("q")
+    }
+#endif
   }
 }
 
-//#if os(iOS)
-//class AppDelegate: NSObject, UIApplicationDelegate {
-//  static var orientationLock = UIInterfaceOrientationMask.all
-//
-//  func application(
-//    _: UIApplication,
-//    supportedInterfaceOrientationsFor _: UIWindow?
-//  ) -> UIInterfaceOrientationMask {
-//    AppDelegate.orientationLock
-//  }
-//}
-//#endif
+#if os(iOS)
+class AppDelegate: NSObject, UIApplicationDelegate {
+  static var orientationLock = UIInterfaceOrientationMask.all
+
+  func application(
+    _: UIApplication,
+    supportedInterfaceOrientationsFor _: UIWindow?
+  ) -> UIInterfaceOrientationMask {
+    AppDelegate.orientationLock
+  }
+}
+#endif

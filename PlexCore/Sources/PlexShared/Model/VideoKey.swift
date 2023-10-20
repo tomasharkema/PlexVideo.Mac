@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct VideoKey: RawRepresentable, Codable, Equatable, Identifiable, Hashable {
+public struct VideoKey: RawRepresentable, Codable, Equatable, Identifiable, Hashable, Sendable {
   public var rawValue: String
 
   public init(rawValue: String) {

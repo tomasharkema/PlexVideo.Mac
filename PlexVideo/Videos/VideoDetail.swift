@@ -17,9 +17,16 @@ import PlexCore
 
 @MainActor
 struct VideoDetail: View {
-  
-  @Environment(CurrentVideoViewModel.self)
-  private var viewModel
+
+  private var video: Video
+
+    @Environment(CurrentVideoViewModel.self)
+    private var viewModel
+
+
+  init(video: Video) {
+    self.video = video
+  }
 
   var body: some View {
     HStack {
@@ -32,7 +39,6 @@ struct VideoDetail: View {
         ProgressView()
 
       case .loaded(let player):
-        if let video = viewModel.video {
 #if os(iOS)
           VideoPlayer()
 #elseif os(macOS)
@@ -40,9 +46,6 @@ struct VideoDetail: View {
 #else
           BackupVideoPlayer()
 #endif
-        } else {
-          EmptyView()
-        }
 
       case .error(let error):
         EmptyView().alert(isPresented: .constant(true)) {
@@ -52,7 +55,7 @@ struct VideoDetail: View {
       }
     }
     .task(id: viewModel.video) {
-      await viewModel.load(video: viewModel.video)
+      await viewModel.load(video: video)
     }
 //    .onChange(of: isFullscreen) {
 //      AppDelegate.orientationLock = $0 ? .landscape : .portrait
@@ -81,10 +84,7 @@ struct VideoDetail: View {
 //        forKey: "orientation"
 //      )
 //    }
-    .task(id: viewModel.videoBounds) {
-      await viewModel.updateBounds(bounds: viewModel.videoBounds)
-    }
     .background(Color.black)
-    .id(viewModel.video?.key)
+    .id(video.key)
   }
 }

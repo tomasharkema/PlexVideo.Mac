@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  RootView.swift
 //  PlexVideo
 //
 //  Created by Tomas Harkema on 27/05/2021.
@@ -10,24 +10,18 @@ import PlexShared
 import Inject
 import PlexCore
 
-struct ContentView: View {
-  
+struct RootView: View {
+
   @InjectedState(\.storage)
   private var storage: Storage
 
-  public init() { }
-  
+  init() { }
+
   var body: some View {
     if let _ = storage.plexToken {
-      Videos()
+      MainView()
     } else {
       Login()
     }
   }
 }
-
-//struct ContentView_Previews: PreviewProvider {
-//  static var previews: some View {
-//    ContentView(/*storage: .init()*/)
-//  }
-//}

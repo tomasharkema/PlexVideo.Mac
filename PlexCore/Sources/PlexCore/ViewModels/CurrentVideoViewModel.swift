@@ -35,7 +35,11 @@ public final class CurrentVideoViewModel: LoadableSupport {
   public var video: Video?
   public var isPip = false
   public var isFullscreen = false
-  public var videoBounds: CGRect?
+//  public var videoBounds: CGRect? {
+//    didSet {
+//      updateBounds()
+//    }
+//  }
   private var currentSize: String?
 
   private var uuid = VideoSessionUUID(rawValue: UUID().uuidString)
@@ -49,7 +53,7 @@ public final class CurrentVideoViewModel: LoadableSupport {
     didSet {
       switch playerStatus {
       case .failed:
-        print("playerStatus failed", player.data?.error)
+        print("playerStatus failed", player.data?.error ?? "")
 
       case .readyToPlay:
         print("playerStatus readyToPlay")
@@ -92,7 +96,7 @@ public final class CurrentVideoViewModel: LoadableSupport {
         Task { await self.updateTimeline(time: time) }
       }
     )
-    player.isClosedCaptionDisplayEnabled = true
+//    player.isClosedCaptionDisplayEnabled = true
     player.appliesMediaSelectionCriteriaAutomatically = true
 
     let statusObserve = player.publisher(for: \.status)
@@ -136,8 +140,7 @@ public final class CurrentVideoViewModel: LoadableSupport {
       async let timelineUpdate = self.api.timeline(
         video: video,
         time: time,
-        state: player.timeControlStatus == .playing ? .playing : .paused,
-        deviceInfo: .current
+        state: player.timeControlStatus == .playing ? .playing : .paused
       )
 
       _ = try? await savedOffsetAsync
@@ -165,8 +168,7 @@ public final class CurrentVideoViewModel: LoadableSupport {
       let url = try await self.api.videoUrl(
         video: video,
         videoUuid: uuid,
-        offset: Int(offset),
-        deviceInfo: .current
+        offset: Int(offset)
       )
 
       return try await self.createPlayer(video: video, url: url)
@@ -181,8 +183,7 @@ public final class CurrentVideoViewModel: LoadableSupport {
 
     if let video = video, let lastTime = lastTime, let _ = self.storage.plexToken {
       Task(priority: .background) {
-        try await self.api.timeline(video: video, time: lastTime, state: .stopped,
-                               deviceInfo: .current)
+        try await self.api.timeline(video: video, time: lastTime, state: .stopped)
       }
     }
     lastTime = nil
@@ -196,9 +197,9 @@ public final class CurrentVideoViewModel: LoadableSupport {
       do {
         let newVideo = try await self.openVideo(video: video)
 
-        withTransaction(.init(animation: .easeInOut)) {
+//        withTransaction(.init(animation: .easeInOut)) {
           self.video = newVideo
-        }
+//        }
       } catch {
         print(error)
       }
@@ -207,7 +208,7 @@ public final class CurrentVideoViewModel: LoadableSupport {
 
   private func openVideo(video: Video) async throws -> Video? {
     do {
-      let onDeckResponse = try await self.api.onDeck(ratingKey: video.ratingKey, deviceInfo: .current)
+      let onDeckResponse = try await self.api.onDeck(ratingKey: video.ratingKey)
 
       if let res = onDeckResponse.mediaContainer.metadata.first?.onDeck?.metadata {
         return Video(onDeck: res)
@@ -221,44 +222,44 @@ public final class CurrentVideoViewModel: LoadableSupport {
     }
   }
 
-  public func updateBounds(bounds: CGRect?) async {
-    guard let _ = video, let _ = lastTime else {
-      return
-    }
-
-    let defaultSize = "4096x2160"
-
-    var newSize: String
-
-    if let bounds = bounds {
-      if bounds.width.isZero || bounds.height.isZero {
-        newSize = defaultSize
-      } else {
-        newSize = "\(Int(bounds.width * 2))x\(Int(bounds.height * 2))"
-      }
-    } else {
-      newSize = defaultSize
-    }
-
-    if currentSize == newSize {
-      return
-    }
-    currentSize = newSize
-//    do {
-//      let _ = try await api.decision(videoKey: video.key, videoUuid: uuid, offset: Int(lastTime.seconds), videoResolution: newSize)
-//    } catch {
-//      print(error)
+//  private func updateBounds(bounds: CGRect?) async {
+//    guard let _ = video, let _ = lastTime else {
+//      return
 //    }
-  }
+//
+//    let defaultSize = "4096x2160"
+//
+//    var newSize: String
+//
+//    if let bounds = bounds {
+//      if bounds.width.isZero || bounds.height.isZero {
+//        newSize = defaultSize
+//      } else {
+//        newSize = "\(Int(bounds.width * 2))x\(Int(bounds.height * 2))"
+//      }
+//    } else {
+//      newSize = defaultSize
+//    }
+//
+//    if currentSize == newSize {
+//      return
+//    }
+//    currentSize = newSize
+////    do {
+////      let _ = try await api.decision(videoKey: video.key, videoUuid: uuid, offset: Int(lastTime.seconds), videoResolution: newSize)
+////    } catch {
+////      print(error)
+////    }
+//  }
 
   public func stopPlaying() {
     unload()
   }
 
   public func fullscreen() {
-    withTransaction(.init(animation: .linear)) {
+//    withTransaction(.init(animation: .linear)) {
       isFullscreen = true
-    }
+//    }
   }
 
   public var screenWidth: CGFloat {
@@ -271,6 +272,8 @@ public final class CurrentVideoViewModel: LoadableSupport {
   }
 
   public var minHeight: CGFloat {
-    min(screenWidth - 50, 400) * (1 / (video?.media?.first?.aspectRatio?.value ?? (16 / 9)))
+    let widescreen: CGFloat = (16 / 9)
+    let aspectRatio: CGFloat = video?.media?.first?.aspectRatio?.value ?? widescreen
+    return min(screenWidth - 50, 400) * (1 / (aspectRatio))
   }
 }
