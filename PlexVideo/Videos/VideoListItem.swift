@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 import PlexShared
 import PlexCore
+import PlexUIKit
 
 @MainActor
 struct VideoListItem: View {
@@ -30,7 +31,7 @@ struct VideoListItem: View {
   private func progressBar() -> some View {
     if let viewOffset = video.viewOffset?.value, let duration = video.media?.first?.duration.value {
       Rectangle()
-        .foregroundColor(Color(.plexTint))
+        .foregroundColor(PublicColor.plexTint)
         .frame(
           width: width(viewOffset: viewOffset, duration: duration),
           height: 5,
@@ -53,7 +54,7 @@ struct VideoListItem: View {
   }
 
   private var currentVideoBackground: Color {
-    currentVideoViewModel.video?.key == video.key ? Color(.plexTint) : Color.clear
+    currentVideoViewModel.video?.key == video.key ? Color(PublicColor.plexTint) : Color.clear
   }
 
   var body: some View {

@@ -16,8 +16,8 @@ struct ConnectionOverlay: View {
   @State
   private var showOverlay = false
 
-  @InjectedState(\.serverLocator)
-  private var serverLocator
+  @InjectedObserving(\.serverLocator)
+  private var serverLocator: ServerLocator
 
   @ViewBuilder
   private var connectionOverlay: some View {

@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct RatingKey: RawRepresentable, Codable, Equatable {
+public struct RatingKey: RawRepresentable, Codable, Equatable, Sendable {
   public var rawValue: String
 
   public init(rawValue: String) {

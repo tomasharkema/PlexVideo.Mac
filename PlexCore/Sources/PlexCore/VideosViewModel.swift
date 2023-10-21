@@ -17,13 +17,16 @@ public final class VideosViewModel: ObservableObject, LoadableSupport {
 
   private let logger = Logger(subsystem: "PlexVideo", category: "VideosViewModel")
 
-  @ObservationIgnored @Injected(\.videoDataService)
+  @ObservationIgnored 
+  @Injected(\.videoDataService)
   private var service
 
-  @ObservationIgnored @Injected(\.storage)
+  @ObservationIgnored 
+  @Injected(\.storage)
   private var storage
 
-  @ObservationIgnored @Injected(\.api)
+  @ObservationIgnored 
+  @Injected(\.api)
   private var api
 
   public private(set) var data: LoadableState<Data> = .absent
@@ -50,13 +53,13 @@ public final class VideosViewModel: ObservableObject, LoadableSupport {
       async let lastPlayer = self.storage.getLastPlayed()
       let (onDeck, all) = try await self.service.getVideoList(reload: reload)
 
-      Task {
-        for (index, video) in all.enumerated() {
-          Task(priority: index < 10 ? .high : .low) {
-            await ThumbViewModel.get(for: video).start()
-          }
-        }
-      }
+//      Task {
+//        for (index, video) in all.enumerated() {
+//          Task(priority: index < 10 ? .high : .low) {
+//            await ThumbViewModel.get(for: video).start()
+//          }
+//        }
+//      }
 
       do {
         self.savedLastPlayed = try await lastPlayer

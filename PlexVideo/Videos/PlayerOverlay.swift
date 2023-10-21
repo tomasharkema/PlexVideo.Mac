@@ -39,15 +39,15 @@ struct PlayerOverlay: View {
         })
         .buttonStyle(PlainButtonStyle())
 
-        Button(action: {
-          viewModel.fullscreen()
-        }, label: {
-          Image(systemName: "arrow.up.left.and.arrow.down.right")
-            .foregroundColor(.white)
-            .font(.title)
-            .padding(10)
-        })
-        .buttonStyle(PlainButtonStyle())
+//        Button(action: {
+//          viewModel.fullscreen()
+//        }, label: {
+//          Image(systemName: "arrow.up.left.and.arrow.down.right")
+//            .foregroundColor(.white)
+//            .font(.title)
+//            .padding(10)
+//        })
+//        .buttonStyle(PlainButtonStyle())
       }
     }
     .background(Color.black.opacity(0.6))

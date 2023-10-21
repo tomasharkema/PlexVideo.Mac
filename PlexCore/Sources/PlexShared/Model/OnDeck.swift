@@ -9,7 +9,7 @@ import Foundation
 import MetaCodable
 
 @Codable
-public struct OnDeck: Identifiable, Equatable {
+public struct OnDeck: Identifiable, Equatable, Sendable {
   public let key: VideoKey
   public let title: String
   public let titleSort: String?

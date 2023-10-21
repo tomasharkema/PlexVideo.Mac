@@ -14,6 +14,8 @@ public struct Metadata<MetadataType: Codable> {
   public let metadata: [MetadataType]
 }
 
+extension Metadata: Sendable where MetadataType: Sendable { }
+
 @Codable
 public struct Hub<MetadataType: Codable> {
   @CodedAt("Hub")

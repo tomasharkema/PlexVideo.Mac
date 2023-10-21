@@ -37,8 +37,8 @@ struct PlexVideoApp: App {
   @ViewBuilder
   private var rootView: some View {
     RootView()
-      .tint(Color(.plexTint))
-      .accentColor(.plexTint)
+      .tint(PublicColor.plexTint)
+      .accentColor(PublicColor.plexTint)
       .environment(videosViewModel)
       .environment(currentVideoViewModel)
       .environmentObject(dependencyInjector)

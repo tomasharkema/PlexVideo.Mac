@@ -11,7 +11,7 @@ import Inject
 import OSLog
 import PlexShared
 
-public final class Requestor {
+public final class Requestor: Sendable {
 
   private let logger = Logger(subsystem: "PlexVideo", category: "Requestor")
 
@@ -20,6 +20,9 @@ public final class Requestor {
 
   @Injected(\.requestorStorageProviding)
   private var storage: any RequestorStorageProviding
+
+  @Injected(\.networkManager)
+  private var networkManager
 
   func requestUrl(
     url: URL,
@@ -40,11 +43,11 @@ public final class Requestor {
 
   @MainActor
   private func defaultQueryItems(
-    deviceInfo _deviceInfo: DeviceInfo? = nil,
+    deviceInfo updatedDeviceInfo: DeviceInfo? = nil,
     uuid: String?,
     token: String?
   ) -> [URLQueryItem] {
-    let deviceInfo = _deviceInfo ?? .current
+    let deviceInfo = updatedDeviceInfo ?? .current
     return [
       URLQueryItem(name: "X-Plex-Client-Identifier", value: uuid),
       URLQueryItem(name: "X-Plex-Client-Platform", value: deviceInfo.platform),
@@ -81,56 +84,45 @@ public final class Requestor {
 
     let url = components.url!
 
-// #if DEBUG
-//    logger.info("BUILT URL \(url)")
-// #endif
-
     return url
   }
 
   nonisolated func request<DecodableType: Decodable>(
     url: URL,
     _ type: DecodableType.Type,
+    requestUUID: UUID? = nil,
     method: String = "GET",
     queryItems: [URLQueryItem]? = nil,
     sendDefaultQueries: Bool = true,
-    timeoutInterval: TimeInterval? = nil,
+    timeout: Duration? = nil,
     invalidateAfterError: Bool = true,
     useCache: Bool = true
   ) async throws -> DecodableType {
+
+    let queryItemsAndUUID = (queryItems ?? [])
 
     var mutualRequest =
       URLRequest(
         url: await requestUrl(
           url: url,
-          queryItems: queryItems,
+          queryItems: queryItemsAndUUID,
           sendDefaultQueries: sendDefaultQueries
         ),
-        cachePolicy: useCache ? .returnCacheDataElseLoad : .reloadIgnoringLocalAndRemoteCacheData
+        cachePolicy: (useCache && requestUUID != nil) ? .returnCacheDataElseLoad : .reloadIgnoringLocalAndRemoteCacheData
       )
-
+    
     mutualRequest.httpMethod = method
     mutualRequest.setValue("application/json", forHTTPHeaderField: "Accept")
-    if let timeoutInterval = timeoutInterval {
-      mutualRequest.timeoutInterval = timeoutInterval
+    mutualRequest.addValue(requestUUID?.uuidString ?? UUID().uuidString, forHTTPHeaderField: "X-MetricsUUID")
+    if let timeout {
+      mutualRequest.timeoutInterval = TimeInterval(timeout.components.seconds)
     }
-//    let request = mutualRequest
+
     do {
-      let session = URLSession.shared
-      let (data, response) = try await session.data(for: mutualRequest)
+      let (data, response) = try await networkManager.session.data(for: mutualRequest)
 
       try HTTPError.throwFor(urlResponse: response)
 
-//      if (((r as? HTTPURLResponse)?.allHeaderFields["Content-Type"]) as? String)?
-//        .contains("xml") == true
-//      {
-//        do {
-//          return try XMLDecoder().decode(D.self, from: data)
-//        } catch {
-//          print(error)
-//          print(error)
-//        }
-//      }
       do {
         return try JSONDecoder().decode(type, from: data)
       } catch {
@@ -140,7 +132,7 @@ public final class Requestor {
         throw error
       }
     } catch let error as URLError {
-      logger.error("request URLError \(error), \(String(describing: error.code)), \(url)")
+      logger.error("request URLError \(error.localizedDescription), \(String(describing: error.code)), \(url)")
 
       if invalidateAfterError,
          error.code == .cannotConnectToHost || error.code == .cannotFindHost || error
@@ -186,6 +178,7 @@ extension InjectedValues {
 private struct RequestorKey: InjectionKey {
   static var currentValue: Requestor? = .init()
 }
+
 
 // swiftlint:disable:next line_length
 //      URLQueryItem(

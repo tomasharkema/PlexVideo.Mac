@@ -64,7 +64,7 @@ struct VideoPlayer: UIViewControllerRepresentable {
   }
 
   func updateUIViewController(_: AVPlayerViewController, context _: Context) {
-    print("updateUIViewController")
+//    print("updateUIViewController")
   }
 
   static func dismantleUIViewController(

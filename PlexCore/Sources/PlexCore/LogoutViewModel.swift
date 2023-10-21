@@ -1,5 +1,5 @@
 //
-//  VideosGridScreenViewModel.swift
+//  LogoutViewModel.swift
 //  
 //
 //  Created by Tomas Harkema on 17/10/2023.
@@ -9,7 +9,7 @@ import SwiftUI
 import Inject
 
 @MainActor @Observable
-public final class VideosGridScreenViewModel {
+public final class LogoutViewModel {
 
   @ObservationIgnored
   @Injected(\.storage)

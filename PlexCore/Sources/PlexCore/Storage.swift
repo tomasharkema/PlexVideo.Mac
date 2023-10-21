@@ -10,9 +10,12 @@ import Inject
 import SwiftUI
 import PlexApi
 import PlexShared
+import OSLog
 
 @MainActor
 public final class Storage: ObservableObject, ServerLocatorStorageProviding, RequestorStorageProviding, AuthStorageProviding {
+
+  fileprivate static let logger = Logger(subsystem: "PlexVideo", category: "Auth")
 
   @AppStorage("plexTokenV2")
   public var plexToken: String?
@@ -94,7 +97,7 @@ extension Connection: RawRepresentable {
     do {
       self = try JSONDecoder().decode(Connection.self, from: data)
     } catch {
-      print(error)
+      Storage.logger.error("Connection raw decode error: \(error)")
       return nil
     }
   }
@@ -104,7 +107,7 @@ extension Connection: RawRepresentable {
       let data = try JSONEncoder().encode(self)
       return String(data: data, encoding: .utf8) ?? ""
     } catch {
-      print("error", error)
+      Storage.logger.error("Connection raw encode error: \(error)")
       return ""
     }
   }

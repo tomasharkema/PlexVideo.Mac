@@ -12,10 +12,13 @@ import PlexShared
 import Processed
 import Combine
 import SwiftUI
+import OSLog
 
 @MainActor
 @Observable
 public final class ThumbViewModel: LoadableSupport {
+
+  private let logger = Logger(subsystem: "PlexVideo", category: "ThumbViewModel")
 
   @MainActor
   private static var instanceCache = [VideoKey: ThumbViewModel]()
@@ -111,7 +114,7 @@ public final class ThumbViewModel: LoadableSupport {
       try await task.value
 
     } catch {
-      print(error)
+      logger.error("Thumb error: \(error)")
     }
   }
 }

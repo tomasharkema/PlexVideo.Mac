@@ -11,33 +11,45 @@ import PlexShared
 
 public struct ServersScreen: View {
 
-  private let devices: [DeviceResponse]
+  private let servers: [Server]
   private let currentConnection: Connection?
+  private let pings: [Connection: PingResult]
 
-  public init(devices: [DeviceResponse], currentConnection: Connection?) {
-    self.devices = devices
+  public init(
+    servers: [Server], 
+    currentConnection: Connection?,
+    pings: [Connection: PingResult]
+  ) {
+    self.servers = servers
     self.currentConnection = currentConnection
+    self.pings = pings
   }
 
   public var body: some View {
-    List(devices) { device in
-      Section(device.name) {
-        ForEach(device.connections) { connection in
-          HStack {
-            Text(connection.address)
-            if currentConnection == connection {
-              Text("ACTIVE")
-            }
-          }
+    ScrollView {
+      VStack {
+        ForEach(servers) { server in
+          DeviceView(
+            server: server,
+            currentConnection: currentConnection,
+            pings: pings
+          )
         }
       }
-//      Section("Servers") {
-//      Text(device.name)
-//      }
+      .padding()
     }
   }
 }
 
-//#Preview {
-//  ServersScreen(devices: [], currentConnection: nil)
-//}
+#Preview {
+  ServersScreen(
+    servers: [
+      .preview1,
+      .preview2,
+    ],
+    currentConnection: .preview1, 
+    pings: [:]
+  )
+  .background(Color.black)
+  .preferredColorScheme(.dark)
+}

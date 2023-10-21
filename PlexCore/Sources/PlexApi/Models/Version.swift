@@ -7,6 +7,6 @@
 
 import Foundation
 
-public struct Version: Codable, Sendable {
+public struct Version: Codable, Sendable, Equatable, Hashable {
   public let version: String
 }

@@ -11,28 +11,27 @@ import Inject
 import PlexShared
 import Processed
 import CryptoKit
-
+import OSLog
 #if os(iOS)
 import UIKit
 #endif
 
-enum AssetError: Swift.Error {
-  case preparingImageFailed
-  case assetNotFound
-}
-
 extension FileManager: @unchecked Sendable { }
 
 final class ImageStore: Sendable {
+
+  private let logger = Logger(subsystem: "PlexVideo", category: "ImageStore")
 
   static let shared = ImageStore()
 
   private let preparedImages = MemoryLimitedCache()
   private let localAssets: FileBasedCache
   private let fileManager: FileManager
-  private let session: URLSession
 
-  init(fileManager: FileManager = .default, session: URLSession = .shared) {
+  @Injected(\.networkManager)
+  private var networkManager
+
+  init(fileManager: FileManager = .default) {
     self.fileManager = fileManager
 
     // swiftlint:disable:next force_try
@@ -40,18 +39,12 @@ final class ImageStore: Sendable {
       for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: true
     ).appendingPathComponent("asset-images", isDirectory: true)
 
-    print(cachesDirectory)
-
     if !fileManager.fileExists(atPath: cachesDirectory.path) {
       // swiftlint:disable:next force_try
       try! fileManager.createDirectory(at: cachesDirectory, withIntermediateDirectories: true)
     }
 
-//    print("cachesDirectory", cachesDirectory)
-
     self.localAssets = FileBasedCache(directory: cachesDirectory)
-
-    self.session = session
   }
 
   func fetchByID(_ id: Asset.ID) -> Asset? {
@@ -61,7 +54,7 @@ final class ImageStore: Sendable {
   private func fetchAsset(id: Asset.ID, url: URL) async throws {
     do {
       let request = URLRequest(url: url, cachePolicy: .returnCacheDataElseLoad)
-      let (downloadUrl, response) = try await session.download(for: request)
+      let (downloadUrl, response) = try await networkManager.session.download(for: request)
 
       try HTTPError.throwFor(urlResponse: response)
 
@@ -69,7 +62,7 @@ final class ImageStore: Sendable {
       try FileManager.default.moveItem(at: downloadUrl, to: destPath)
 
     } catch {
-      print(error)
+      logger.error("Fetch Assets error: \(error)")
       throw error
     }
   }
@@ -86,7 +79,7 @@ final class ImageStore: Sendable {
       do {
         return try await prepareAsset(id: id, url: url, size: size)
       } catch {
-        print(error)
+        logger.error("prepareAssetIfNeeded error: \(error)")
         throw error
       }
     }

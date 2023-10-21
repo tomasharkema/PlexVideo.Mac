@@ -61,7 +61,7 @@ fileprivate struct MacosVideoPlayer: NSViewRepresentable {
 
   func updateNSView(_ view: AVPlayerView, context: Context) {
 
-    print(context.coordinator.isFullscreen, viewModel.isFullscreen)
+//    print(context.coordinator.isFullscreen, viewModel.isFullscreen)
 
     if context.coordinator.isFullscreen != viewModel.isFullscreen {
       if viewModel.isFullscreen {

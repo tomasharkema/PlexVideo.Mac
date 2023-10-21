@@ -6,17 +6,18 @@
 //
 
 import SwiftUI
-import PlexCore
 
 @MainActor
 public struct SettingsScreen: View {
-  @State
-  private var gridViewModel = VideosGridScreenViewModel()
 
   @State
   private var logoutMenuShowing = false
 
-  public init() { }
+  private let logoutHandler: @MainActor @Sendable () -> ()
+
+  public init(logoutHandler: @MainActor @Sendable @escaping () -> ()) {
+    self.logoutHandler = logoutHandler
+  }
 
   public var body: some View {
     List {
@@ -29,7 +30,7 @@ public struct SettingsScreen: View {
       isPresented: $logoutMenuShowing,
       actions: {
         Button(role: .destructive) {
-          gridViewModel.logout()
+          logoutHandler()
         } label: {
           Text("Logout")
         }

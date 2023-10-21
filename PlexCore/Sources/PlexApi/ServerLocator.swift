@@ -9,187 +9,178 @@ import Foundation
 import Inject
 import PlexShared
 import OSLog
-import PlexShared
+import AsyncHelpers
 
 enum ServerLocatorError: LocalizedError {
   case noUrl
   case noDetection
 }
 
-@MainActor
-public final class ServerLocator: ObservableObject {
+@Observable
+public final class ServerLocator: Sendable {
 
   private let logger = Logger(subsystem: "PlexVideo", category: "ServerLocator")
 
+  @ObservationIgnored
   @Injected(\.requestor)
   private var requestor
 
+  @ObservationIgnored
   @Injected(\.serverLocatorStorageProviding)
   private var storage
 
-  private(set) var lastTriedRootDate: Date?
-  private(set) var lastForceTryDate: Date?
-//  private(set) var lastConfirmedUrl: URL?
+  @ObservationIgnored
+  @Injected(\.networkManager)
+  private var networkManager
 
-  private var rootTask: Task<Connection, any Error>?
-  private var rootForcedTask: Task<Connection, any Error>?
-//  private var pingingTask: Task<(Root<Version>, TimeInterval), any Error>?
+  @MainActor
+  private(set) var lastTriedRootDate: Date?
+
+  @MainActor
+  private(set) var lastForceTryDate: Date?
+
+  @MainActor
   private var isInvalidating = false
 
-  @Published
+  @MainActor
   public private(set) var connection: Connection?
 
-  @Published
-  public private(set) var devices = [DeviceResponse]()
+  @MainActor
+  public private(set) var devicesLastFetch: Date?
 
-  @Published
+  @MainActor
+  public private(set) var servers: ServersResponse?
+
+  @MainActor
   public private(set) var pings = [PingResult]()
 
-  public nonisolated init() {
+  @ObservationIgnored
+  fileprivate let rootEnsureOnce = EnsureOnce<HandlerLocation, Connection>()
+
+  public init() {
     Task {
-//      _ = try await devices()
       _ = try await rootForced()
     }
   }
 
-  public func rootForced() async throws -> Connection {
-
-    if let rootForcedTask {
-      return try await rootForcedTask.value
-    }
-
-    defer {
-      rootForcedTask = nil
-    }
-
-    let task = Task {
-      guard let connection = try await chooseServer() else {
-        throw ServerLocatorError.noUrl
-      }
-      lastForceTryDate = Date()
-      return connection
-    }
-
-    rootForcedTask = task
-
-    return try await task.value
-  }
-
-  private func checkLocalAndRemoteIp() async throws -> Result<Connection, any Error> {
+  private func checkLocalAndRemoteIp(
+    server: Server,
+    timeout: Duration
+  ) async -> Result<Connection, any Error> {
     // phase 2: check if saved local and remote ip's are still viable
     do {
-      guard let localConnection = self.storage.lastUsedLocalConnection, 
-              let remoteConnection = self.storage.lastUsedRemoteConnection else {
+      guard let localConnection = await self.storage.lastUsedLocalConnection,
+              let remoteConnection = await self.storage.lastUsedRemoteConnection else {
         return .failure(ServerLocatorError.noDetection)
       }
 
       let connection = try await selectHost(
+        server: server,
         localUrl: localConnection,
-        remoteUrl: remoteConnection
+        remoteUrl: remoteConnection,
+        timeout: timeout
       )
 
       if let connection {
-        self.connection = connection
+        await MainActor.run {
+          self.connection = connection
+        }
         return .success(connection)
       } else {
         return .failure(ServerLocatorError.noUrl)
       }
     } catch {
-      storage.lastUsedLocalConnection = nil
-      storage.lastUsedRemoteConnection = nil
+      await MainActor.run {
+        storage.lastUsedLocalConnection = nil
+        storage.lastUsedRemoteConnection = nil
+      }
 
       logger.error("lastUsedLocalHost and lastUsedRemoteHost not viable... continuing! \(error)")
       return .failure(error)
     }
   }
 
-  public func root(force: Bool = false) async throws -> Connection {
-    if force {
-      rootTask?.cancel()
-      rootTask = nil
-      return try await rootForced()
-    }
-
-    if let connection {
-      return connection
-    }
-
-    if let rootTask {
-      return try await rootTask.value
-    }
-
-    defer {
-      rootTask = nil
-    }
-
-    let task = Task {
-      // phase 1: check for last used root and if its still viable...
-      do {
-        if let lastUsedConnection = storage.lastUsedConnection {
-          if lastTriedRootDate == nil {
-            _ = try await ping(server: lastUsedConnection.uri)
-            lastTriedRootDate = Date()
-          }
-          self.connection = lastUsedConnection
-          return lastUsedConnection
-        }
-      } catch {
-        storage.lastUsedConnection = nil
-        logger.error("lastUsedRoot not viable... continuing! \(error)")
+  private func ping(
+    server: Server,
+    connection: Connection,
+    timeout: Duration
+  ) async -> PingResult {
+    do {
+      let uuid = UUID()
+      let metricsTask = Task {
+        return await self.networkManager.getMetrics(for: uuid, withTimeout: timeout)
       }
 
-      do {
-        return try await self.checkLocalAndRemoteIp().get()
-      } catch {
-        logger.error("secondPhase not viable... continuing! \(error)")
-      }
-
-      // phase 3: refetch potential servers to connect to
-      guard let url = try await chooseServer() else {
-        throw ServerLocatorError.noUrl
-      }
-      return url
-    }
-
-    rootTask = task
-
-    return try await task.value
-  }
-
-  private func ping(server: URL) async throws -> PingResult {
-      let date = Date()
-
-      let request = try await self.requestor.request(
-        url: server,
+      let result = try await self.requestor.request(
+        url: connection.uri,
         Root<Version>.self,
-        timeoutInterval: 2,
+        requestUUID: uuid,
+        timeout: timeout,
         invalidateAfterError: false,
         useCache: false
       )
 
-      return PingResult(
-        server: request,
-        timeInterval: abs(date.timeIntervalSinceNow)
+      guard let metrics = (await metricsTask.value),
+            let responseStartDate = metrics.requestStartDate,
+            let responseEndDate = metrics.responseEndDate
+      else {
+        assertionFailure()
+        return .failure(server: server, connection: connection, error: .noMetric)
+      }
+
+      let interval = responseEndDate.timeIntervalSince(responseStartDate)
+
+      return .success(
+        server: server,
+        connection: connection,
+        details: PingResultDetails(
+          result: result,
+          interval: interval,
+          duration: .seconds(interval),
+          measurement: .init(value: interval, unit: .seconds)
+        )
       )
+    } catch let error as URLError {
+      logger.error("ping URL error: \(error)")
+      return .failure(server: server, connection: connection, error: .urlError(error))
+    } catch {
+      logger.error("ping error: \(error)")
+      return .failure(server: server, connection: connection, error: .otherError(error))
+    }
   }
 
   private func selectHost(
-    localUrl: Connection, remoteUrl: Connection
+    server: Server,
+    localUrl: Connection,
+    remoteUrl: Connection,
+    timeout: Duration
   ) async throws -> Connection? {
-    async let local = ping(server: localUrl.uri)
-    async let remote = ping(server: remoteUrl.uri)
+    async let local = ping(
+      server: server, connection: localUrl, timeout: timeout
+    )
+    async let remote = ping(
+      server: server, connection: remoteUrl, timeout: timeout
+    )
 
     do {
-      _ = try await local
-      storage.lastUsedConnection = localUrl
+      _ = try await local.get()
+
+      await MainActor.run {
+        storage.lastUsedConnection = localUrl
+      }
+
       return localUrl
     } catch {
       logger.error("local not succeeded \(error)")
     }
 
     do {
-      _ = try await remote
-      storage.lastUsedConnection = remoteUrl
+      _ = try await remote.get()
+
+      await MainActor.run {
+        storage.lastUsedConnection = remoteUrl
+      }
+
       return remoteUrl
     } catch {
       logger.error("remote not succeeded \(error)")
@@ -197,97 +188,138 @@ public final class ServerLocator: ObservableObject {
     }
   }
 
-  nonisolated func devices() async throws -> [DeviceResponse] {
-    let devices = try await requestor.request(
-      url: URL(string: "https://plex.tv/api/v2/resources")!,
-      [DeviceResponse].self,
-      queryItems: [
-        URLQueryItem(name: "includeHttps", value: "1"),
-        URLQueryItem(name: "includeRelay", value: "1")
-      ],
-      useCache: false
+  nonisolated func servers() async throws -> ServersResponse {
+    try await EnsureOnce.once(cacheDuration: .seconds(60 * 5)) {
+      let servers = try await self.requestor.request(
+        url: URL(string: "https://plex.tv/api/v2/resources")!,
+        ServersResponse.self,
+        queryItems: [
+          URLQueryItem(name: "includeHttps", value: "1"),
+          URLQueryItem(name: "includeRelay", value: "1")
+        ],
+        useCache: false
+      )
+      .filter {
+        $0.provides.contains("server")
+      }
+
+      Task { @MainActor in
+        self.devicesLastFetch = .now
+        self.servers = servers
+      }
+
+      return servers
+    }
+  }
+
+  public nonisolated func pingsStream(
+    server: Server,
+    connections: [Connection],
+    timeout: Duration
+  ) async -> [PingResult] {
+    return await withTaskGroup(
+      of: PingResult.self, returning: [PingResult].self
+    ) { group in
+      for connection in connections {
+        group.addTask {
+          return await self.ping(
+            server: server,
+            connection: connection,
+            timeout: timeout
+          )
+        }
+      }
+
+      let res = await group.reduce(into: [PingResult]()) { prev, current in
+        prev.append(current)
+      }
+      return res
+    }
+  }
+
+  public nonisolated func pingsStream(
+    timeout: Duration = .seconds(1)
+  ) async throws -> [PingResult] {
+    let servers = try await self.servers()
+    guard let server = servers.first else {
+      assertionFailure("no devices")
+      throw NSError(domain: "NO DEVICES", code: 69)
+    }
+    return await self.pingsStream(
+      server: server,
+      connections: server.connections,
+      timeout: timeout
     )
-    .filter {
-      $0.provides.contains("server")
-    }
-
-    Task { @MainActor in
-      self.devices = devices
-    }
-
-    return devices
   }
 
-  private func executePings(
-    servers: [Connection]
-  ) async throws -> Connection? {
-
-    return await withTaskGroup(of: Connection?.self) { group in
-      for server in servers {
-        _ = group.addTaskUnlessCancelled {
-          do {
-            _ = try await self.ping(server: server.uri)
-            try Task.checkCancellation()
-            return server
-          } catch {
-            self.logger.error("Pings error: \(server.address) \(error)")
-            return nil
-          }
-        }
+  private nonisolated func pingsFirstResult(
+    server: Server,
+    connections: [Connection]
+  ) async throws -> PingSuccess? {
+    let results = await pingsStream(
+      server: server,
+      connections: connections,
+      timeout: .seconds(1)
+    )
+    return results.lazy.compactMap { res in
+      do {
+        let result = try res.get()
+        return result
+      } catch {
+        self.logger.error("ping first result error: \(error)")
+        return nil
       }
-
-      for await result in group {
-        if let result {
-          group.cancelAll()
-          return result
-        }
-      }
-      return nil
-    }
+    }.first
   }
 
-  private func chooseServer() async throws -> Connection? {
-    let servers = try await devices()
-      .flatMap { server in
-        server.connections.filter { $0.protocol == "https" }
-      }
-    //      .flatMap { server in
-    //        URL(string: server.uri).map { [(server, $0)] } ?? []
-    //      }
+  private nonisolated func chooseServer() async throws -> Connection? {
+    let servers = try await servers()
+    guard let server = servers.first else {
+      assertionFailure("no devices")
+      throw NSError(domain: "NO DEVICES", code: 69)
+    }
+    let connections = server.connections.filter { $0.protocol == "https" }
 
-    let serversGroupedByLocal = Dictionary(grouping: servers, by: {
+    let serversGroupedByLocal = Dictionary(grouping: connections, by: {
       $0.local
     })
 
-    async let localPings = executePings(
-      servers: serversGroupedByLocal[true] ?? []
+    async let localPings = pingsFirstResult(
+      server: server,
+      connections: serversGroupedByLocal[true] ?? []
     )
-    async let remotePings = executePings(
-      servers: serversGroupedByLocal[false] ?? []
+    async let remotePings = pingsFirstResult(
+      server: server,
+      connections: serversGroupedByLocal[false] ?? []
     )
 
     let choice: Connection?
 
     if let local = try? await localPings {
-      choice = local
+      choice = local.connection
     } else if let remote = try await remotePings {
-      choice = remote
+      choice = remote.connection
     } else {
       choice = nil
     }
 
-    self.connection = choice
-    storage.lastUsedConnection = choice
+    await MainActor.run {
+      self.connection = choice
+      storage.lastUsedConnection = choice
+    }
 
     let local = try? await localPings
     let remote = try? await remotePings
 
-    storage.lastUsedLocalConnection = local
-    storage.lastUsedRemoteConnection = remote
+    await MainActor.run {
+      storage.lastUsedLocalConnection = local?.connection
+      storage.lastUsedRemoteConnection = remote?.connection
+    }
 
     return choice
   }
 
+  @MainActor
   func invalidate() async {
 
     if isInvalidating {
@@ -308,9 +340,83 @@ public final class ServerLocator: ObservableObject {
     } catch {
       logger.error("invalidate error: \(error)")
     }
-
   }
 }
+
+extension ServerLocator {
+
+  private func rootForced() async throws -> Connection {
+    return try await EnsureOnce.once {
+      guard let connection = try await self.chooseServer() else {
+        throw ServerLocatorError.noUrl
+      }
+      await MainActor.run {
+        self.lastForceTryDate = Date()
+      }
+      return connection
+    }
+  }
+
+  public func root(
+    force: Bool = false
+  ) async throws -> Connection {
+    if force {
+      await rootEnsureOnce.cancel()
+      return try await rootForced()
+    }
+
+    if let connection = await connection {
+      return connection
+    }
+
+    return try await rootEnsureOnce.once {
+      let servers = try await self.servers()
+
+      guard let server = servers.first else {
+        throw NSError(domain: "derp", code: 69)
+      }
+
+      // phase 1: check for last used root and if its still viable...
+      do {
+        if let lastUsedConnection = await self.storage.lastUsedConnection {
+          if await self.lastTriedRootDate == nil {
+            let pingResult = try await self.ping(
+              server: server,
+              connection: lastUsedConnection,
+              timeout: .seconds(1)
+            ).get()
+            self.logger.info("phase 1 \(String(describing: pingResult))")
+            await MainActor.run {
+              self.lastTriedRootDate = Date()
+            }
+          }
+          await MainActor.run {
+            self.connection = lastUsedConnection
+          }
+          return lastUsedConnection
+        }
+      } catch {
+        await MainActor.run {
+          self.storage.lastUsedConnection = nil
+        }
+        self.logger.error("lastUsedRoot not viable... continuing! \(error)")
+      }
+
+      do {
+        return try await self.checkLocalAndRemoteIp(server: server, timeout: .seconds(5)).get()
+      } catch {
+        self.logger.error("secondPhase not viable... continuing! \(error)")
+      }
+
+      // phase 3: refetch potential servers to connect to
+      guard let url = try await self.chooseServer() else {
+        throw ServerLocatorError.noUrl
+      }
+      return url
+    }
+  }
+}
+
 
 @MainActor
 public protocol ServerLocatorStorageProviding: AnyObject {

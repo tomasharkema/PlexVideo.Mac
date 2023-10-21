@@ -53,13 +53,17 @@ public final class CurrentVideoViewModel: LoadableSupport {
     didSet {
       switch playerStatus {
       case .failed:
-        print("playerStatus failed", player.data?.error ?? "")
+        if let error = player.data?.error {
+          logger.error("playerStatus failed \(error)")
+        } else {
+          logger.error("playerStatus failed NO ERROR")
+        }
 
       case .readyToPlay:
-        print("playerStatus readyToPlay")
+        logger.info("playerStatus readyToPlay")
 
       case .unknown:
-        print("playerStatus unknown")
+        logger.info("playerStatus unknown")
       }
     }
   }
@@ -201,7 +205,7 @@ public final class CurrentVideoViewModel: LoadableSupport {
           self.video = newVideo
 //        }
       } catch {
-        print(error)
+        logger.error("open video error: \(error)")
       }
     }
   }

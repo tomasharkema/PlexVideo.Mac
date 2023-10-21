@@ -29,3 +29,5 @@ public struct Root<MediaContainerType: Codable> {
 }
 
 extension Root: Sendable where MediaContainerType: Sendable { }
+extension Root: Hashable where MediaContainerType: Hashable { }
+extension Root: Equatable where MediaContainerType: Equatable { }

@@ -19,14 +19,20 @@ struct MainView: View {
   @Environment(VideosViewModel.self)
   private var viewModel
 
-  @InjectedState(\.serverLocator)
-  private var serverLocator
+  @InjectedObserving(\.serverLocator)
+  private var serverLocator: ServerLocator
 
   @State
   private var menuSelection: NavigationItem? = NavigationItem.home
 
   @AppStorage("menuSelection")
   private var menuSelectionIdentifier: String?
+  
+  @State
+  private var logoutViewModel = LogoutViewModel()
+
+  @State
+  private var pinger = ServerPinger()
 
   @ViewBuilder
   private func navigationItem(_ item: NavigationItem) -> some View {
@@ -43,28 +49,52 @@ struct MainView: View {
     ZStack(alignment: .top) {
       NavigationSplitView {
         SideMenu(menuSelection: $menuSelection)
-//        .background(.black)
+        .background(.black)
+
       } detail: {
         switch menuSelection {        
         case .some(.home), .none:
           VideosGridScreen()
-        
+            .background(.black)
+
         case .some(.settings):
-          SettingsScreen()
-//            .background(.black)
+          SettingsScreen(logoutHandler: {
+            logoutViewModel.logout()
+          })
+          .background(.black)
 
         case .some(.servers):
-          ServersScreen(devices: serverLocator.devices, currentConnection: serverLocator.connection)
+          ServersScreen(
+            servers: serverLocator.servers ?? [],
+            currentConnection: serverLocator.connection,
+            pings: pinger.pingsByConnection
+          )
+          .background(.black)
+          .onAppear {
+            pinger.startPinging()
+          }
+          .onDisappear {
+            pinger.stopPinging()
+          }
 
         default:
           VideosGridScreen()
-//            .background(.black)
+            .background(.black)
         }
       }
       .navigationSplitViewStyle(.balanced)
+      #if os(macOS)
       .introspect(.navigationSplitView, on: .macOS(.v14, .v13)) { controller in
-        (controller.delegate as? NSSplitViewController)?.splitViewItems.first?.canCollapse = false
+        guard let splitViewController = (controller.delegate as? NSSplitViewController) else {
+          return
+        }
+
+        for item in splitViewController.splitViewItems {
+          item.canCollapse = false
+          item.collapseBehavior = .preferResizingSiblingsWithFixedSplitView
+        }
       }
+      #endif
 
       ConnectionOverlay()
     }
