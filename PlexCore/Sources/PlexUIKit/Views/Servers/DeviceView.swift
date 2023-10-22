@@ -23,13 +23,12 @@ struct DeviceView: View {
   var body: some View {
     VStack {
       HStack {
-        Text(server.name)
-          .font(.title2.bold())
+        Text(server.name).bold()
 
         Spacer()
 
         Text("public: \(server.publicAddress)")
-          .font(.body.monospaced())
+          .monospaced()
       }
 
       Divider()

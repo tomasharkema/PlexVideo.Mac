@@ -13,6 +13,9 @@ import Inject
 @MainActor
 struct ConnectionOverlay: View {
   
+  @Environment(\.font) 
+  private var font
+
   @State
   private var showOverlay = false
 
@@ -24,7 +27,7 @@ struct ConnectionOverlay: View {
     HStack {
       if let connection = serverLocator.connection {
         Text("\(connection.local ? "Local" : "Remote") connection")
-          .font(.subheadline.bold().lowercaseSmallCaps())
+          .font(font?.bold().lowercaseSmallCaps())
           .foregroundColor(.white)
           .edgesIgnoringSafeArea(.top)
           .padding(5)

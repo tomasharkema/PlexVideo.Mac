@@ -29,20 +29,32 @@ public final class ServerPinger: Sendable {
 
   public init() { }
 
+  @MainActor
+  private func updatePing(ping: PingResult) {
+    self.pingsByConnection[ping.connection] = ping    
+    let values = self.pingsByConnection.values
+    self.pings = Array(values)
+  }
+
   private func ping(timeout: Duration = .seconds(1)) async {
     do {
       let stream = try await self.serverLocator.pingsStream(
         timeout: timeout
       )
       try Task.checkCancellation()
-      await MainActor.run {
-        self.pings = stream
-        self.pingsByConnection = Dictionary(
-          stream.map { ($0.connection, $0) }
-        ) { first, second in
-          return first
-        }
+
+      for await ping in stream {
+        await updatePing(ping: ping)
       }
+
+//      await MainActor.run {
+//        self.pings = stream
+//        self.pingsByConnection = Dictionary(
+//          stream.map { ($0.connection, $0) }
+//        ) { first, second in
+//          return first
+//        }
+//      }
     } catch is CancellationError {
       // noop
     } catch {

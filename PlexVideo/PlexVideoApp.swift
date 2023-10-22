@@ -42,6 +42,7 @@ struct PlexVideoApp: App {
       .environment(videosViewModel)
       .environment(currentVideoViewModel)
       .environmentObject(dependencyInjector)
+      .environment(\.font, .plex)
   }
 
   var body: some Scene {
@@ -81,6 +82,11 @@ struct PlexVideoApp: App {
     }
 #endif
   }
+}
+
+extension Font {
+  static let plex = Font.custom("PlexeinaRegular", size: 14, relativeTo: .body)
+  static let plexBold = Font.custom("PlexeinaBold", size: 14, relativeTo: .body)
 }
 
 #if os(iOS)

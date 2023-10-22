@@ -32,7 +32,10 @@ struct ConnectionsView: View {
   }
 }
 
-struct ConnectionView: View {
+struct ConnectionView: View { 
+  @Environment(\.font)
+  private var font
+
   private let connection: Connection
   private let currentConnection: Connection?
   private let ping: PingResult?
@@ -74,15 +77,15 @@ struct ConnectionView: View {
     HStack {
 
       Text(connection.address)
-        .font(.body.monospaced())
+        .font(font?.monospaced())
         .bold(isCurrentDevice)
       Text(connection.local ? "LOCAL" : "REMOTE")
-        .font(.body.monospaced())
+        .font(font?.monospaced())
 
       Spacer()
 
       pingText
-        .font(.body.monospaced())
+        .font(font?.monospaced())
 
     }
     .foregroundColor(.white)

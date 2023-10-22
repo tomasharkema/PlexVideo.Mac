@@ -12,13 +12,15 @@
 		C32868E6266EC67C00A6F88B /* VideoPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C32868E5266EC67C00A6F88B /* VideoPlayer.swift */; };
 		C3337854266BA811007C3D41 /* VideoDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3337853266BA811007C3D41 /* VideoDetail.swift */; };
 		C3337859266CD568007C3D41 /* VideoListItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3337858266CD568007C3D41 /* VideoListItem.swift */; };
+		C33F74132AE498D000F46659 /* PlexeinaRegular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C33F74112AE498D000F46659 /* PlexeinaRegular.ttf */; };
+		C33F74142AE498D000F46659 /* PlexeinaBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C33F74122AE498D000F46659 /* PlexeinaBold.ttf */; };
+		C33F74182AE49ED600F46659 /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C33F74172AE49ED600F46659 /* Colors.xcassets */; };
 		C354970C2ADDB1B000990615 /* PlexCore in Frameworks */ = {isa = PBXBuildFile; productRef = C354970B2ADDB1B000990615 /* PlexCore */; };
 		C36279DD265FE44400DEF2B6 /* PlexVideoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36279DC265FE44400DEF2B6 /* PlexVideoApp.swift */; };
 		C36279DF265FE44400DEF2B6 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36279DE265FE44400DEF2B6 /* RootView.swift */; };
 		C36279E1265FE44500DEF2B6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C36279E0265FE44500DEF2B6 /* Assets.xcassets */; };
 		C36279EF265FE5DC00DEF2B6 /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36279EE265FE5DC00DEF2B6 /* Login.swift */; };
 		C36760542AE191C200838645 /* PlexUIKit in Frameworks */ = {isa = PBXBuildFile; productRef = C36760532AE191C200838645 /* PlexUIKit */; };
-		C36D74D12AE315DA00F35E7D /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C36D74D02AE315DA00F35E7D /* Colors.xcassets */; };
 		C378F6BF2AE1C8D9000B980F /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C378F6BE2AE1C8D9000B980F /* MainView.swift */; };
 		C391F3CD2ADDEE26000452B5 /* BackupVideoPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C391F3CC2ADDEE26000452B5 /* BackupVideoPlayer.swift */; };
 		C391F3CF2ADE03C3000452B5 /* PreviewData.swift in Sources */ = {isa = PBXBuildFile; fileRef = C391F3CE2ADE03C3000452B5 /* PreviewData.swift */; };
@@ -48,6 +50,10 @@
 		C32868E5266EC67C00A6F88B /* VideoPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPlayer.swift; sourceTree = "<group>"; };
 		C3337853266BA811007C3D41 /* VideoDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoDetail.swift; sourceTree = "<group>"; };
 		C3337858266CD568007C3D41 /* VideoListItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoListItem.swift; sourceTree = "<group>"; };
+		C33F74112AE498D000F46659 /* PlexeinaRegular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = PlexeinaRegular.ttf; sourceTree = "<group>"; };
+		C33F74122AE498D000F46659 /* PlexeinaBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = PlexeinaBold.ttf; sourceTree = "<group>"; };
+		C33F74152AE499C400F46659 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		C33F74172AE49ED600F46659 /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Colors.xcassets; path = PlexCore/Sources/PlexUIKit/Resources/Colors.xcassets; sourceTree = SOURCE_ROOT; };
 		C354970A2ADDB0BE00990615 /* PlexCore */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = PlexCore; sourceTree = "<group>"; };
 		C36279D9265FE44400DEF2B6 /* PlexVideo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PlexVideo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C36279DC265FE44400DEF2B6 /* PlexVideoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlexVideoApp.swift; sourceTree = "<group>"; };
@@ -55,7 +61,6 @@
 		C36279E0265FE44500DEF2B6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C36279EB265FE4D100DEF2B6 /* PlexVideo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PlexVideo.entitlements; sourceTree = "<group>"; };
 		C36279EE265FE5DC00DEF2B6 /* Login.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Login.swift; path = PlexVideo/Login.swift; sourceTree = SOURCE_ROOT; };
-		C36D74D02AE315DA00F35E7D /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Colors.xcassets; path = PlexCore/Sources/PlexUIKit/Resources/Colors.xcassets; sourceTree = SOURCE_ROOT; };
 		C378F6BE2AE1C8D9000B980F /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		C391F3CC2ADDEE26000452B5 /* BackupVideoPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupVideoPlayer.swift; sourceTree = "<group>"; };
 		C391F3CE2ADE03C3000452B5 /* PreviewData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewData.swift; sourceTree = "<group>"; };
@@ -95,6 +100,17 @@
 			path = Extensions;
 			sourceTree = "<group>";
 		};
+		C33F74162AE49B2C00F46659 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				C33F74122AE498D000F46659 /* PlexeinaBold.ttf */,
+				C33F74112AE498D000F46659 /* PlexeinaRegular.ttf */,
+				C33F74172AE49ED600F46659 /* Colors.xcassets */,
+				C36279E0265FE44500DEF2B6 /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 		C33FAE50266FC24100177385 /* Login */ = {
 			isa = PBXGroup;
 			children = (
@@ -132,6 +148,8 @@
 		C36279DB265FE44400DEF2B6 /* PlexVideo */ = {
 			isa = PBXGroup;
 			children = (
+				C33F74162AE49B2C00F46659 /* Resources */,
+				C33F74152AE499C400F46659 /* Info.plist */,
 				C32B7B5B26729E7400578E5D /* Helpers */,
 				C33FAE50266FC24100177385 /* Login */,
 				C333785A266CDAD1007C3D41 /* Extensions */,
@@ -140,8 +158,6 @@
 				C36279DC265FE44400DEF2B6 /* PlexVideoApp.swift */,
 				C36279DE265FE44400DEF2B6 /* RootView.swift */,
 				C378F6BE2AE1C8D9000B980F /* MainView.swift */,
-				C36D74D02AE315DA00F35E7D /* Colors.xcassets */,
-				C36279E0265FE44500DEF2B6 /* Assets.xcassets */,
 			);
 			path = PlexVideo;
 			sourceTree = "<group>";
@@ -244,7 +260,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				C36279E1265FE44500DEF2B6 /* Assets.xcassets in Resources */,
-				C36D74D12AE315DA00F35E7D /* Colors.xcassets in Resources */,
+				C33F74182AE49ED600F46659 /* Colors.xcassets in Resources */,
+				C33F74132AE498D000F46659 /* PlexeinaRegular.ttf in Resources */,
+				C33F74142AE498D000F46659 /* PlexeinaBold.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -432,6 +450,7 @@
 				"ENABLE_HARDENED_RUNTIME[sdk=macosx*]" = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PlexVideo/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PlexVideo;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -477,6 +496,7 @@
 				DEVELOPMENT_TEAM = 3LF943TRKL;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PlexVideo/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PlexVideo;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;

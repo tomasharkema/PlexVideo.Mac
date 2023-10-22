@@ -12,6 +12,8 @@ import PlexCore
 
 @MainActor
 struct PlayerOverlay: View {
+  @Environment(\.font)
+  private var font
 
   @Environment(CurrentVideoViewModel.self)
   private var viewModel
@@ -34,7 +36,7 @@ struct PlayerOverlay: View {
         }, label: {
           Image(systemName: "xmark")
             .foregroundColor(.white)
-            .font(.title)
+//            .font(font)
             .padding(10)
         })
         .buttonStyle(PlainButtonStyle())

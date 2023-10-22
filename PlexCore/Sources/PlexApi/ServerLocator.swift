@@ -216,30 +216,38 @@ public final class ServerLocator: Sendable {
     server: Server,
     connections: [Connection],
     timeout: Duration
-  ) async -> [PingResult] {
-    return await withTaskGroup(
-      of: PingResult.self, returning: [PingResult].self
-    ) { group in
-      for connection in connections {
-        group.addTask {
-          return await self.ping(
-            server: server,
-            connection: connection,
-            timeout: timeout
-          )
-        }
-      }
+  ) async -> AsyncStream<PingResult> {
+    return AsyncStream { continuation in
+      Task {
+        let result = await withTaskGroup(
+          of: PingResult.self, returning: [PingResult].self
+        ) { group in
+          for connection in connections {
+            group.addTask {
+              let pingResult = await self.ping(
+                server: server,
+                connection: connection,
+                timeout: timeout
+              )
+              continuation.yield(pingResult)
+              return pingResult
+            }
+          }
 
-      let res = await group.reduce(into: [PingResult]()) { prev, current in
-        prev.append(current)
+          let res = await group.reduce(into: [PingResult]()) { prev, current in
+            prev.append(current)
+          }
+          return res
+        }
+        print(result)
+        continuation.finish()
       }
-      return res
     }
   }
 
   public nonisolated func pingsStream(
     timeout: Duration = .seconds(1)
-  ) async throws -> [PingResult] {
+  ) async throws -> AsyncStream<PingResult> {
     let servers = try await self.servers()
     guard let server = servers.first else {
       assertionFailure("no devices")
@@ -261,15 +269,20 @@ public final class ServerLocator: Sendable {
       connections: connections,
       timeout: .seconds(1)
     )
-    return results.lazy.compactMap { res in
+    return await results.compactMap { res in
       do {
+        guard res.server == server else {
+          return nil
+        }
         let result = try res.get()
         return result
       } catch {
         self.logger.error("ping first result error: \(error)")
         return nil
       }
-    }.first
+    }.first {
+      $0.server == server
+    }
   }
 
   private nonisolated func chooseServer() async throws -> Connection? {

@@ -67,7 +67,6 @@ struct VideoListItem: View {
       .frame(width: ThumbViewModel.thumbSize.width, height: ThumbViewModel.thumbSize.height)
 
       Text(video.displayTitle)
-        .font(.body)
         .fontWeight(.regular)
         .lineLimit(2, reservesSpace: true)
         .truncationMode(.tail)

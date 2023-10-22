@@ -13,6 +13,8 @@ import Processed
 
 @MainActor
 struct VideosGrid: View {
+  @Environment(\.font)
+  private var font
 
   @Environment(VideosViewModel.self)
   private var viewModel
@@ -42,7 +44,7 @@ struct VideosGrid: View {
       if let text {
         HStack {
           Text(text).foregroundColor(Color.white)
-            .font(.title2.weight(.medium).smallCaps())
+            .font(font?.weight(.medium).smallCaps())
           Spacer()
         }
       }
