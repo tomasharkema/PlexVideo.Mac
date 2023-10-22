@@ -5,8 +5,8 @@
 //  Created by Tomas Harkema on 09/06/2021.
 //
 
-import Foundation
 import AsyncAwaitHelpers
+import Foundation
 
 enum ServerLocatorError: LocalizedError {
   case noUrl
@@ -38,7 +38,7 @@ class ServerLocator: ObservableObject {
       }).value
     }
 
-    if let lastConfirmedUrl = lastConfirmedUrl {
+    if let lastConfirmedUrl {
       return lastConfirmedUrl
     }
 
@@ -85,10 +85,10 @@ class ServerLocator: ObservableObject {
   }
 
   private func ping(server: URL) async throws -> (Root<Version>, TimeInterval) {
-    return try await pingOnce.onceKeepOriginal(key: server, keepInCache: 60) {
+    try await pingOnce.onceKeepOriginal(key: server, keepInCache: 60) {
       let date = Date()
-      return (
-        try await self.requestor.request(url: server, timeoutInterval: 2, invalidateAfterError: false),
+      return try await (
+        self.requestor.request(url: server, timeoutInterval: 2, invalidateAfterError: false),
         abs(date.timeIntervalSinceNow)
       )
     }.value
@@ -134,7 +134,7 @@ class ServerLocator: ObservableObject {
     -> (Connection, URL)?
   {
     try await whenAny(servers.map { server in
-      return { () -> (Connection, URL)? in
+      { () -> (Connection, URL)? in
         do {
           _ = try await self.ping(server: server.1)
           return (server.0, server.1)
@@ -165,19 +165,17 @@ class ServerLocator: ObservableObject {
     async let localPings = executePings(servers: serversGroupedByLocal[true] ?? [])
     async let remotePings = executePings(servers: serversGroupedByLocal[false] ?? [])
 
-    let choice: (Connection, URL)?
-
-    if let local = try? await localPings {
-      choice = local
+    let choice: (Connection, URL)? = if let local = try? await localPings {
+      local
     } else if let remote = try await remotePings {
-      choice = remote
+      remote
     } else {
-      choice = nil
+      nil
     }
 
     await MainActor.run {
       Storage.shared.lastUsedRoot = choice?.1
-      
+
       self.connection = choice?.0
     }
 

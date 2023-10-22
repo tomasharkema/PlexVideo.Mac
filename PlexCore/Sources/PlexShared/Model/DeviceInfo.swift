@@ -1,18 +1,18 @@
 //
 //  DeviceInfo.swift
-//  
+//
 //
 //  Created by Tomas Harkema on 16/10/2023.
 //
 
-//import Foundation
+// import Foundation
 
 public struct DeviceInfo: Sendable {
 //  @MainActor
 //  static let shared = DeviceInfo()
 
   public let platform = "tvOS" // UIDevice().systemName
-                        // let platform = "Windows"
+  // let platform = "Windows"
   public let name: String // UIDevice().name
   public let device = "iPhone"
   public let version: String
@@ -21,6 +21,6 @@ public struct DeviceInfo: Sendable {
 
   public init(name: String) {
     self.name = name
-    self.version = "17.0"
+    version = "17.0"
   }
 }

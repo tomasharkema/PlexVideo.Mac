@@ -6,12 +6,11 @@
 //
 
 import Foundation
+import Inject
 import PlexApi
 import PlexShared
-import Inject
 
 public final class VideoDataService: Sendable {
-
   @Injected(\.api)
   private var api
 
@@ -19,17 +18,17 @@ public final class VideoDataService: Sendable {
   private var storage
 
   nonisolated func progress(for video: Video) async throws -> PlexShared.Progress {
-    video.getProgress(storage: try await self.storage.getSavedOffset(video: video))
+    try await video.getProgress(storage: storage.getSavedOffset(video: video))
   }
 
   private func getSections() async throws -> [Directory] {
-    try await self.api.sections().mediaContainer.directory.filter {
+    try await api.sections().mediaContainer.directory.filter {
       $0.type == "movie" || $0.type == "show"
     }
   }
 
   func getContinueWatching(sections: [Directory]) async throws -> [Video] {
-    try await self.api
+    try await api
       .continueWatching(contentDirectoryIDs: sections.map(\.key))
       .mediaContainer.hub
       .flatMap(\.metadata)
@@ -42,10 +41,13 @@ public final class VideoDataService: Sendable {
       of: (VideoKey, PlexShared.Progress).self, returning: [(VideoKey, PlexShared.Progress)].self
     ) { group in
       let videos = try await getContinueWatching(sections: sections)
-      
+
       for watchingVideo in videos {
         group.addTask {
-          try await (watchingVideo.key, watchingVideo.getProgress(storage: self.progress(for: watchingVideo)))
+          try await (
+            watchingVideo.key,
+            watchingVideo.getProgress(storage: self.progress(for: watchingVideo))
+          )
         }
       }
 
@@ -56,7 +58,7 @@ public final class VideoDataService: Sendable {
   }
 
   func fetchVideos(sections: [Directory], reload: Bool) async throws -> [Video] {
-    return try await withThrowingTaskGroup(of: [Video].self) { group in
+    try await withThrowingTaskGroup(of: [Video].self) { group in
       for section in sections {
         group.addTask {
           try await self.api.all(key: section.key, reload: reload).mediaContainer.metadata
@@ -73,7 +75,7 @@ public final class VideoDataService: Sendable {
     videos: [Video],
     continueWatching: [VideoKey: PlexShared.Progress]
   ) async throws -> [(VideoKey, PlexShared.Progress)] {
-    return try await withThrowingTaskGroup(
+    try await withThrowingTaskGroup(
       of: (VideoKey, PlexShared.Progress)?.self,
       returning: [(VideoKey, PlexShared.Progress)].self
     ) { group in
@@ -90,7 +92,7 @@ public final class VideoDataService: Sendable {
         }
       }
 
-      return try await group.reduce(into: .init()) { (prev, element) in
+      return try await group.reduce(into: .init()) { prev, element in
         if let element {
           prev.append(element)
         }
@@ -109,12 +111,16 @@ public final class VideoDataService: Sendable {
       continueWatchingAsync
     )
 
-    let continueWatching = [VideoKey: PlexShared.Progress](uniqueKeysWithValues: continueWatchingResultKeyValue)
+    let continueWatching =
+      [VideoKey: PlexShared.Progress](uniqueKeysWithValues: continueWatchingResultKeyValue)
     let videosByKey = Dictionary(uniqueKeysWithValues: videos.map {
       ($0.key, $0)
     })
 
-    async let progressArrayMissing = progressMissing(videos: videos, continueWatching: continueWatching)
+    async let progressArrayMissing = progressMissing(
+      videos: videos,
+      continueWatching: continueWatching
+    )
 
     let fixedContinue = try await [continueWatchingResultKeyValue, progressArrayMissing]
       .joined()

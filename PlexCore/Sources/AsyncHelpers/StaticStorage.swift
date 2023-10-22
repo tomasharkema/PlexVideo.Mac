@@ -1,6 +1,6 @@
 //
 //  StaticStorage.swift
-//  
+//
 //
 //  Created by Tomas Harkema on 21/10/2023.
 //

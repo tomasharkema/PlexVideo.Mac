@@ -5,11 +5,11 @@
 //  Created by Tomas Harkema on 07/06/2021.
 //
 
-import SwiftUI
 import PlexApi
 import PlexCore
 import PlexShared
 import Processed
+import SwiftUI
 
 @MainActor
 struct VideosGrid: View {
@@ -22,7 +22,7 @@ struct VideosGrid: View {
   @Environment(CurrentVideoViewModel.self)
   private var currentVideoViewModel
 
-  init() { }
+  init() {}
 
   private func section(text: String?, videos: [Video]) -> some View {
     Section(content: {
@@ -55,7 +55,6 @@ struct VideosGrid: View {
     LazyVGrid(columns: [
       GridItem(.adaptive(minimum: ThumbViewModel.thumbSize.width), spacing: 10),
     ], spacing: 10) {
-
       switch viewModel.searchResults {
       case .absent:
         section(text: "Continue Watching", videos: viewModel.data.data?.continueWatching ?? [])
@@ -64,17 +63,17 @@ struct VideosGrid: View {
       case .loading:
         ProgressView()
 
-      case .loaded(let searchResult):
+      case let .loaded(searchResult):
         section(text: nil, videos: searchResult)
 
-      case .error(let error):
+      case let .error(error):
         Text(error.localizedDescription)
       }
     }
   }
 }
 
-//struct VideosGrid_Preview: PreviewProvider {
+// struct VideosGrid_Preview: PreviewProvider {
 //  static var previews: some View {
 //    VideosGrid(activeVideo: .constant(nil), searchResults: .absent, continueWatching: [
 //      Video.preview(id: "A"),
@@ -92,4 +91,4 @@ struct VideosGrid: View {
 //      Video.preview(),
 //    ], openVideo: { _ in })
 //  }
-//}
+// }

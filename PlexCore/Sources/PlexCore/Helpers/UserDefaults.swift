@@ -8,8 +8,8 @@
 import Foundation
 
 extension UserDefaults {
-  nonisolated func set<CodableType: Codable>(
-    value: CodableType,
+  nonisolated func set(
+    value: some Codable,
     key: String,
     _ encoder: JSONEncoder = .init()
   ) async throws {

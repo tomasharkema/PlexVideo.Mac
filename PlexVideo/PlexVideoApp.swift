@@ -6,23 +6,22 @@
 //
 
 import Foundation
-import SwiftUI
 import Inject
-import PlexShared
-import PlexCore
 import PlexApi
+import PlexCore
+import PlexShared
 import PlexUIKit
+import SwiftUI
 
 @MainActor
 @main
 struct PlexVideoApp: App {
-
   #if os(iOS)
-  @UIApplicationDelegateAdaptor(AppDelegate.self)
-  private var appDelegate
+    @UIApplicationDelegateAdaptor(AppDelegate.self)
+    private var appDelegate
   #endif
-  
-  @Environment(\.scenePhase) 
+
+  @Environment(\.scenePhase)
   private var scenePhase
 
   @State
@@ -46,41 +45,41 @@ struct PlexVideoApp: App {
   }
 
   var body: some Scene {
-#if os(macOS)
+    #if os(macOS)
 
-    Window("Videos", id: "videos") {
-      rootView
-    }
-    .windowStyle(.hiddenTitleBar)
-    
-#else
-    WindowGroup {
-      rootView
-    }
-#endif
+      Window("Videos", id: "videos") {
+        rootView
+      }
+      .windowStyle(.hiddenTitleBar)
 
-#if os(macOS)
-    MenuBarExtra("PlexVideo", systemImage: "recordingtape.circle") {
-      if let video = currentVideoViewModel.video {
+    #else
+      WindowGroup {
+        rootView
+      }
+    #endif
+
+    #if os(macOS)
+      MenuBarExtra("PlexVideo", systemImage: "recordingtape.circle") {
+        if let video = currentVideoViewModel.video {
           Text("Now playing: \(video.title)")
+          Divider()
+        }
+        LoadingButton(
+          text: { Image(systemName: "arrow.clockwise") },
+          loadingText: { ProgressView().controlSize(.small) }
+        ) {
+          await videosViewModel.reload(silently: true)
+        }
+        .keyboardShortcut("r")
+
         Divider()
-      }
-      LoadingButton(
-        text: { Image(systemName: "arrow.clockwise") },
-        loadingText: { ProgressView().controlSize(.small) }
-      ) {
-        await self.videosViewModel.reload(silently: true)
-      }
-      .keyboardShortcut("r")
 
-      Divider()
-
-      Button("Quit") {
-        NSApplication.shared.terminate(nil)
+        Button("Quit") {
+          NSApplication.shared.terminate(nil)
+        }
+        .keyboardShortcut("q")
       }
-      .keyboardShortcut("q")
-    }
-#endif
+    #endif
   }
 }
 
@@ -90,14 +89,14 @@ extension Font {
 }
 
 #if os(iOS)
-class AppDelegate: NSObject, UIApplicationDelegate {
-  static var orientationLock = UIInterfaceOrientationMask.all
+  class AppDelegate: NSObject, UIApplicationDelegate {
+    static var orientationLock = UIInterfaceOrientationMask.all
 
-  func application(
-    _: UIApplication,
-    supportedInterfaceOrientationsFor _: UIWindow?
-  ) -> UIInterfaceOrientationMask {
-    AppDelegate.orientationLock
+    func application(
+      _: UIApplication,
+      supportedInterfaceOrientationsFor _: UIWindow?
+    ) -> UIInterfaceOrientationMask {
+      AppDelegate.orientationLock
+    }
   }
-}
 #endif

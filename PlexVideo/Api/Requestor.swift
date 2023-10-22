@@ -20,8 +20,8 @@ class Requestor {
     async let token = Storage.shared.getToken()
 
     var components = URLComponents(url: url, resolvingAgainstBaseURL: true)!
-    components.queryItems = (components.queryItems ?? []) + (sendDefaultQueries ? [
-      URLQueryItem(name: "X-Plex-Client-Identifier", value: await uuid),
+    components.queryItems = await (components.queryItems ?? []) + (sendDefaultQueries ? [
+      URLQueryItem(name: "X-Plex-Client-Identifier", value: uuid),
       URLQueryItem(name: "X-Plex-Client-Platform", value: DeviceInfo.shared.platform),
       URLQueryItem(name: "X-Plex-Device", value: DeviceInfo.shared.device),
       URLQueryItem(name: "X-Plex-Device-Screen-Density", value: "3"),
@@ -32,7 +32,7 @@ class Requestor {
       URLQueryItem(name: "X-Plex-Platform-Version", value: DeviceInfo.shared.version),
       URLQueryItem(name: "X-Plex-Product", value: DeviceInfo.shared.product),
       URLQueryItem(name: "X-Plex-Sync-Version", value: "2"),
-      URLQueryItem(name: "X-Plex-Token", value: await token),
+      URLQueryItem(name: "X-Plex-Token", value: token),
       URLQueryItem(name: "X-Plex-Username", value: "teumaauss"),
       URLQueryItem(name: "X-Plex-Version", value: DeviceInfo.shared.appVersion),
       URLQueryItem(name: "X-Plex-Language", value: "nl"),
@@ -57,14 +57,14 @@ class Requestor {
     invalidateAfterError: Bool = true
   ) async throws -> D {
     var mutualRequest =
-      URLRequest(url: await _requestUrl(
+      await URLRequest(url: _requestUrl(
         url: url,
         queryItems: queryItems,
         sendDefaultQueries: sendDefaultQueries
       ))
     mutualRequest.httpMethod = method
     mutualRequest.setValue("application/json", forHTTPHeaderField: "Accept")
-    if let timeoutInterval = timeoutInterval {
+    if let timeoutInterval {
       mutualRequest.timeoutInterval = timeoutInterval
     }
     let request = mutualRequest

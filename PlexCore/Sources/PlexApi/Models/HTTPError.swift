@@ -16,7 +16,7 @@ public enum HTTPError: Error {
       throw HTTPError.noHttpResponse
     }
 
-    guard (200..<400).contains(httpRes.statusCode) else {
+    guard (200 ..< 400).contains(httpRes.statusCode) else {
       throw HTTPError.unexpectedStatusCode(code: httpRes.statusCode)
     }
   }

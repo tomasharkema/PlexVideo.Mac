@@ -1,5 +1,5 @@
 //
-//  Devicesesponse.swift
+//  DevicesResponse.swift
 //
 //
 //  Created by Tomas Harkema on 17/10/2023.
@@ -10,8 +10,7 @@ import MetaCodable
 
 public typealias ServersResponse = [Server]
 
-
-//Array [
+// Array [
 //  name string
 //  product string
 //  productVersion string
@@ -123,8 +122,8 @@ extension ServersResponse {
   }
 }
 
-extension Server {
-  public static let preview1 = ServersResponse.preview[0]
+public extension Server {
+  static let preview1 = ServersResponse.preview[0]
 
-  public static let preview2 = ServersResponse.preview[1]
+  static let preview2 = ServersResponse.preview[1]
 }

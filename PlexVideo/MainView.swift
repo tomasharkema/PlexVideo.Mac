@@ -5,17 +5,16 @@
 //  Created by Tomas Harkema on 19/10/2023.
 //
 
-import SwiftUI
-import PlexCore
-import PlexUIKit
 import Inject
 import PlexApi
+import PlexCore
 import PlexShared
+import PlexUIKit
+import SwiftUI
 import SwiftUIIntrospect
 
 @MainActor
 struct MainView: View {
-
   @Environment(VideosViewModel.self)
   private var viewModel
 
@@ -27,7 +26,7 @@ struct MainView: View {
 
   @AppStorage("menuSelection")
   private var menuSelectionIdentifier: String?
-  
+
   @State
   private var logoutViewModel = LogoutViewModel()
 
@@ -49,10 +48,10 @@ struct MainView: View {
     ZStack(alignment: .top) {
       NavigationSplitView {
         SideMenu(menuSelection: $menuSelection)
-        .background(.black)
+          .background(.black)
 
       } detail: {
-        switch menuSelection {        
+        switch menuSelection {
         case .some(.home), .none:
           VideosGridScreen()
             .background(.black)
@@ -84,16 +83,16 @@ struct MainView: View {
       }
       .navigationSplitViewStyle(.balanced)
       #if os(macOS)
-      .introspect(.navigationSplitView, on: .macOS(.v14, .v13)) { controller in
-        guard let splitViewController = (controller.delegate as? NSSplitViewController) else {
-          return
-        }
+        .introspect(.navigationSplitView, on: .macOS(.v14, .v13)) { controller in
+          guard let splitViewController = (controller.delegate as? NSSplitViewController) else {
+            return
+          }
 
-        for item in splitViewController.splitViewItems {
-          item.canCollapse = false
-          item.collapseBehavior = .preferResizingSiblingsWithFixedSplitView
+          for item in splitViewController.splitViewItems {
+            item.canCollapse = false
+            item.collapseBehavior = .preferResizingSiblingsWithFixedSplitView
+          }
         }
-      }
       #endif
 
       ConnectionOverlay()
@@ -124,13 +123,13 @@ struct MainView: View {
   }
 }
 
-//#Preview {
+// #Preview {
 //  MainView()
 //    .environment(VideosViewModel())
 //    .environment(CurrentVideoViewModel())
-//}
+// }
 
-//extension View {
+// extension View {
 //  public func introspectSplitView(customize: @escaping (NSSplitView) -> ()) -> some View {
 //    return inject(AppKitIntrospectionView(
 //      selector: { introspectionView in
@@ -142,4 +141,4 @@ struct MainView: View {
 //      customize: customize
 //    ))
 //  }
-//}
+// }

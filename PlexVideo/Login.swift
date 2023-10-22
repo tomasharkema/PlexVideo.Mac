@@ -7,11 +7,11 @@
 
 import AuthenticationServices
 import Foundation
-import SwiftUI
 import Inject
 import PlexApi
 import PlexCore
 import PlexShared
+import SwiftUI
 
 struct Login: View {
   @StateObject
@@ -34,7 +34,7 @@ struct Login: View {
 
       case .loading:
         VStack {
-          ProgressView()    
+          ProgressView()
           Button("Cancel", action: {
             viewModel.cancel()
           })
@@ -43,7 +43,7 @@ struct Login: View {
       case .loaded:
         EmptyView()
 
-      case .error(let error):
+      case let .error(error):
         VStack {
           Text(error.localizedDescription)
           loginButton()

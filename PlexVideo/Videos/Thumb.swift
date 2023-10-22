@@ -5,15 +5,14 @@
 //  Created by Tomas Harkema on 07/06/2021.
 //
 
-import SwiftUI
-import PlexApi
 import Inject
-import PlexShared
+import PlexApi
 import PlexCore
+import PlexShared
+import SwiftUI
 
 @MainActor
 struct Thumb: View {
-
   @State
   private var viewModel: ThumbViewModel
 
@@ -21,7 +20,7 @@ struct Thumb: View {
 
   init(video: Video) {
     self.video = video
-    self._viewModel = .init(wrappedValue: ThumbViewModel.get(for: video))
+    _viewModel = .init(wrappedValue: ThumbViewModel.get(for: video))
   }
 
   @ViewBuilder
@@ -30,12 +29,11 @@ struct Thumb: View {
       Image(plexImage: image)
         .resizable()
         .aspectRatio(contentMode: .fill)
-    } 
-    else {
+    } else {
       Color.black.opacity(0.6)
     }
   }
-  
+
   var body: some View {
     image()
       .frame(width: ThumbViewModel.thumbSize.width, height: ThumbViewModel.thumbSize.height)

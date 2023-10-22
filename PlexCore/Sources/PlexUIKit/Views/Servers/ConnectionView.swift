@@ -1,13 +1,13 @@
 //
 //  ConnectionView.swift
-//  
+//
 //
 //  Created by Tomas Harkema on 20/10/2023.
 //
 
-import SwiftUI
 import PlexApi
 import PlexShared
+import SwiftUI
 
 struct ConnectionsView: View {
   private let connections: [Connection]
@@ -23,7 +23,11 @@ struct ConnectionsView: View {
   var body: some View {
     VStack(alignment: .leading) {
       ForEach(connections) { connection in
-        ConnectionView(connection: connection, currentConnection: currentConnection, ping: pings[connection])
+        ConnectionView(
+          connection: connection,
+          currentConnection: currentConnection,
+          ping: pings[connection]
+        )
       }
     }
     .padding()
@@ -32,7 +36,7 @@ struct ConnectionsView: View {
   }
 }
 
-struct ConnectionView: View { 
+struct ConnectionView: View {
   @Environment(\.font)
   private var font
 
@@ -53,7 +57,7 @@ struct ConnectionView: View {
   @ViewBuilder
   private var pingText: some View {
     switch ping?.result {
-    case .some(.success(let success)):
+    case let .some(.success(success)):
       Text(
         success.details.measurement.converted(to: .milliseconds),
         format: Measurement<UnitDuration>.FormatStyle(
@@ -62,20 +66,18 @@ struct ConnectionView: View {
         )
       )
 
-    case .failure(let error):
+    case let .failure(error):
       //        Text(error.localizedDescription)
       Text("ERROR!")
 
     case .none:
       //        Text("NO RESULT")
       EmptyView()
-
     }
   }
 
   var body: some View {
     HStack {
-
       Text(connection.address)
         .font(font?.monospaced())
         .bold(isCurrentDevice)
@@ -86,7 +88,6 @@ struct ConnectionView: View {
 
       pingText
         .font(font?.monospaced())
-
     }
     .foregroundColor(.white)
     .padding(5)

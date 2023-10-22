@@ -8,7 +8,6 @@
 import Foundation
 
 public struct Progress: Codable, Sendable {
-
   public static let zero = Progress(seconds: 0, date: Date(timeIntervalSince1970: 0))
 
   public let seconds: Double
@@ -16,7 +15,7 @@ public struct Progress: Codable, Sendable {
 
   public init(
     seconds: Double,
-       date: Date
+    date: Date
   ) {
     self.seconds = seconds
     self.date = date

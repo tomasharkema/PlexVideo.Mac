@@ -1,0 +1,6 @@
+file_length:
+  warning: 500
+  error: 1200
+
+analyzer_rules: # rules run by `swiftlint analyze`
+  - unused_import

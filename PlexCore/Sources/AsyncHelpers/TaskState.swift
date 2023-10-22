@@ -1,6 +1,6 @@
 //
 //  TaskState.swift
-//  
+//
 //
 //  Created by Tomas Harkema on 21/10/2023.
 //
@@ -17,22 +17,20 @@ public enum TaskStateResult<ResultType: Sendable>: Sendable {
   public var isFinished: Bool {
     switch self {
     case .idle, .running:
-      return false
+      false
 
     case .cancelled, .result, .error:
-      return true
-      
+      true
     }
   }
 }
 
 public actor TaskState<ResultType: Sendable>: Sendable {
   private let handler: @Sendable () async throws -> ResultType
-  private lazy var task: Task<ResultType, any Error> = {
-    Task {
-      return try await self.run(handler)
-    }
-  }()
+  private lazy var task: Task<ResultType, any Error> = Task {
+    try await self.run(handler)
+  }
+
   public private(set) var state = TaskStateResult<ResultType>.idle
 //  public private(set) var started: Date?
 //  public private(set) var finished: Date?
@@ -49,18 +47,18 @@ public actor TaskState<ResultType: Sendable>: Sendable {
   private func run(
     _ handler: @Sendable @escaping () async throws -> ResultType
   ) async throws -> ResultType {
-    self.state = .running
+    state = .running
 
     do {
       let result = try await handler()
       try Task.checkCancellation()
-      self.state = .result(result, Date())
+      state = .result(result, Date())
       return result
     } catch let error as CancellationError {
       self.state = .cancelled
       throw error
     } catch {
-      self.state = .error(error)
+      state = .error(error)
       throw error
     }
   }

@@ -11,7 +11,6 @@ import Inject
 import PlexShared
 
 public final class Api {
-
   @Injected(\.serverLocator)
   private var serverLocator
 
@@ -44,7 +43,7 @@ public final class Api {
     )
   }
 
-  private func status(deviceInfo: DeviceInfo) async throws -> Root<Metadata<SessionStatus>> {
+  private func status(deviceInfo _: DeviceInfo) async throws -> Root<Metadata<SessionStatus>> {
     try await requestor.request(
       url: serverLocator.root().uri
         .appendingPathComponent("/status/sessions"),
@@ -80,7 +79,7 @@ public final class Api {
       URLQueryItem(name: "mediaBufferSize", value: "40000"),
       URLQueryItem(name: "videoQuality", value: "100"),
       URLQueryItem(name: "offset", value: "\(offset)"),
-      URLQueryItem(name: "addDebugOverlay", value: "0")
+      URLQueryItem(name: "addDebugOverlay", value: "0"),
     ]
   }
 
@@ -142,7 +141,7 @@ public final class Api {
     item: Video,
     width: Int,
     height: Int,
-    deviceInfo: DeviceInfo,
+    deviceInfo _: DeviceInfo,
     uuid: String?,
     token: String?
   ) -> URL {
@@ -152,7 +151,7 @@ public final class Api {
         URLQueryItem(name: "url", value: item.grandparentThumb ?? item.thumb),
         URLQueryItem(name: "width", value: "\(width)"),
         URLQueryItem(name: "height", value: "\(height)"),
-        URLQueryItem(name: "upscale", value: "1")
+        URLQueryItem(name: "upscale", value: "1"),
       ],
       uuid: uuid,
       token: token
@@ -165,20 +164,20 @@ public final class Api {
   ) async throws -> Root<TranscodeSessions> {
     try await requestor.request(
       url: serverLocator.root().uri
-          .appendingPathComponent("/:/timeline"),
+        .appendingPathComponent("/:/timeline"),
       Root<TranscodeSessions>.self,
-        queryItems: [
-          URLQueryItem(name: "time", value: "\(Int(time.seconds * 1000))"),
-          URLQueryItem(name: "ratingKey", value: video.ratingKey.rawValue),
-          URLQueryItem(
-            name: "duration",
-            value: "\(Int(video.media?.first?.duration.value ?? 0))"
-          ),
-          URLQueryItem(name: "state", value: state.rawValue),
-          URLQueryItem(name: "key", value: video.key.rawValue),
-          URLQueryItem(name: "context", value: "library%3Acontent.library")
-        ]
-      )
+      queryItems: [
+        URLQueryItem(name: "time", value: "\(Int(time.seconds * 1000))"),
+        URLQueryItem(name: "ratingKey", value: video.ratingKey.rawValue),
+        URLQueryItem(
+          name: "duration",
+          value: "\(Int(video.media?.first?.duration.value ?? 0))"
+        ),
+        URLQueryItem(name: "state", value: state.rawValue),
+        URLQueryItem(name: "key", value: video.key.rawValue),
+        URLQueryItem(name: "context", value: "library%3Acontent.library"),
+      ]
+    )
   }
 
   public func continueWatching(contentDirectoryIDs: [SectionKey]) async throws -> Root<Hub<Video>> {
@@ -190,7 +189,7 @@ public final class Api {
           name: "contentDirectoryID",
           value: contentDirectoryIDs.map(\.rawValue).joined(separator: ",")
         ),
-        URLQueryItem(name: "includeMeta", value: "1")
+        URLQueryItem(name: "includeMeta", value: "1"),
       ]
     )
   }

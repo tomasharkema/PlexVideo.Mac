@@ -10,11 +10,11 @@ import ImageIO
 import UniformTypeIdentifiers
 
 #if canImport(MobileCoreServices)
-import MobileCoreServices
+  import MobileCoreServices
 #endif
 
 #if os(macOS)
-import AppKit
+  import AppKit
 #endif
 
 enum ImageIO {
@@ -24,7 +24,7 @@ enum ImageIO {
     let options: [CFString: Any] = [
       kCGImageSourceThumbnailMaxPixelSize: max(size.width, size.height),
       kCGImageSourceCreateThumbnailFromImageAlways: true,
-      kCGImageSourceCreateThumbnailWithTransform: true
+      kCGImageSourceCreateThumbnailWithTransform: true,
     ]
 
     guard let imageSource = CGImageSourceCreateWithURL(url as NSURL, nil),
@@ -42,7 +42,7 @@ enum ImageIO {
     }
     guard let image = CGImage(
       jpegDataProviderSource: provider,
-      decode: nil, 
+      decode: nil,
       shouldInterpolate: true,
       intent: .defaultIntent
     ) else {
@@ -53,14 +53,15 @@ enum ImageIO {
     let height = Int(size.height)
 
     let colorSpace = CGColorSpaceCreateDeviceRGB()
-    
+
     guard let imageContext = CGContext(
       data: nil,
       width: width, height: height,
       bitsPerComponent: 8,
-      bytesPerRow: width*4,
+      bytesPerRow: width * 4,
       space: colorSpace,
-      bitmapInfo: CGBitmapInfo.byteOrder32Big.rawValue | CGImageAlphaInfo.premultipliedFirst.rawValue
+      bitmapInfo: CGBitmapInfo.byteOrder32Big.rawValue | CGImageAlphaInfo.premultipliedFirst
+        .rawValue
     ) else {
       return nil
     }
@@ -76,7 +77,8 @@ enum ImageIO {
 
   static func resizedImageWithHintingAndSubsampling(at url: URL, for size: CGSize) -> PlexImage? {
     guard let imageSource = CGImageSourceCreateWithURL(url as NSURL, nil),
-          let properties = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil) as? [CFString: Any],
+          let properties = CGImageSourceCopyPropertiesAtIndex(imageSource, 0,
+                                                              nil) as? [CFString: Any],
           let imageWidth = properties[kCGImagePropertyPixelWidth] as? CGFloat,
           let imageHeight = properties[kCGImagePropertyPixelHeight] as? CGFloat
     else {
@@ -88,10 +90,14 @@ enum ImageIO {
       kCGImageSourceCreateThumbnailFromImageAlways: true,
       kCGImageSourceCreateThumbnailWithTransform: true,
       kCGImageSourceShouldCache: true,
-      kCGImageSourceShouldCacheImmediately: true
+      kCGImageSourceShouldCacheImmediately: true,
     ]
 
-    if let uti = UTType(tag: url.pathExtension, tagClass: .filenameExtension, conformingTo: UTType.image) {
+    if let uti = UTType(
+      tag: url.pathExtension,
+      tagClass: .filenameExtension,
+      conformingTo: UTType.image
+    ) {
       options[kCGImageSourceTypeIdentifierHint] = uti
 
       if uti == UTType.jpeg || uti == UTType.tiff || uti == UTType.png || uti == UTType.heif {
@@ -99,7 +105,7 @@ enum ImageIO {
         case ...2.0:
           options[kCGImageSourceSubsampleFactor] = 2.0
 
-        case 2.0...4.0:
+        case 2.0 ... 4.0:
           options[kCGImageSourceSubsampleFactor] = 4.0
 
         case 4.0...:
@@ -109,10 +115,10 @@ enum ImageIO {
           break
         }
       }
-
     }
 
-    guard let image = CGImageSourceCreateThumbnailAtIndex(imageSource, 0, options as CFDictionary) else {
+    guard let image = CGImageSourceCreateThumbnailAtIndex(imageSource, 0, options as CFDictionary)
+    else {
       return nil
     }
 

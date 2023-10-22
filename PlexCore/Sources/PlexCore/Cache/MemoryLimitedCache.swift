@@ -5,26 +5,25 @@
 //  Created by Tomas Harkema on 17/10/2023.
 //
 
-import Foundation
 import Combine
-import UniformTypeIdentifiers
+import Foundation
 import os
+import UniformTypeIdentifiers
 
 #if os(iOS)
-import UIKit
+  import UIKit
 #endif
 
 // swiftlint:disable shorthand_operator
 
 extension Measurement where UnitType: Dimension {
   static var zero: Self {
-    return .init(value: 0.0, unit: UnitType.baseUnit())
+    .init(value: 0.0, unit: UnitType.baseUnit())
   }
 }
 
 // Cache that tries to stay under a fixed memory limit.
 final class MemoryLimitedCache: Cache, Sendable {
-
   let memoryLimit: Measurement<UnitInformationStorage>
   private(set) var currentMemoryUsage = Measurement<UnitInformationStorage>.zero
 
@@ -41,25 +40,26 @@ final class MemoryLimitedCache: Cache, Sendable {
   // to scale images to the size needed and to save memory.
   init(limit: Measurement<UnitInformationStorage> = .init(value: 320, unit: .megabytes),
        logger: Logger = .default,
-       signposter: OSSignposter? = nil) {
-    self.memoryLimit = limit
+       signposter: OSSignposter? = nil)
+  {
+    memoryLimit = limit
     self.logger = logger
     self.signposter = signposter ?? OSSignposter(logger: logger)
 
     // Purge everything when app is under memory pressure.
     #if os(iOS)
-    Task { @MainActor in
-      NotificationCenter.default
-        .publisher(for: UIApplication.didReceiveMemoryWarningNotification)
-        .sink { [weak self] _ in self?.purge() }
-        .store(in: &cancellation)
-    }
+      Task { @MainActor in
+        NotificationCenter.default
+          .publisher(for: UIApplication.didReceiveMemoryWarningNotification)
+          .sink { [weak self] _ in self?.purge() }
+          .store(in: &cancellation)
+      }
     #endif
   }
 
   func fetchByID(_ id: Asset.ID) -> Asset? {
-    return accessLock.withLock {
-      return self.assets[id]
+    accessLock.withLock {
+      self.assets[id]
     }
   }
 
@@ -68,12 +68,13 @@ final class MemoryLimitedCache: Cache, Sendable {
 //  func takeAssertionForID(_ id: Asset.ID) -> AnyCancellable? {
 //    let lock = self.accessLock.acquire()
 //    defer { lock.cancel() }
-//    
+//
 //    guard self.assets[id] != nil else { return nil }
-//    
+//
 //    let signpostID = signposter.makeSignpostID()
-//    let interval = signposter.beginInterval("Assertion", id: signpostID, "id=\(id, attributes: "name=id")")
-//    
+//    let interval = signposter.beginInterval("Assertion", id: signpostID, "id=\(id, attributes:
+//    "name=id")")
+//
 //    protectedAssetIDs[id, default: 0] += 1
 //    return AnyCancellable { [weak self] in
 //      guard let self = self else { return }
@@ -93,7 +94,7 @@ final class MemoryLimitedCache: Cache, Sendable {
 //      return
 //    }
 
-    let estimatedMemory = self.estimatedMemory(of: asset)
+    let estimatedMemory = estimatedMemory(of: asset)
     signposter.emitEvent("AddAsset", "assetID=\(asset.id) memoryUsage=\(estimatedMemory)")
     accessLock.withLock {
       // Remove the current asset if it exists.
@@ -120,11 +121,17 @@ final class MemoryLimitedCache: Cache, Sendable {
   /// to estimate this way.
   func estimatedMemory(of asset: Asset) -> Measurement<UnitInformationStorage> {
     let image = asset.image
-    return Measurement(value: Double(image.size.width * image.size.height * 3), unit: UnitInformationStorage.bytes)
+    return Measurement(
+      value: Double(image.size.width * image.size.height * 3),
+      unit: UnitInformationStorage.bytes
+    )
   }
 
   private func _locked_purge(atLeast amount: Measurement<UnitInformationStorage>?) {
-    let interval = signposter.beginInterval("Purge", "amount=\(amount?.formatted() ?? "<all>", attributes: "name=amount")")
+    let interval = signposter.beginInterval(
+      "Purge",
+      "amount=\(amount?.formatted() ?? "<all>", attributes: "name=amount")"
+    )
     defer { signposter.endInterval("Purge", interval, "newCount=\(self.assets.count)") }
 
     guard var amountToGo = amount, amountToGo < currentMemoryUsage else {
@@ -135,13 +142,14 @@ final class MemoryLimitedCache: Cache, Sendable {
     }
 
     // Delete non-protected IDs first and then go through the others.
-    let weightedKeys = self.assets.keys.map { ($0, self.protectedAssetIDs[$0, default: 0]) }.sorted(by: { $0.1 < $1.1 }).map { $0.0 }
+    let weightedKeys = assets.keys.map { ($0, self.protectedAssetIDs[$0, default: 0]) }
+      .sorted(by: { $0.1 < $1.1 }).map(\.0)
     for id in weightedKeys {
       guard amountToGo > .zero else { break }
 
-      let asset = self.assets.removeValue(forKey: id)!
+      let asset = assets.removeValue(forKey: id)!
 
-      let estimatedMemory = self.estimatedMemory(of: asset)
+      let estimatedMemory = estimatedMemory(of: asset)
       logger.trace("Removed \(id) saving \(estimatedMemory)")
 
       amountToGo = amountToGo - estimatedMemory

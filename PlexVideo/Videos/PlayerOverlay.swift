@@ -5,10 +5,10 @@
 //  Created by Tomas Harkema on 07/06/2021.
 //
 
-import SwiftUI
 import PlexApi
-import PlexShared
 import PlexCore
+import PlexShared
+import SwiftUI
 
 @MainActor
 struct PlayerOverlay: View {

@@ -7,6 +7,6 @@
 
 import SwiftUI
 
-public struct PublicColor {
+public enum PublicColor {
   public static let plexTint = Color(.plexTint)
 }

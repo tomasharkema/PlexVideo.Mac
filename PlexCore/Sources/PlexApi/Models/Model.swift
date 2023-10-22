@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import PlexShared
 import MetaCodable
+import PlexShared
 
 struct Player: Codable {
   let machineIdentifier: String

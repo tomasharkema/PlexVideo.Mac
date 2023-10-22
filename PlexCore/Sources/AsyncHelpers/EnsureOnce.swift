@@ -8,7 +8,6 @@
 import Foundation
 
 public actor EnsureOnce<IdentifierType: Hashable & Sendable, ResultType: Sendable>: Sendable {
-
   private let initLocation: HandlerLocation
   private var handlers = [IdentifierType: StoredTask<IdentifierType, ResultType>]()
 
@@ -21,7 +20,7 @@ public actor EnsureOnce<IdentifierType: Hashable & Sendable, ResultType: Sendabl
   init(
     location: HandlerLocation
   ) {
-    self.initLocation = location
+    initLocation = location
   }
 
   public static func once(
@@ -31,7 +30,11 @@ public actor EnsureOnce<IdentifierType: Hashable & Sendable, ResultType: Sendabl
     file: String = #file, line: UInt = #line, function: String = #function
   ) async throws -> ResultType {
     try await once(
-      id: id, cacheDuration: cacheDuration, handler, location: HandlerLocation(file: file, line: line, function: function)
+      id: id, cacheDuration: cacheDuration, handler, location: HandlerLocation(
+        file: file,
+        line: line,
+        function: function
+      )
     )
   }
 
@@ -62,7 +65,7 @@ public actor EnsureOnce<IdentifierType: Hashable & Sendable, ResultType: Sendabl
   public func once(
     cacheDuration: Duration? = nil,
     _ handler: @Sendable @escaping () async throws -> ResultType,
-    file: String = #file, line: UInt = #line, function: String = #function
+    file _: String = #file, line _: UInt = #line, function _: String = #function
   ) async throws -> ResultType where IdentifierType == HandlerLocation {
     try await once(id: initLocation, cacheDuration: cacheDuration, handler, location: initLocation)
   }
@@ -77,7 +80,6 @@ public actor EnsureOnce<IdentifierType: Hashable & Sendable, ResultType: Sendabl
       print(cacheDuration)
     }
     if let existingHandler = handlers[id] {
-
       let state = await existingHandler.task.state
       let task = existingHandler.task
 
@@ -91,7 +93,6 @@ public actor EnsureOnce<IdentifierType: Hashable & Sendable, ResultType: Sendabl
 
       case .stale:
         handlers.removeValue(forKey: id)
-
       }
     }
 
@@ -122,7 +123,12 @@ public actor EnsureOnce<IdentifierType: Hashable & Sendable, ResultType: Sendabl
     _ handler: @Sendable @escaping () async throws -> ResultType,
     file: String = #file, line: UInt = #line, function: String = #function
   ) async throws -> ResultType {
-    try await once(id: id, cacheDuration: cacheDuration, handler, location: HandlerLocation(file: file, line: line, function: function))
+    try await once(
+      id: id,
+      cacheDuration: cacheDuration,
+      handler,
+      location: HandlerLocation(file: file, line: line, function: function)
+    )
   }
 
   public func cancel(id: IdentifierType) async {
@@ -148,15 +154,15 @@ extension EnsureOnce {
     case stale
     case returnCached
   }
+
   private func handleExistingResult(
-    id: IdentifierType,
-    task: TaskState<ResultType>,
+    id _: IdentifierType,
+    task _: TaskState<ResultType>,
     state: TaskStateResult<ResultType>,
     cacheDuration: Duration?
   ) -> HandleExistingResult {
     switch (cacheDuration, state) {
-
-    case (.some(let duration), .result(let result, let date)):
+    case let (.some(duration), .result(result, date)):
       let timeInterval = abs(date.timeIntervalSinceNow)
       if timeInterval < Double(duration.components.seconds) {
         return .returnCached
@@ -169,10 +175,9 @@ extension EnsureOnce {
 
     case (.none, .cancelled), (.none, .result), (.none, .error):
       return .stale
-      
+
     case (_, .idle), (_, .running):
       return .returnCached
-
     }
   }
 }

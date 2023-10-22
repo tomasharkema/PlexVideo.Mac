@@ -6,14 +6,13 @@
 //
 
 import Foundation
-import SwiftUI
-import PlexApi
 import Inject
+import PlexApi
+import SwiftUI
 
 @MainActor
 struct ConnectionOverlay: View {
-  
-  @Environment(\.font) 
+  @Environment(\.font)
   private var font
 
   @State
@@ -34,12 +33,12 @@ struct ConnectionOverlay: View {
           .background(connection.local ? Color.green : Color.yellow)
           .cornerRadius(10)
           .onAppear {
-            let old = self.serverLocator.connection
+            let old = serverLocator.connection
             showOverlay = true
-            
+
             Task { @MainActor in
               try await Task.sleep(for: .seconds(5))
-              if old == self.serverLocator.connection {
+              if old == serverLocator.connection {
                 showOverlay = false
               }
             }
@@ -54,9 +53,8 @@ struct ConnectionOverlay: View {
     .animation(.easeInOut, value: serverLocator.connection)
     .animation(.easeInOut, value: showOverlay)
   }
-  
+
   var body: some View {
     connectionOverlay
   }
 }
-

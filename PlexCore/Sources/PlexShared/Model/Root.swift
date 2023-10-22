@@ -1,6 +1,6 @@
 //
 //  Root.swift
-//  
+//
 //
 //  Created by Tomas Harkema on 16/10/2023.
 //
@@ -9,7 +9,6 @@ import MetaCodable
 
 @Codable
 public struct Root<MediaContainerType: Codable> {
-
   @CodedAt("MediaContainer")
   public let mediaContainer: MediaContainerType
 
@@ -28,6 +27,6 @@ public struct Root<MediaContainerType: Codable> {
   public let transcodeDecisionText: String?
 }
 
-extension Root: Sendable where MediaContainerType: Sendable { }
-extension Root: Hashable where MediaContainerType: Hashable { }
-extension Root: Equatable where MediaContainerType: Equatable { }
+extension Root: Sendable where MediaContainerType: Sendable {}
+extension Root: Hashable where MediaContainerType: Hashable {}
+extension Root: Equatable where MediaContainerType: Equatable {}

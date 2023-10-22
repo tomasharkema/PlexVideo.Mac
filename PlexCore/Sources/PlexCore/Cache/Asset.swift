@@ -19,4 +19,4 @@ struct Asset: Identifiable, Sendable {
   }
 }
 
-extension PlexImage: @unchecked Sendable { }
+extension PlexImage: @unchecked Sendable {}

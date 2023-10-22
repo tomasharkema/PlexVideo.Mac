@@ -6,26 +6,25 @@
 //
 
 import Foundation
-import PlexApi
 import Inject
+import OSLog
+import PlexApi
 import PlexShared
 import Processed
-import OSLog
 
 @MainActor @Observable
 public final class VideosViewModel: ObservableObject, LoadableSupport {
-
   private let logger = Logger(subsystem: "PlexVideo", category: "VideosViewModel")
 
-  @ObservationIgnored 
+  @ObservationIgnored
   @Injected(\.videoDataService)
   private var service
 
-  @ObservationIgnored 
+  @ObservationIgnored
   @Injected(\.storage)
   private var storage
 
-  @ObservationIgnored 
+  @ObservationIgnored
   @Injected(\.api)
   private var api
 
@@ -37,7 +36,7 @@ public final class VideosViewModel: ObservableObject, LoadableSupport {
 
   public init() {}
 
-  public func reload(silently: Bool, minimalTime: Duration = .seconds(1)) async {
+  public func reload(silently _: Bool, minimalTime: Duration = .seconds(1)) async {
     await withDiscardingTaskGroup { group in
       group.addTask {
         await self.load(silently: true, reload: true)
@@ -49,7 +48,7 @@ public final class VideosViewModel: ObservableObject, LoadableSupport {
   }
 
   public func load(silently: Bool, reload: Bool) async {
-    _ = await self.load(\.data, silently: silently, priority: .userInitiated) { yield in
+    _ = await load(\.data, silently: silently, priority: .userInitiated) { yield in
       async let lastPlayer = self.storage.getLastPlayed()
       let (onDeck, all) = try await self.service.getVideoList(reload: reload)
 
@@ -73,28 +72,27 @@ public final class VideosViewModel: ObservableObject, LoadableSupport {
   }
 
   public nonisolated func searchText(_ searchText: String) async {
-
     let query = searchText.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
 
     guard !query.isEmpty else {
-      await self.reset(\.searchResults)
+      await reset(\.searchResults)
       return
     }
 
     guard query.count > 3 else {
-      await self.reset(\.searchResults)
+      await reset(\.searchResults)
       return
     }
 
-    guard case let .loaded(data) = await self.data else {
-      await self.reset(\.searchResults)
+    guard case let .loaded(data) = await data else {
+      await reset(\.searchResults)
       return
     }
 
-    await self.load(\.searchResults, silently: true, priority: .medium) {
+    await load(\.searchResults, silently: true, priority: .medium) {
       try Task.checkCancellation()
       let result = data.videos.filter {
-        return $0.title.lowercased().contains(query.lowercased())
+        $0.title.lowercased().contains(query.lowercased())
       }
       try Task.checkCancellation()
       return result
@@ -112,8 +110,8 @@ public final class VideosViewModel: ObservableObject, LoadableSupport {
   }
 }
 
-extension VideosViewModel {
-  public struct Data: Equatable {
+public extension VideosViewModel {
+  struct Data: Equatable {
     public let continueWatching: [Video]
     public let videos: [Video]
   }

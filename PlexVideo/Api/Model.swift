@@ -156,16 +156,15 @@ struct Video: Codable, Identifiable, Equatable, Hashable {
   func getProgress(storage storageProgress: Progress?) -> Progress {
     let remoteProgress = Progress(video: self)
 
-    let viableStorageProgress: Progress?
-    if let storageProgress = storageProgress {
+    let viableStorageProgress: Progress? = if let storageProgress {
       if abs(storageProgress.date.timeIntervalSinceNow) < 7 * 24 * 60 * 60 {
-        viableStorageProgress = storageProgress
+        storageProgress
       } else {
-        viableStorageProgress = nil
+        nil
       }
 
     } else {
-      viableStorageProgress = nil
+      nil
     }
 
     switch (remoteProgress, viableStorageProgress) {

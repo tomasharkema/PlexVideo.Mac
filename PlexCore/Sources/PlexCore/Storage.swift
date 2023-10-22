@@ -7,14 +7,15 @@
 
 import Foundation
 import Inject
-import SwiftUI
+import OSLog
 import PlexApi
 import PlexShared
-import OSLog
+import SwiftUI
 
 @MainActor
-public final class Storage: ObservableObject, ServerLocatorStorageProviding, RequestorStorageProviding, AuthStorageProviding {
-
+public final class Storage: ObservableObject, ServerLocatorStorageProviding,
+  RequestorStorageProviding, AuthStorageProviding
+{
   fileprivate static let logger = Logger(subsystem: "PlexVideo", category: "Auth")
 
   @AppStorage("plexTokenV2")
@@ -29,11 +30,11 @@ public final class Storage: ObservableObject, ServerLocatorStorageProviding, Req
   @AppStorage("lastUsedConnection")
   public var lastUsedConnection: Connection?
 
-  public nonisolated init() { }
+  public nonisolated init() {}
 
   public var uuid: String {
     let saved = UserDefaults.standard.string(forKey: "uuid")
-    if let saved = saved {
+    if let saved {
       return saved.lowercased()
     }
 

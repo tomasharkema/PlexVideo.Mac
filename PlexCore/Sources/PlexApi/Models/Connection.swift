@@ -1,6 +1,6 @@
 //
 //  Connection.swift
-//  
+//
 //
 //  Created by Tomas Harkema on 16/10/2023.
 //
@@ -18,7 +18,15 @@ public struct Connection: Equatable, Sendable, Hashable {
   public let relay: Bool
   public let IPv6: Bool
 
-  fileprivate init(`protocol`: String, address: String, port: Int, uri: URL, local: Bool, relay: Bool, IPv6: Bool) {
+  fileprivate init(
+    protocol: String,
+    address: String,
+    port: Int,
+    uri: URL,
+    local: Bool,
+    relay: Bool,
+    IPv6: Bool
+  ) {
     self.protocol = `protocol`
     self.address = address
     self.port = port
@@ -35,8 +43,8 @@ extension Connection: Identifiable {
   }
 }
 
-extension Connection {
-  public static let preview1 = Connection(
+public extension Connection {
+  static let preview1 = Connection(
     protocol: "https",
     address: "1.2.3.4",
     port: 8080,
@@ -46,7 +54,7 @@ extension Connection {
     IPv6: false
   )
 
-  public static let preview2 = Connection(
+  static let preview2 = Connection(
     protocol: "https",
     address: "5.6.7.8",
     port: 8080,

@@ -6,48 +6,48 @@
 //
 
 #if os(iOS)
-import UIKit
-import SwiftUI
+  import SwiftUI
+  import UIKit
 
-public typealias PlexImage = UIImage
+  public typealias PlexImage = UIImage
 
-extension Image {
-  public init(plexImage: PlexImage) {
-    self.init(uiImage: plexImage)
+  public extension Image {
+    init(plexImage: PlexImage) {
+      self.init(uiImage: plexImage)
+    }
   }
-}
 
-extension PlexImage {
-  public convenience init(cgImage: CGImage, size: CGSize) {
-    self.init(cgImage: cgImage)
+  public extension PlexImage {
+    convenience init(cgImage: CGImage, size _: CGSize) {
+      self.init(cgImage: cgImage)
+    }
   }
-}
 #endif
 
 #if os(macOS)
-import AppKit
-import SwiftUI
+  import AppKit
+  import SwiftUI
 
-public typealias PlexImage = NSImage
+  public typealias PlexImage = NSImage
 
-extension Image {
-  public init(plexImage: PlexImage) {
-    self.init(nsImage: plexImage)
-  }
-}
-
-extension PlexImage {
-  public convenience init?(systemName name: String) {
-    self.init(systemSymbolName: name, accessibilityDescription: nil)
+  public extension Image {
+    init(plexImage: PlexImage) {
+      self.init(nsImage: plexImage)
+    }
   }
 
-  func preparingForDisplay() -> NSImage? {
-    return self
-  }
+  extension PlexImage {
+    public convenience init?(systemName name: String) {
+      self.init(systemSymbolName: name, accessibilityDescription: nil)
+    }
 
-  func preparingThumbnail(of size: CGSize) -> NSImage? {
-    return self//ImageIO.resizedImageWithHintingAndSubsampling(at: asset, for: size)
+    func preparingForDisplay() -> NSImage? {
+      self
+    }
+
+    func preparingThumbnail(of _: CGSize) -> NSImage? {
+      self // ImageIO.resizedImageWithHintingAndSubsampling(at: asset, for: size)
+    }
   }
-}
 
 #endif

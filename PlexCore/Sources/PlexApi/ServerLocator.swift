@@ -5,11 +5,11 @@
 //  Created by Tomas Harkema on 09/06/2021.
 //
 
+import AsyncHelpers
 import Foundation
 import Inject
-import PlexShared
 import OSLog
-import AsyncHelpers
+import PlexShared
 
 enum ServerLocatorError: LocalizedError {
   case noUrl
@@ -18,7 +18,6 @@ enum ServerLocatorError: LocalizedError {
 
 @Observable
 public final class ServerLocator: Sendable {
-
   private let logger = Logger(subsystem: "PlexVideo", category: "ServerLocator")
 
   @ObservationIgnored
@@ -69,8 +68,9 @@ public final class ServerLocator: Sendable {
   ) async -> Result<Connection, any Error> {
     // phase 2: check if saved local and remote ip's are still viable
     do {
-      guard let localConnection = await self.storage.lastUsedLocalConnection,
-              let remoteConnection = await self.storage.lastUsedRemoteConnection else {
+      guard let localConnection = await storage.lastUsedLocalConnection,
+            let remoteConnection = await storage.lastUsedRemoteConnection
+      else {
         return .failure(ServerLocatorError.noDetection)
       }
 
@@ -108,10 +108,10 @@ public final class ServerLocator: Sendable {
     do {
       let uuid = UUID()
       let metricsTask = Task {
-        return await self.networkManager.getMetrics(for: uuid, withTimeout: timeout)
+        await self.networkManager.getMetrics(for: uuid, withTimeout: timeout)
       }
 
-      let result = try await self.requestor.request(
+      let result = try await requestor.request(
         url: connection.uri,
         Root<Version>.self,
         requestUUID: uuid,
@@ -120,7 +120,7 @@ public final class ServerLocator: Sendable {
         useCache: false
       )
 
-      guard let metrics = (await metricsTask.value),
+      guard let metrics = await (metricsTask.value),
             let responseStartDate = metrics.requestStartDate,
             let responseEndDate = metrics.responseEndDate
       else {
@@ -195,7 +195,7 @@ public final class ServerLocator: Sendable {
         ServersResponse.self,
         queryItems: [
           URLQueryItem(name: "includeHttps", value: "1"),
-          URLQueryItem(name: "includeRelay", value: "1")
+          URLQueryItem(name: "includeRelay", value: "1"),
         ],
         useCache: false
       )
@@ -217,7 +217,7 @@ public final class ServerLocator: Sendable {
     connections: [Connection],
     timeout: Duration
   ) async -> AsyncStream<PingResult> {
-    return AsyncStream { continuation in
+    AsyncStream { continuation in
       Task {
         let result = await withTaskGroup(
           of: PingResult.self, returning: [PingResult].self
@@ -248,12 +248,12 @@ public final class ServerLocator: Sendable {
   public nonisolated func pingsStream(
     timeout: Duration = .seconds(1)
   ) async throws -> AsyncStream<PingResult> {
-    let servers = try await self.servers()
+    let servers = try await servers()
     guard let server = servers.first else {
       assertionFailure("no devices")
       throw NSError(domain: "NO DEVICES", code: 69)
     }
-    return await self.pingsStream(
+    return await pingsStream(
       server: server,
       connections: server.connections,
       timeout: timeout
@@ -306,14 +306,12 @@ public final class ServerLocator: Sendable {
       connections: serversGroupedByLocal[false] ?? []
     )
 
-    let choice: Connection?
-
-    if let local = try? await localPings {
-      choice = local.connection
+    let choice: Connection? = if let local = try? await localPings {
+      local.connection
     } else if let remote = try await remotePings {
-      choice = remote.connection
+      remote.connection
     } else {
-      choice = nil
+      nil
     }
 
     await MainActor.run {
@@ -334,7 +332,6 @@ public final class ServerLocator: Sendable {
 
   @MainActor
   func invalidate() async {
-
     if isInvalidating {
       return
     }
@@ -346,7 +343,7 @@ public final class ServerLocator: Sendable {
 
 //    lastConfirmedUrl = nil
     storage.lastUsedConnection = nil
-    self.connection = nil
+    connection = nil
 
     do {
       _ = try await root(force: true)
@@ -357,9 +354,8 @@ public final class ServerLocator: Sendable {
 }
 
 extension ServerLocator {
-
   private func rootForced() async throws -> Connection {
-    return try await EnsureOnce.once {
+    try await EnsureOnce.once {
       guard let connection = try await self.chooseServer() else {
         throw ServerLocatorError.noUrl
       }
@@ -429,7 +425,6 @@ extension ServerLocator {
     }
   }
 }
-
 
 @MainActor
 public protocol ServerLocatorStorageProviding: AnyObject {

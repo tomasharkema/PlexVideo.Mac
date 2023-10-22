@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import UniformTypeIdentifiers
 import OSLog
+import UniformTypeIdentifiers
 
 extension Logger {
   static let disabled = Logger(.disabled)
@@ -35,21 +35,21 @@ final class FileBasedCache: Cache, Sendable {
   ) {
     self.directory = directory
     self.logger = logger
-    self.signposter = OSSignposter(logger: logger)
+    signposter = OSSignposter(logger: logger)
     self.imageFormat = imageFormat
     self.fileManager = fileManager
   }
 
   func createDirectoryIfNeeded() throws {
     try fileManager.createDirectory(
-      at: self.directory,
+      at: directory,
       withIntermediateDirectories: true,
       attributes: nil
     )
   }
 
   func fetchByID(_ id: Asset.ID) -> Asset? {
-    guard let image = PlexImage(contentsOfFile: self.url(forID: id).path) else {
+    guard let image = PlexImage(contentsOfFile: url(forID: id).path) else {
       return nil
     }
     return Asset(id: id, image: image)
@@ -61,18 +61,18 @@ final class FileBasedCache: Cache, Sendable {
   }
 
   func clear() throws {
-    try fileManager.removeItem(at: self.directory)
+    try fileManager.removeItem(at: directory)
     try createDirectoryIfNeeded()
   }
 
   func isMatchingImageType(_ url: URL) -> Bool {
-    return UTType(
+    UTType(
       filenameExtension: url.pathExtension,
       conformingTo: imageFormat
     ) != nil
   }
 
   func url(forID id: Asset.ID) -> URL {
-    return directory.appendingPathComponent(id).appendingPathExtension(for: imageFormat)
+    directory.appendingPathComponent(id).appendingPathExtension(for: imageFormat)
   }
 }

@@ -6,34 +6,33 @@
 //
 
 import Foundation
-import SwiftUI
+import Inject
 import PlexApi
 import PlexCore
-import Inject
 import PlexShared
 import PlexUIKit
+import SwiftUI
 
 @MainActor
 struct VideosGridScreen: View {
-
   @Environment(VideosViewModel.self)
   private var videosViewModel: VideosViewModel
-  
+
   @State
   private var searchText: String = ""
 
   @ToolbarContentBuilder
   private var navigationBarElements: some ToolbarContent {
     ToolbarItemGroup {
-#if os(macOS) || targetEnvironment(macCatalyst)
-      LoadingButton(
-        text: { Image(systemName: "arrow.clockwise") },
-        loadingText: { ProgressView().controlSize(.small) }
-      ) {
-        await videosViewModel.reload(silently: true)
-      }
-      .keyboardShortcut("r", modifiers: .command)
-#endif
+      #if os(macOS) || targetEnvironment(macCatalyst)
+        LoadingButton(
+          text: { Image(systemName: "arrow.clockwise") },
+          loadingText: { ProgressView().controlSize(.small) }
+        ) {
+          await videosViewModel.reload(silently: true)
+        }
+        .keyboardShortcut("r", modifiers: .command)
+      #endif
     }
   }
 
@@ -46,9 +45,8 @@ struct VideosGridScreen: View {
     case .loading, .absent:
       ProgressView()
 
-    case .error(let error):
+    case let .error(error):
       Text(error.localizedDescription)
-
     }
   }
 
@@ -59,26 +57,26 @@ struct VideosGridScreen: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     .task(id: searchText) {
-      await self.videosViewModel.searchText(searchText)
+      await videosViewModel.searchText(searchText)
     }
     .animation(.easeInOut, value: videosViewModel.data)
     .animation(.easeInOut, value: videosViewModel.searchResults)
     .animation(.easeInOut, value: searchText)
     .navigationTitle("Videos")
-#if !targetEnvironment(macCatalyst)
-    .refreshable {
-      await videosViewModel.reload(silently: true)
-    }
-#endif
-#if os(iOS)
+    #if !targetEnvironment(macCatalyst)
+      .refreshable {
+        await videosViewModel.reload(silently: true)
+      }
+    #endif
+    #if os(iOS)
     .searchable(text: $searchText, placement: .navigationBarDrawer)
-#else
+    #else
     .searchable(text: $searchText, placement: .toolbar)
-#endif
-#if os(macOS)
+    #endif
+    #if os(macOS)
     .toolbar {
       navigationBarElements
     }
-#endif
+    #endif
   }
 }

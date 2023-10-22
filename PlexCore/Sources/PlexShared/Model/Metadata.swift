@@ -1,6 +1,6 @@
 //
 //  Metadata.swift
-//  
+//
 //
 //  Created by Tomas Harkema on 16/10/2023.
 //
@@ -14,7 +14,7 @@ public struct Metadata<MetadataType: Codable> {
   public let metadata: [MetadataType]
 }
 
-extension Metadata: Sendable where MetadataType: Sendable { }
+extension Metadata: Sendable where MetadataType: Sendable {}
 
 @Codable
 public struct Hub<MetadataType: Codable> {

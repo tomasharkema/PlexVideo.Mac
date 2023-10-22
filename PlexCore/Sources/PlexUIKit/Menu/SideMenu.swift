@@ -8,12 +8,11 @@
 import SwiftUI
 
 public struct SideMenu: View {
-    
-  @Binding 
+  @Binding
   private var menuSelection: NavigationItem?
 
   public init(menuSelection: Binding<NavigationItem?>) {
-    self._menuSelection = menuSelection
+    _menuSelection = menuSelection
   }
 
   @ViewBuilder

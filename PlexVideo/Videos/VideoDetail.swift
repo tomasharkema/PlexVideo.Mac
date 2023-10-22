@@ -6,23 +6,21 @@
 //
 
 #if canImport(UIKit)
-import UIKit
+  import UIKit
 #endif
 
 import AVKit
-import SwiftUI
 import PlexApi
-import PlexShared
 import PlexCore
+import PlexShared
+import SwiftUI
 
 @MainActor
 struct VideoDetail: View {
-
   private var video: Video
 
-    @Environment(CurrentVideoViewModel.self)
-    private var viewModel
-
+  @Environment(CurrentVideoViewModel.self)
+  private var viewModel
 
   init(video: Video) {
     self.video = video
@@ -30,7 +28,6 @@ struct VideoDetail: View {
 
   var body: some View {
     HStack {
-
       switch viewModel.player {
       case .absent:
         Rectangle().foregroundColor(.clear)
@@ -38,20 +35,19 @@ struct VideoDetail: View {
       case .loading:
         ProgressView()
 
-      case .loaded(let player):
-#if os(iOS)
+      case let .loaded(player):
+        #if os(iOS)
           VideoPlayer()
-#elseif os(macOS)
+        #elseif os(macOS)
           MacosVideoPlayerContainer()
-#else
+        #else
           BackupVideoPlayer()
-#endif
+        #endif
 
-      case .error(let error):
+      case let .error(error):
         EmptyView().alert(isPresented: .constant(true)) {
           Alert(title: Text(error.localizedDescription))
         }
-
       }
     }
     .task(id: viewModel.video) {

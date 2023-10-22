@@ -1,6 +1,6 @@
 //
 //  SessionStatus.swift
-//  
+//
 //
 //  Created by Tomas Harkema on 17/10/2023.
 //

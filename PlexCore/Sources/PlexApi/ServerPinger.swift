@@ -5,9 +5,9 @@
 //  Created by Tomas Harkema on 20/10/2023.
 //
 
-import SwiftUI
 import Inject
 import OSLog
+import SwiftUI
 
 @Observable
 public final class ServerPinger: Sendable {
@@ -27,18 +27,18 @@ public final class ServerPinger: Sendable {
   @MainActor
   public private(set) var pingsByConnection = [Connection: PingResult]()
 
-  public init() { }
+  public init() {}
 
   @MainActor
   private func updatePing(ping: PingResult) {
-    self.pingsByConnection[ping.connection] = ping    
-    let values = self.pingsByConnection.values
-    self.pings = Array(values)
+    pingsByConnection[ping.connection] = ping
+    let values = pingsByConnection.values
+    pings = Array(values)
   }
 
   private func ping(timeout: Duration = .seconds(1)) async {
     do {
-      let stream = try await self.serverLocator.pingsStream(
+      let stream = try await serverLocator.pingsStream(
         timeout: timeout
       )
       try Task.checkCancellation()

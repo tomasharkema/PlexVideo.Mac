@@ -5,9 +5,9 @@
 //  Created by Tomas Harkema on 20/10/2023.
 //
 
-import SwiftUI
 import PlexApi
 import PlexShared
+import SwiftUI
 
 struct DeviceView: View {
   private let server: Server
@@ -33,7 +33,11 @@ struct DeviceView: View {
 
       Divider()
 
-      ConnectionsView(connections: server.connections, currentConnection: currentConnection, pings: pings)
+      ConnectionsView(
+        connections: server.connections,
+        currentConnection: currentConnection,
+        pings: pings
+      )
     }
     .padding()
     .background(Color(.plexTint).opacity(0.6))

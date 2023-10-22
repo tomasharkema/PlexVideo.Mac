@@ -17,7 +17,6 @@ enum AuthError: LocalizedError {
 
 @MainActor
 public final class Auth {
-
   private let logger = Logger(subsystem: "PlexVideo", category: "Auth")
 
   @Injected(\.authStorageProviding)
@@ -26,12 +25,11 @@ public final class Auth {
   @Injected(\.requestor)
   private var requestor
 
-  public nonisolated init() { }
+  public nonisolated init() {}
 
   public func pollForPin(
     deviceInfo: DeviceInfo, pinId: String, requestDelay: Double, maxRetries: Int
   ) async throws -> String {
-
     try Task.checkCancellation()
 
     if maxRetries <= 0 {
@@ -50,11 +48,11 @@ public final class Auth {
       URLQueryItem(name: "X-Plex-Platform", value: deviceInfo.platform),
       URLQueryItem(name: "X-Plex-Platform-Version", value: deviceInfo.version),
       URLQueryItem(name: "X-Plex-Device-Name", value: deviceInfo.product),
-      URLQueryItem(name: "X-Plex-Version", value: deviceInfo.appVersion)
+      URLQueryItem(name: "X-Plex-Version", value: deviceInfo.appVersion),
     ]
 
     let url = urlComponents.url!
-    
+
     do {
       let token = try await requestor.request(
         url: url,
@@ -99,7 +97,7 @@ public final class Auth {
       URLQueryItem(name: "X-Plex-Platform-Version", value: deviceInfo.version),
       URLQueryItem(name: "X-Plex-Device-Name", value: deviceInfo.product),
       URLQueryItem(name: "X-Plex-Version", value: deviceInfo.appVersion),
-      URLQueryItem(name: "strong", value: "True")
+      URLQueryItem(name: "strong", value: "True"),
     ]
 
     let url = urlComponents.url!
@@ -120,14 +118,17 @@ public final class Auth {
       URLQueryItem(name: "context[device][product]", value: deviceInfo.product),
       URLQueryItem(name: "context[device][platform]", value: deviceInfo.platform),
       URLQueryItem(name: "context[device][platformVersion]", value: deviceInfo.version),
-      URLQueryItem(name: "context[device][version]", value: deviceInfo.appVersion)
+      URLQueryItem(name: "context[device][version]", value: deviceInfo.appVersion),
     ]
 
     let urlWeb = urlComponentsWeb.url!
 
     logger.info("received auth url: \(urlWeb)")
 
-    let urlWebFixed = URL(string: urlWeb.absoluteString.replacingOccurrences(of: "auth/?", with: "auth/#!?"))!
+    let urlWebFixed = URL(string: urlWeb.absoluteString.replacingOccurrences(
+      of: "auth/?",
+      with: "auth/#!?"
+    ))!
 
     try Task.checkCancellation()
 

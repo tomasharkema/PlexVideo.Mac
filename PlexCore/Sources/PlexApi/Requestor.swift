@@ -12,7 +12,6 @@ import OSLog
 import PlexShared
 
 public final class Requestor: Sendable {
-
   private let logger = Logger(subsystem: "PlexVideo", category: "Requestor")
 
   @Injected(\.serverLocator)
@@ -64,7 +63,7 @@ public final class Requestor: Sendable {
       URLQueryItem(name: "X-Plex-Username", value: "teumaauss"),
       URLQueryItem(name: "X-Plex-Version", value: deviceInfo.appVersion),
       URLQueryItem(name: "X-Plex-Language", value: "nl"),
-      URLQueryItem(name: "X-Plex-Device-Name", value: deviceInfo.name)
+      URLQueryItem(name: "X-Plex-Device-Name", value: deviceInfo.name),
     ]
   }
 
@@ -76,11 +75,10 @@ public final class Requestor: Sendable {
     uuid: String?,
     token: String?
   ) -> URL {
-
     var components = URLComponents(url: url, resolvingAgainstBaseURL: true)!
     let defaultQ = sendDefaultQueries ? defaultQueryItems(uuid: uuid, token: token) : []
     let extraItems = queryItems ?? []
-    components.queryItems = (components.queryItems ?? []) + (defaultQ) + (extraItems)
+    components.queryItems = (components.queryItems ?? []) + defaultQ + extraItems
 
     let url = components.url!
 
@@ -98,22 +96,25 @@ public final class Requestor: Sendable {
     invalidateAfterError: Bool = true,
     useCache: Bool = true
   ) async throws -> DecodableType {
-
     let queryItemsAndUUID = (queryItems ?? [])
 
     var mutualRequest =
-      URLRequest(
-        url: await requestUrl(
+      await URLRequest(
+        url: requestUrl(
           url: url,
           queryItems: queryItemsAndUUID,
           sendDefaultQueries: sendDefaultQueries
         ),
-        cachePolicy: (useCache && requestUUID != nil) ? .returnCacheDataElseLoad : .reloadIgnoringLocalAndRemoteCacheData
+        cachePolicy: (useCache && requestUUID != nil) ? .returnCacheDataElseLoad :
+          .reloadIgnoringLocalAndRemoteCacheData
       )
-    
+
     mutualRequest.httpMethod = method
     mutualRequest.setValue("application/json", forHTTPHeaderField: "Accept")
-    mutualRequest.addValue(requestUUID?.uuidString ?? UUID().uuidString, forHTTPHeaderField: "X-MetricsUUID")
+    mutualRequest.addValue(
+      requestUUID?.uuidString ?? UUID().uuidString,
+      forHTTPHeaderField: "X-MetricsUUID"
+    )
     if let timeout {
       mutualRequest.timeoutInterval = TimeInterval(timeout.components.seconds)
     }
@@ -127,16 +128,23 @@ public final class Requestor: Sendable {
         return try JSONDecoder().decode(type, from: data)
       } catch {
         #if DEBUG
-        logger.error("JSON ERROR:\nurl: \(url)\nerror: \(error)\njson: \(String(data: data, encoding: .utf8) ?? "")")
+          logger
+            .error(
+              "JSON ERROR:\nurl: \(url)\nerror: \(error)\njson: \(String(data: data, encoding: .utf8) ?? "")"
+            )
         #endif
         throw error
       }
     } catch let error as URLError {
-      logger.error("request URLError \(error.localizedDescription), \(String(describing: error.code)), \(url)")
+      logger
+        .error(
+          "request URLError \(error.localizedDescription), \(String(describing: error.code)), \(url)"
+        )
 
       if invalidateAfterError,
          error.code == .cannotConnectToHost || error.code == .cannotFindHost || error
-         .code == .dnsLookupFailed {
+         .code == .dnsLookupFailed
+      {
         logger.warning("NO HOST FOUND")
         Task {
           await serverLocator.invalidate()
@@ -168,8 +176,8 @@ public struct RequestorStorageProvidingKey: InjectionKey {
   public static var currentValue: (any RequestorStorageProviding)?
 }
 
-extension InjectedValues {
-  public var requestor: Requestor {
+public extension InjectedValues {
+  var requestor: Requestor {
     get { Self[RequestorKey.self] }
     set { Self[RequestorKey.self] = newValue }
   }
@@ -178,7 +186,6 @@ extension InjectedValues {
 private struct RequestorKey: InjectionKey {
   static var currentValue: Requestor? = .init()
 }
-
 
 // swiftlint:disable:next line_length
 //      URLQueryItem(

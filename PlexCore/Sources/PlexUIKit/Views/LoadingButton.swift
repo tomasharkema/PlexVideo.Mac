@@ -8,7 +8,6 @@
 import SwiftUI
 
 public struct LoadingButton<TextViewType: View, LoadingTextViewType: View>: View {
-
   public let text: () -> TextViewType
   public let loadingText: () -> LoadingTextViewType
   public let priority: TaskPriority
@@ -51,7 +50,7 @@ public struct LoadingButton<TextViewType: View, LoadingTextViewType: View>: View
   }
 }
 
-//extension LoadButton {
+// extension LoadButton {
 //  @ViewBuilder
 //  public static func defaultLoadingButton(
 //    priority: TaskPriority = .userInitiated,
@@ -65,4 +64,4 @@ public struct LoadingButton<TextViewType: View, LoadingTextViewType: View>: View
 //      await action
 //    }
 //  }
-//}
+// }

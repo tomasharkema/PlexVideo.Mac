@@ -20,42 +20,40 @@ public struct PingSuccess: Sendable, Hashable, Equatable {
   public let details: PingResultDetails
 }
 
-extension PingResult {
-  public static func success(server: Server, connection: Connection, details: PingResultDetails) -> PingResult {
+public extension PingResult {
+  static func success(
+    server: Server, connection: Connection,
+    details: PingResultDetails
+  ) -> PingResult {
     PingResult(server: server, connection: connection, details: .success(details))
   }
 
-  public static func failure(server: Server, connection: Connection, error: PingResultErrorDetails) -> PingResult {
-    PingResult(server: server, connection: connection, details: .failure(PingResultError(server: server, connection: connection, details: error)))
+  static func failure(
+    server: Server, connection: Connection,
+    error: PingResultErrorDetails
+  ) -> PingResult {
+    PingResult(
+      server: server,
+      connection: connection,
+      details: .failure(PingResultError(server: server, connection: connection, details: error))
+    )
   }
-
-//  public static func failure(device: Device, connection: Connection, error: any Error) -> PingResult {
-//    PingResult(
-//      device: device,
-//      connection: connection,
-//      details: .failure(PingResultError(
-//        device: device, 
-//        connection: connection,
-//        description: error.localizedDescription
-//      ))
-//    )
-//  }
 }
 
-extension PingResult {
-  public var result: Result<PingSuccess, PingResultError> {
+public extension PingResult {
+  var result: Result<PingSuccess, PingResultError> {
     switch details {
-    case .success(let details):
-      return .success(PingSuccess(
-        server: self.server, connection: self.connection, details: details
+    case let .success(details):
+      .success(PingSuccess(
+        server: server, connection: connection, details: details
       ))
 
-    case .failure(let error):
-      return .failure(error)
+    case let .failure(error):
+      .failure(error)
     }
   }
 
-  public func get() throws -> PingSuccess {
+  func get() throws -> PingSuccess {
     try result.get()
   }
 }
@@ -93,13 +91,13 @@ public enum PingResultErrorDetails: Sendable, Hashable, Equatable, LocalizedErro
   public var errorDescription: String? {
     switch self {
     case .noMetric:
-      return "Couldn't calculate ping time"
+      "Couldn't calculate ping time"
 
-    case .urlError(let urlError):
-      return urlError.localizedDescription
+    case let .urlError(urlError):
+      urlError.localizedDescription
 
-    case .otherError(let anyError):
-      return anyError.localizedDescription
+    case let .otherError(anyError):
+      anyError.localizedDescription
     }
   }
 }

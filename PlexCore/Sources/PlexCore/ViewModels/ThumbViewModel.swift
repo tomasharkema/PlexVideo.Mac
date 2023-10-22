@@ -5,25 +5,24 @@
 //  Created by Tomas Harkema on 16/10/2023.
 //
 
+import Combine
 import Foundation
-import PlexApi
 import Inject
+import OSLog
+import PlexApi
 import PlexShared
 import Processed
-import Combine
 import SwiftUI
-import OSLog
 
 @MainActor
 @Observable
 public final class ThumbViewModel: LoadableSupport {
-
   private let logger = Logger(subsystem: "PlexVideo", category: "ThumbViewModel")
 
   @MainActor
   private static var instanceCache = [VideoKey: ThumbViewModel]()
 
-  public static nonisolated let thumbSize = CGSize(width: 120, height: 180)
+  public nonisolated static let thumbSize = CGSize(width: 120, height: 180)
 
   private let imageStore = ImageStore.shared
 
@@ -56,7 +55,7 @@ public final class ThumbViewModel: LoadableSupport {
 
   private init(video: Video) {
     self.video = video
-    self.image = imageStore.fetchByID(video.assetId)?.image
+    image = imageStore.fetchByID(video.assetId)?.image
   }
 
   public func start() async {
@@ -65,7 +64,7 @@ public final class ThumbViewModel: LoadableSupport {
         return try await isLoadingTask.value
       }
 
-      guard self.image == nil else {
+      guard image == nil else {
         return
       }
 

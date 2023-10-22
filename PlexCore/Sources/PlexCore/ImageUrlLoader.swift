@@ -1,18 +1,18 @@
 //
 //  ImageUrlLoader.swift
-//  
+//
 //
 //  Created by Tomas Harkema on 17/10/2023.
 //
 
 import Foundation
-import PlexApi
 import Inject
+import PlexApi
 import PlexShared
 import Processed
 
-//@MainActor
-//public final class _ImageUrlLoader {
+// @MainActor
+// public final class _ImageUrlLoader {
 //
 //  public static let shared = ImageUrlLoader()
 //
@@ -59,4 +59,4 @@ import Processed
 //
 //    return await (root: state.root.value, uuid: state.uuid.value, token: state.token.value)
 //  }
-//}
+// }

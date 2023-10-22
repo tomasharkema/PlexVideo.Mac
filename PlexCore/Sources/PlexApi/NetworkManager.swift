@@ -1,14 +1,14 @@
 //
 //  NetworkManager.swift
-//  
+//
 //
 //  Created by Tomas Harkema on 20/10/2023.
 //
 
+import Asynchrone
 import Foundation
 import Inject
 import OSLog
-import Asynchrone
 
 public final class NetworkManager: NSObject, Sendable {
   fileprivate let logger = Logger(subsystem: "PlexVideo", category: "NetworkManager")
@@ -16,7 +16,10 @@ public final class NetworkManager: NSObject, Sendable {
   private let delegate: NetworkManagerDelegate
   public let session: URLSession
 
-  private let metricsStream: SharedAsyncSequence<AsyncStream<(URLSessionTaskTransactionMetrics, UUID)>>
+  private let metricsStream: SharedAsyncSequence<AsyncStream<(
+    URLSessionTaskTransactionMetrics,
+    UUID
+  )>>
 
   override init() {
     let delegate = NetworkManagerDelegate()
@@ -24,12 +27,12 @@ public final class NetworkManager: NSObject, Sendable {
       delegate.continuation = continuation
     }.shared()
     self.delegate = delegate
-    self.metricsStream = stream
-    self.session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+    metricsStream = stream
+    session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
   }
 
   public func getMetrics(
-    for uuid: UUID, 
+    for uuid: UUID,
     withTimeout timeout: Duration
   ) async -> URLSessionTaskTransactionMetrics? {
     await withTaskGroup(
@@ -65,21 +68,20 @@ public final class NetworkManager: NSObject, Sendable {
 }
 
 class NetworkManagerDelegate: NSObject, URLSessionDataDelegate {
-
   fileprivate var continuation: AsyncStream<(URLSessionTaskTransactionMetrics, UUID)>.Continuation!
 
-//  init(continuation: AsyncStream<(URLSessionTaskTransactionMetrics, UUID)>.Continuation) {
-//    self.continuation = continuation
-//  }
-
-  public nonisolated func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
+  public nonisolated func urlSession(
+    _: URLSession,
+    task _: URLSessionTask,
+    didFinishCollecting metrics: URLSessionTaskMetrics
+  ) {
     for metric in metrics.transactionMetrics {
-      let uuid = metric.request.value(forHTTPHeaderField: "X-MetricsUUID").flatMap { UUID(uuidString: $0) }
+      let uuid = metric.request.value(forHTTPHeaderField: "X-MetricsUUID")
+        .flatMap { UUID(uuidString: $0) }
       guard let uuid else {
         return
       }
       Task {
-//        _ = metricsStream
         continuation.yield((metric, uuid))
       }
     }

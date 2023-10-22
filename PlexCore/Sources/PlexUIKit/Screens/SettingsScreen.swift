@@ -9,13 +9,12 @@ import SwiftUI
 
 @MainActor
 public struct SettingsScreen: View {
-
   @State
   private var logoutMenuShowing = false
 
-  private let logoutHandler: @MainActor @Sendable () -> ()
+  private let logoutHandler: @MainActor @Sendable () -> Void
 
-  public init(logoutHandler: @MainActor @Sendable @escaping () -> ()) {
+  public init(logoutHandler: @MainActor @Sendable @escaping () -> Void) {
     self.logoutHandler = logoutHandler
   }
 

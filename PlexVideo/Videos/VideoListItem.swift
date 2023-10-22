@@ -6,14 +6,13 @@
 //
 
 import Foundation
-import SwiftUI
-import PlexShared
 import PlexCore
+import PlexShared
 import PlexUIKit
+import SwiftUI
 
 @MainActor
 struct VideoListItem: View {
-
   @Environment(CurrentVideoViewModel.self)
   private var currentVideoViewModel
 
@@ -83,7 +82,7 @@ struct VideoListItem: View {
 }
 
 extension VideoListItem: Equatable {
-  static nonisolated func == (lhs: Self, rhs: Self) -> Bool {
+  nonisolated static func == (lhs: Self, rhs: Self) -> Bool {
     lhs.video == rhs.video
   }
 }

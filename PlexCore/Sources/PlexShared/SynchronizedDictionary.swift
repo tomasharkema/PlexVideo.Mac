@@ -1,6 +1,6 @@
 //
 //  SynchronizedDictionary.swift
-//  
+//
 //
 //  Created by Tomas Harkema on 21/10/2023.
 //
@@ -16,15 +16,15 @@ public actor SynchronizedDictionary<Key: Hashable, Value> {
     }
 
     set {
-      self.dict[key] = newValue
+      dict[key] = newValue
     }
   }
 
   public func set(_ key: Key, _ value: Value) {
-    self.dict[key] = value
+    dict[key] = value
   }
 
   public func removeValue(forKey key: Key) {
-    self.dict.removeValue(forKey: key)
+    dict.removeValue(forKey: key)
   }
 }

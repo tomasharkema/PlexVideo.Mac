@@ -7,16 +7,17 @@
 
 import AuthenticationServices
 import Foundation
-import SwiftUI
 import Inject
-import PlexApi
-import Processed
 import OSLog
+import PlexApi
 import PlexShared
+import Processed
+import SwiftUI
 
 @MainActor
-public final class LoginViewModel: NSObject, ObservableObject, LoadableSupport, ASWebAuthenticationPresentationContextProviding {
-
+public final class LoginViewModel: NSObject, ObservableObject, LoadableSupport,
+  ASWebAuthenticationPresentationContextProviding
+{
   private var logger = Logger(subsystem: "PlexVideo", category: "LoginViewModel")
 
   @Injected(\.auth)
@@ -33,7 +34,7 @@ public final class LoginViewModel: NSObject, ObservableObject, LoadableSupport, 
   @Published
   public private(set) var loginState: LoadableState<Void> = .absent
 
-  public override init() {
+  override public init() {
     super.init()
   }
 
@@ -47,8 +48,7 @@ public final class LoginViewModel: NSObject, ObservableObject, LoadableSupport, 
   }
 
   public func login(deviceInfo: DeviceInfo) async {
-    await self.load(\.loginState, priority: .medium) {
-
+    await load(\.loginState, priority: .medium) {
       let (url, pin) = try await self.auth.authUrl(deviceInfo: deviceInfo)
 
       self.url = url
@@ -57,7 +57,7 @@ public final class LoginViewModel: NSObject, ObservableObject, LoadableSupport, 
         url: url,
         callbackURLScheme: "plexvideo",
         completionHandler: { [weak self] _, error in
-          if let error = error {
+          if let error {
             self?.gotSessionError(error: error)
           }
         }
@@ -91,6 +91,6 @@ public final class LoginViewModel: NSObject, ObservableObject, LoadableSupport, 
   }
 
   public func cancel() {
-    self.cancel(\.loginState)
+    cancel(\.loginState)
   }
 }

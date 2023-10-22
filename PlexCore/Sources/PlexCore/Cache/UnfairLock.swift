@@ -1,12 +1,12 @@
 //
 //  UnfairLock.swift
-//  
+//
 //
 //  Created by Tomas Harkema on 17/10/2023.
 //
 
-import Foundation
 import Combine
+import Foundation
 
 final class UnfairLock {
   @usableFromInline let lock: UnsafeMutablePointer<os_unfair_lock>
@@ -64,6 +64,6 @@ final class UnfairLock {
   }
 
   func acquire() -> any Cancellable {
-    return LockAssertion(owner: self)
+    LockAssertion(owner: self)
   }
 }

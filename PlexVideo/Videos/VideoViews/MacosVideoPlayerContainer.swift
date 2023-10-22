@@ -7,67 +7,64 @@
 
 #if os(macOS)
 
-import SwiftUI
-import PlexShared
-import AVKit
-import PlexCore
+  import AVKit
+  import PlexCore
+  import PlexShared
+  import SwiftUI
 
-@MainActor
-struct MacosVideoPlayerContainer: View {
+  @MainActor
+  struct MacosVideoPlayerContainer: View {
+    @Environment(CurrentVideoViewModel.self)
+    private var viewModel
 
-  @Environment(CurrentVideoViewModel.self)
-  private var viewModel
-
-  var body: some View {
-    if let player = viewModel.player.data {
-      MacosVideoPlayer(player: player)
-    } else {
-      ProgressView()
-    }
-  }
-}
-
-fileprivate struct MacosVideoPlayer: NSViewRepresentable {
-
-  @Environment(CurrentVideoViewModel.self)
-  private var viewModel
-
-  private var player: AVPlayer
-
-  init(player: AVPlayer) {
-    self.player = player
-  }
-
-  func makeCoordinator() -> Coordinator {
-    Coordinator {
-      viewModel.isPip = $0
-    } fullscreen: {
-      viewModel.isFullscreen = $0
+    var body: some View {
+      if let player = viewModel.player.data {
+        MacosVideoPlayer(player: player)
+      } else {
+        ProgressView()
+      }
     }
   }
 
-  func makeNSView(context: Context) -> AVPlayerView {
-    let view = AVPlayerView()
-    
-    view.player = player
-    view.showsFullScreenToggleButton = true
-    view.allowsPictureInPicturePlayback = true
-    view.updatesNowPlayingInfoCenter = true
-    view.delegate = context.coordinator
-    view.videoGravity = .resizeAspect
-    
-    return view
-  }
+  fileprivate struct MacosVideoPlayer: NSViewRepresentable {
+    @Environment(CurrentVideoViewModel.self)
+    private var viewModel
 
-  func updateNSView(_ view: AVPlayerView, context: Context) {
+    private var player: AVPlayer
 
+    init(player: AVPlayer) {
+      self.player = player
+    }
+
+    func makeCoordinator() -> Coordinator {
+      Coordinator {
+        viewModel.isPip = $0
+      } fullscreen: {
+        viewModel.isFullscreen = $0
+      }
+    }
+
+    func makeNSView(context: Context) -> AVPlayerView {
+      let view = AVPlayerView()
+
+      view.player = player
+      view.showsFullScreenToggleButton = true
+      view.allowsPictureInPicturePlayback = true
+      view.updatesNowPlayingInfoCenter = true
+      view.delegate = context.coordinator
+      view.videoGravity = .resizeAspect
+
+      return view
+    }
+
+    func updateNSView(_ view: AVPlayerView, context: Context) {
 //    print(context.coordinator.isFullscreen, viewModel.isFullscreen)
 
-    if context.coordinator.isFullscreen != viewModel.isFullscreen {
-      if viewModel.isFullscreen {
-        Task { @MainActor in
-          view.window?.toggleFullScreen(nil)
-          
+      if context.coordinator.isFullscreen != viewModel.isFullscreen {
+        if viewModel.isFullscreen {
+          Task { @MainActor in
+            view.window?.toggleFullScreen(nil)
+
 //          view.safe
 //          let presOptions: NSApplication.PresentationOptions = [
 //            .autoHideMenuBar,
@@ -80,41 +77,41 @@ fileprivate struct MacosVideoPlayer: NSViewRepresentable {
 //            .fullScreenModeSetting:
 //          ])
 //          view.videoGravity = .resizeAspectFill
+          }
+        } else {
+          view.exitFullScreenMode()
         }
-      } else {
-        view.exitFullScreenMode()
+      }
+    }
+
+    @MainActor
+    static func dismantleNSView(_ view: AVPlayerView, coordinator _: Coordinator) {
+      view.exitFullScreenMode()
+      view.allowsPictureInPicturePlayback = false
+    }
+  }
+
+  extension MacosVideoPlayer {
+    final class Coordinator: NSObject, AVPlayerViewDelegate {
+      var isFullscreen = false
+      let pip: (Bool) -> Void
+      let fullscreen: (Bool) -> Void
+
+      init(pip: @escaping (Bool) -> Void, fullscreen: @escaping (Bool) -> Void) {
+        self.pip = pip
+        self.fullscreen = fullscreen
+      }
+
+      func playerViewWillEnterFullScreen(_: AVPlayerView) {
+        isFullscreen = true
+        fullscreen(true)
+      }
+
+      func playerViewWillExitFullScreen(_: AVPlayerView) {
+        isFullscreen = false
+        fullscreen(false)
       }
     }
   }
-
-  @MainActor
-  static func dismantleNSView(_ view: AVPlayerView, coordinator: Coordinator) {
-    view.exitFullScreenMode()
-    view.allowsPictureInPicturePlayback = false
-  }
-}
-
-extension MacosVideoPlayer {
-  final class Coordinator: NSObject, AVPlayerViewDelegate {
-    var isFullscreen = false
-    let pip: (Bool) -> Void
-    let fullscreen: (Bool) -> Void
-
-    init(pip: @escaping (Bool) -> Void, fullscreen: @escaping (Bool) -> Void) {
-      self.pip = pip
-      self.fullscreen = fullscreen
-    }
-
-    func playerViewWillEnterFullScreen(_ playerView: AVPlayerView) {
-      isFullscreen = true
-      fullscreen(true)
-    }
-
-    func playerViewWillExitFullScreen(_ playerView: AVPlayerView) {
-      isFullscreen = false
-      fullscreen(false)
-    }
-  }
-}
 
 #endif

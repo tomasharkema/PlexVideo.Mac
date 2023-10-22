@@ -5,18 +5,17 @@
 //  Created by Tomas Harkema on 20/10/2023.
 //
 
-import SwiftUI
 import PlexApi
 import PlexShared
+import SwiftUI
 
 public struct ServersScreen: View {
-
   private let servers: [Server]
   private let currentConnection: Connection?
   private let pings: [Connection: PingResult]
 
   public init(
-    servers: [Server], 
+    servers: [Server],
     currentConnection: Connection?,
     pings: [Connection: PingResult]
   ) {
@@ -47,7 +46,7 @@ public struct ServersScreen: View {
       .preview1,
       .preview2,
     ],
-    currentConnection: .preview1, 
+    currentConnection: .preview1,
     pings: [:]
   )
   .background(Color.black)

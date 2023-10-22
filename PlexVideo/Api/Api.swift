@@ -5,11 +5,11 @@
 //  Created by Tomas Harkema on 27/05/2021.
 //
 
-import CoreMedia
-import Foundation
-//import UIKit
+// import UIKit
 // import XMLCoder
 import AsyncAwaitHelpers
+import CoreMedia
+import Foundation
 
 struct VideoSessionUUID: RawRepresentable {
   let rawValue: String
@@ -165,21 +165,21 @@ class Api {
   func timeline(video: Video, time: CMTime,
                 state: PlayingState) async throws -> Root<TranscodeSessions>
   {
-    return try await requestor.request(
-        url: serverLocator.root()
-          .appendingPathComponent("/:/timeline"),
-        queryItems: [
-          URLQueryItem(name: "time", value: "\(Int(time.seconds * 1000))"),
-          URLQueryItem(name: "ratingKey", value: video.ratingKey.rawValue),
-          URLQueryItem(
-            name: "duration",
-            value: "\(Int(video.Media?.first?.duration.value ?? 0))"
-          ),
-          URLQueryItem(name: "state", value: state.rawValue),
-          URLQueryItem(name: "key", value: video.key.rawValue),
-          URLQueryItem(name: "context", value: "library%3Acontent.library"),
-        ]
-      )
+    try await requestor.request(
+      url: serverLocator.root()
+        .appendingPathComponent("/:/timeline"),
+      queryItems: [
+        URLQueryItem(name: "time", value: "\(Int(time.seconds * 1000))"),
+        URLQueryItem(name: "ratingKey", value: video.ratingKey.rawValue),
+        URLQueryItem(
+          name: "duration",
+          value: "\(Int(video.Media?.first?.duration.value ?? 0))"
+        ),
+        URLQueryItem(name: "state", value: state.rawValue),
+        URLQueryItem(name: "key", value: video.key.rawValue),
+        URLQueryItem(name: "context", value: "library%3Acontent.library"),
+      ]
+    )
   }
 
   func continueWatching(contentDirectoryIDs: [SectionKey]) async throws -> Root<Hub<Video>> {

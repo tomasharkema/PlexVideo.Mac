@@ -9,20 +9,20 @@ import Foundation
 
 #if canImport(UIKit)
 
-import UIKit
+  import UIKit
 
-public extension DeviceInfo {
-  @MainActor
-  static let current = DeviceInfo(name: UIDevice.current.name)
-}
+  public extension DeviceInfo {
+    @MainActor
+    static let current = DeviceInfo(name: UIDevice.current.name)
+  }
 
 #elseif canImport(AppKit)
 
-import AppKit
+  import AppKit
 
-public extension DeviceInfo {
-  @MainActor
-  static let current = DeviceInfo(name: Host.current().localizedName ?? "")
-}
+  public extension DeviceInfo {
+    @MainActor
+    static let current = DeviceInfo(name: Host.current().localizedName ?? "")
+  }
 
 #endif
