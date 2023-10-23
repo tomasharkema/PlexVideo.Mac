@@ -28,7 +28,7 @@ enum ImageIO {
     ]
 
     guard let imageSource = CGImageSourceCreateWithURL(url as NSURL, nil),
-          let image = CGImageSourceCreateThumbnailAtIndex(imageSource, 0, options as CFDictionary)
+      let image = CGImageSourceCreateThumbnailAtIndex(imageSource, 0, options as CFDictionary)
     else {
       return nil
     }
@@ -40,12 +40,14 @@ enum ImageIO {
     guard let provider = CGDataProvider(url: url as CFURL) else {
       return nil
     }
-    guard let image = CGImage(
-      jpegDataProviderSource: provider,
-      decode: nil,
-      shouldInterpolate: true,
-      intent: .defaultIntent
-    ) else {
+    guard
+      let image = CGImage(
+        jpegDataProviderSource: provider,
+        decode: nil,
+        shouldInterpolate: true,
+        intent: .defaultIntent
+      )
+    else {
       return nil
     }
 
@@ -54,15 +56,19 @@ enum ImageIO {
 
     let colorSpace = CGColorSpaceCreateDeviceRGB()
 
-    guard let imageContext = CGContext(
-      data: nil,
-      width: width, height: height,
-      bitsPerComponent: 8,
-      bytesPerRow: width * 4,
-      space: colorSpace,
-      bitmapInfo: CGBitmapInfo.byteOrder32Big.rawValue | CGImageAlphaInfo.premultipliedFirst
-        .rawValue
-    ) else {
+    guard
+      let imageContext = CGContext(
+        data: nil,
+        width: width,
+        height: height,
+        bitsPerComponent: 8,
+        bytesPerRow: width * 4,
+        space: colorSpace,
+        bitmapInfo: CGBitmapInfo.byteOrder32Big.rawValue
+          | CGImageAlphaInfo.premultipliedFirst
+          .rawValue
+      )
+    else {
       return nil
     }
 
@@ -77,10 +83,13 @@ enum ImageIO {
 
   static func resizedImageWithHintingAndSubsampling(at url: URL, for size: CGSize) -> PlexImage? {
     guard let imageSource = CGImageSourceCreateWithURL(url as NSURL, nil),
-          let properties = CGImageSourceCopyPropertiesAtIndex(imageSource, 0,
-                                                              nil) as? [CFString: Any],
-          let imageWidth = properties[kCGImagePropertyPixelWidth] as? CGFloat,
-          let imageHeight = properties[kCGImagePropertyPixelHeight] as? CGFloat
+      let properties = CGImageSourceCopyPropertiesAtIndex(
+        imageSource,
+        0,
+        nil
+      ) as? [CFString: Any],
+      let imageWidth = properties[kCGImagePropertyPixelWidth] as? CGFloat,
+      let imageHeight = properties[kCGImagePropertyPixelHeight] as? CGFloat
     else {
       return nil
     }
@@ -105,7 +114,7 @@ enum ImageIO {
         case ...2.0:
           options[kCGImageSourceSubsampleFactor] = 2.0
 
-        case 2.0 ... 4.0:
+        case 2.0...4.0:
           options[kCGImageSourceSubsampleFactor] = 4.0
 
         case 4.0...:

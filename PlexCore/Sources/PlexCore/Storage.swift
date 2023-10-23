@@ -22,13 +22,13 @@ public final class Storage: ObservableObject, ServerLocatorStorageProviding,
   public var plexToken: String?
 
   @AppStorage("lastUsedLocalConnection")
-  public var lastUsedLocalConnection: Connection?
+  public var lastUsedLocalConnection: ServerWithCurrentConnection?
 
   @AppStorage("lastUsedRemoteConnection")
-  public var lastUsedRemoteConnection: Connection?
+  public var lastUsedRemoteConnection: ServerWithCurrentConnection?
 
   @AppStorage("lastUsedConnection")
-  public var lastUsedConnection: Connection?
+  public var lastUsedConnection: ServerWithCurrentConnection?
 
   public nonisolated init() {}
 
@@ -43,7 +43,7 @@ public final class Storage: ObservableObject, ServerLocatorStorageProviding,
     return generated
   }
 
-  public func setLastPlayed(lastPlayed: Video?) async throws {
+  public func setLastPlayed(lastPlayed: VideoFromServer?) async throws {
     try await UserDefaults.standard.set(value: lastPlayed, key: "lastPlayed")
   }
 
@@ -78,8 +78,8 @@ public final class Storage: ObservableObject, ServerLocatorStorageProviding,
   }
 }
 
-public extension InjectedValues {
-  var storage: Storage {
+extension InjectedValues {
+  public var storage: Storage {
     get { Self[StorageKey.self] }
     set { Self[StorageKey.self] = newValue }
   }
@@ -89,14 +89,14 @@ private struct StorageKey: InjectionKey {
   static var currentValue: Storage? = .init()
 }
 
-extension Connection: RawRepresentable {
+extension ServerWithCurrentConnection: RawRepresentable {
   public init?(rawValue: String) {
     guard let data = rawValue.data(using: .utf8) else {
       return nil
     }
 
     do {
-      self = try JSONDecoder().decode(Connection.self, from: data)
+      self = try JSONDecoder.default.decode(ServerWithCurrentConnection.self, from: data)
     } catch {
       Storage.logger.error("Connection raw decode error: \(error)")
       return nil

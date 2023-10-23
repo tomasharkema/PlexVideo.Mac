@@ -12,8 +12,8 @@ import SwiftUI
 
 @MainActor
 struct ConnectionOverlay: View {
-  @Environment(\.font)
-  private var font
+  //  @Environment(\.font)
+  //  private var font
 
   @State
   private var showOverlay = false
@@ -25,12 +25,12 @@ struct ConnectionOverlay: View {
   private var connectionOverlay: some View {
     HStack {
       if let connection = serverLocator.connection {
-        Text("\(connection.local ? "Local" : "Remote") connection")
-          .font(font?.bold().lowercaseSmallCaps())
+        Text("\(connection.connection.local ? "Local" : "Remote") connection")
+          .font(.body.bold().lowercaseSmallCaps())
           .foregroundColor(.white)
           .edgesIgnoringSafeArea(.top)
           .padding(5)
-          .background(connection.local ? Color.green : Color.yellow)
+          .background(connection.connection.local ? Color.green : Color.yellow)
           .cornerRadius(10)
           .onAppear {
             let old = serverLocator.connection

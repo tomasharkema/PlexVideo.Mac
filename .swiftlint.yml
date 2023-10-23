@@ -2,5 +2,8 @@ file_length:
   warning: 500
   error: 1200
 
+disabled_rules:
+- trailing_comma
+
 analyzer_rules: # rules run by `swiftlint analyze`
   - unused_import

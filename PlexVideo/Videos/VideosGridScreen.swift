@@ -69,14 +69,14 @@ struct VideosGridScreen: View {
       }
     #endif
     #if os(iOS)
-    .searchable(text: $searchText, placement: .navigationBarDrawer)
+      .searchable(text: $searchText, placement: .navigationBarDrawer)
     #else
-    .searchable(text: $searchText, placement: .toolbar)
+      .searchable(text: $searchText, placement: .toolbar)
     #endif
     #if os(macOS)
-    .toolbar {
-      navigationBarElements
-    }
+      .toolbar {
+        navigationBarElements
+      }
     #endif
   }
 }

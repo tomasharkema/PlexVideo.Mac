@@ -6,49 +6,51 @@
 //
 
 import PlexApi
+import PlexCore
 import PlexShared
 import SwiftUI
 
+@MainActor
 public struct ServersScreen: View {
-  private let servers: [Server]
-  private let currentConnection: Connection?
-  private let pings: [Connection: PingResult]
 
-  public init(
-    servers: [Server],
-    currentConnection: Connection?,
-    pings: [Connection: PingResult]
-  ) {
-    self.servers = servers
-    self.currentConnection = currentConnection
-    self.pings = pings
+  @Environment(ServersViewModel.self)
+  private var viewModel
+
+  public init() {
   }
 
   public var body: some View {
     ScrollView {
       VStack {
-        ForEach(servers) { server in
-          DeviceView(
-            server: server,
-            currentConnection: currentConnection,
-            pings: pings
+        ForEach(viewModel.servers ?? []) { server in
+          ServerView(
+            server: server
           )
+          .id(server.id)
         }
       }
       .padding()
     }
+    .navigationTitle("Servers")
+    .environment(viewModel)
+    .onAppear {
+      viewModel.start()
+    }
+    .onDisappear {
+      viewModel.stop()
+    }
   }
 }
 
-#Preview {
-  ServersScreen(
-    servers: [
-      .preview1,
-      .preview2,
-    ],
-    currentConnection: .preview1,
-    pings: [:]
-  )
-  .background(Color.black)
-  .preferredColorScheme(.dark)
-}
+//#Preview {
+//  ServersScreen(
+//    servers: [
+//      .preview1
+//      //      .preview2,
+//    ],
+//    currentConnection: .preview1,
+//    pings: [:]
+//  )
+//  .background(Color.black)
+//  .preferredColorScheme(.dark)
+//}

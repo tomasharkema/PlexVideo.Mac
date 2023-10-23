@@ -13,8 +13,8 @@ import SwiftUI
 
 @MainActor
 struct VideosGrid: View {
-  @Environment(\.font)
-  private var font
+  //  @Environment(\.font)
+  //  private var font
 
   @Environment(VideosViewModel.self)
   private var viewModel
@@ -24,37 +24,43 @@ struct VideosGrid: View {
 
   init() {}
 
-  private func section(text: String?, videos: [Video]) -> some View {
-    Section(content: {
-      ForEach(videos) { video in
-        Button(
-          action: {
-            currentVideoViewModel.open(video: video)
-          },
-          label: {
-            VideoListItem(
-              video: video
-            ).equatable()
+  private func section(text: String?, videos: [VideoFromServer]) -> some View {
+    Section(
+      content: {
+        ForEach(videos) { video in
+          Button(
+            action: {
+              currentVideoViewModel.open(video: video)
+            },
+            label: {
+              VideoListItem(
+                video: video
+              ).equatable()
+            }
+          )
+          .buttonStyle(PlainButtonStyle())
+          //        .id((text ?? "") + video.id)
+        }
+      },
+      header: {
+        if let text {
+          HStack {
+            Text(text).foregroundColor(Color.white)
+              .font(.body.weight(.medium).smallCaps())
+            Spacer()
           }
-        )
-        .buttonStyle(PlainButtonStyle())
-//        .id((text ?? "") + video.id)
-      }
-    }, header: {
-      if let text {
-        HStack {
-          Text(text).foregroundColor(Color.white)
-            .font(font?.weight(.medium).smallCaps())
-          Spacer()
         }
       }
-    })
+    )
   }
 
   var body: some View {
-    LazyVGrid(columns: [
-      GridItem(.adaptive(minimum: ThumbViewModel.thumbSize.width), spacing: 10),
-    ], spacing: 10) {
+    LazyVGrid(
+      columns: [
+        GridItem(.adaptive(minimum: ThumbViewModel.thumbSize.width), spacing: 10)
+      ],
+      spacing: 10
+    ) {
       switch viewModel.searchResults {
       case .absent:
         section(text: "Continue Watching", videos: viewModel.data.data?.continueWatching ?? [])

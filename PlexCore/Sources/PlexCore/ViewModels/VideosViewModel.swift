@@ -30,7 +30,7 @@ public final class VideosViewModel: ObservableObject, LoadableSupport {
 
   public private(set) var data: LoadableState<Data> = .absent
 
-  public private(set) var searchResults: LoadableState<[Video]> = .absent
+  public private(set) var searchResults: LoadableState<[VideoFromServer]> = .absent
 
   public private(set) var savedLastPlayed: Video?
 
@@ -52,13 +52,13 @@ public final class VideosViewModel: ObservableObject, LoadableSupport {
       async let lastPlayer = self.storage.getLastPlayed()
       let (onDeck, all) = try await self.service.getVideoList(reload: reload)
 
-//      Task {
-//        for (index, video) in all.enumerated() {
-//          Task(priority: index < 10 ? .high : .low) {
-//            await ThumbViewModel.get(for: video).start()
-//          }
-//        }
-//      }
+      //      Task {
+      //        for (index, video) in all.enumerated() {
+      //          Task(priority: index < 10 ? .high : .low) {
+      //            await ThumbViewModel.get(for: video).start()
+      //          }
+      //        }
+      //      }
 
       do {
         self.savedLastPlayed = try await lastPlayer
@@ -92,16 +92,16 @@ public final class VideosViewModel: ObservableObject, LoadableSupport {
     await load(\.searchResults, silently: true, priority: .medium) {
       try Task.checkCancellation()
       let result = data.videos.filter {
-        $0.title.lowercased().contains(query.lowercased())
+        $0.video.title.lowercased().contains(query.lowercased())
       }
       try Task.checkCancellation()
       return result
     }.value
   }
 
-//  func setSearchResult(_ s: [Video]) {
-//    searchResults = s
-//  }
+  //  func setSearchResult(_ s: [Video]) {
+  //    searchResults = s
+  //  }
 
   public func resetLastPlayed() {
     Task(priority: .background) {
@@ -110,10 +110,10 @@ public final class VideosViewModel: ObservableObject, LoadableSupport {
   }
 }
 
-public extension VideosViewModel {
-  struct Data: Equatable {
-    public let continueWatching: [Video]
-    public let videos: [Video]
+extension VideosViewModel {
+  public struct Data: Equatable {
+    public let continueWatching: [VideoFromServer]
+    public let videos: [VideoFromServer]
   }
 }
 

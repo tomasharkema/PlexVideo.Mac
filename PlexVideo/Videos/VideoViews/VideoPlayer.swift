@@ -30,40 +30,40 @@ import SwiftUI
     func makeUIViewController(context: Context) -> AVPlayerViewController {
       let vc = AVPlayerViewController()
       vc.canStartPictureInPictureAutomaticallyFromInline = true
-//    vc.entersFullScreenWhenPlaybackBegins = true
+      //    vc.entersFullScreenWhenPlaybackBegins = true
       vc.allowsPictureInPicturePlayback = true
       vc.updatesNowPlayingInfoCenter = true
       vc.player = viewModel.player.data!
       vc.delegate = context.coordinator
-//    vc.videoGravity = .resizeAspectFill
+      //    vc.videoGravity = .resizeAspectFill
       vc.videoGravity = .resizeAspect
       vc.title = viewModel.video!.displayTitle
 
-//    player.addPeriodicTimeObserver(
-//      forInterval: CMTime(seconds: 10, preferredTimescale: 1),
-//      queue: .main,
-//      using: { [weak vc] _ in
-//        if videoBounds != vc?.videoBounds {
-//          videoBounds = vc?.videoBounds
-//        }
-//      }
-//    )
+      //    player.addPeriodicTimeObserver(
+      //      forInterval: CMTime(seconds: 10, preferredTimescale: 1),
+      //      queue: .main,
+      //      using: { [weak vc] _ in
+      //        if videoBounds != vc?.videoBounds {
+      //          videoBounds = vc?.videoBounds
+      //        }
+      //      }
+      //    )
 
       Task { @MainActor in
         viewModel.isPip = false
         vc.player?.play()
-//      vc.perform(
-//        NSSelectorFromString("enterFullScreenAnimated:completionHandler:"),
-//        with: true,
-//        with: nil
-//      )
+        //      vc.perform(
+        //        NSSelectorFromString("enterFullScreenAnimated:completionHandler:"),
+        //        with: true,
+        //        with: nil
+        //      )
       }
 
       return vc
     }
 
     func updateUIViewController(_: AVPlayerViewController, context _: Context) {
-//    print("updateUIViewController")
+      //    print("updateUIViewController")
     }
 
     static func dismantleUIViewController(

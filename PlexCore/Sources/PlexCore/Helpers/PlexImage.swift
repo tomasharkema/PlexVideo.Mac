@@ -11,14 +11,14 @@
 
   public typealias PlexImage = UIImage
 
-  public extension Image {
-    init(plexImage: PlexImage) {
+  extension Image {
+    public init(plexImage: PlexImage) {
       self.init(uiImage: plexImage)
     }
   }
 
-  public extension PlexImage {
-    convenience init(cgImage: CGImage, size _: CGSize) {
+  extension PlexImage {
+    public convenience init(cgImage: CGImage, size _: CGSize) {
       self.init(cgImage: cgImage)
     }
   }
@@ -30,8 +30,8 @@
 
   public typealias PlexImage = NSImage
 
-  public extension Image {
-    init(plexImage: PlexImage) {
+  extension Image {
+    public init(plexImage: PlexImage) {
       self.init(nsImage: plexImage)
     }
   }
@@ -46,7 +46,7 @@
     }
 
     func preparingThumbnail(of _: CGSize) -> NSImage? {
-      self // ImageIO.resizedImageWithHintingAndSubsampling(at: asset, for: size)
+      self  // ImageIO.resizedImageWithHintingAndSubsampling(at: asset, for: size)
     }
   }
 

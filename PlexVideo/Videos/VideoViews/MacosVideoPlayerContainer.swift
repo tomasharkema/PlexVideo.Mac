@@ -26,7 +26,7 @@
     }
   }
 
-  fileprivate struct MacosVideoPlayer: NSViewRepresentable {
+  private struct MacosVideoPlayer: NSViewRepresentable {
     @Environment(CurrentVideoViewModel.self)
     private var viewModel
 
@@ -58,25 +58,25 @@
     }
 
     func updateNSView(_ view: AVPlayerView, context: Context) {
-//    print(context.coordinator.isFullscreen, viewModel.isFullscreen)
+      //    print(context.coordinator.isFullscreen, viewModel.isFullscreen)
 
       if context.coordinator.isFullscreen != viewModel.isFullscreen {
         if viewModel.isFullscreen {
           Task { @MainActor in
             view.window?.toggleFullScreen(nil)
 
-//          view.safe
-//          let presOptions: NSApplication.PresentationOptions = [
-//            .autoHideMenuBar,
-//            .autoHideDock,
-//            .fullScreen
-//          ]
-//          view.enterFullScreenMode(NSScreen.main!, withOptions: [
-//            .fullScreenModeAllScreens: NSNumber(booleanLiteral: true)
-//            .fullScreenModeApplicationPresentationOptions:  NSNumber(value: presOptions.rawValue),
-//            .fullScreenModeSetting:
-//          ])
-//          view.videoGravity = .resizeAspectFill
+            //          view.safe
+            //          let presOptions: NSApplication.PresentationOptions = [
+            //            .autoHideMenuBar,
+            //            .autoHideDock,
+            //            .fullScreen
+            //          ]
+            //          view.enterFullScreenMode(NSScreen.main!, withOptions: [
+            //            .fullScreenModeAllScreens: NSNumber(booleanLiteral: true)
+            //            .fullScreenModeApplicationPresentationOptions:  NSNumber(value: presOptions.rawValue),
+            //            .fullScreenModeSetting:
+            //          ])
+            //          view.videoGravity = .resizeAspectFill
           }
         } else {
           view.exitFullScreenMode()

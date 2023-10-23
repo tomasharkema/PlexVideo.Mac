@@ -10,23 +10,27 @@ let swiftSettings: [SwiftSetting] = [
   .enableUpcomingFeature("DisableOutwardActorInference"),
   .enableExperimentalFeature("AccessLevelOnImport"),
   .enableExperimentalFeature("VariadicGenerics"),
-  .unsafeFlags([
-    "-warn-concurrency",
-    "-Xfrontend",
-    "-debug-time-function-bodies",
-    "-Xfrontend",
-    "-warn-long-function-bodies=50",
-    "-Xfrontend",
-    "-warn-long-expression-type-checking=50",
-  ], .when(configuration: .debug)),
+  .unsafeFlags(
+    [
+      "-warn-concurrency",
+      "-Xfrontend",
+      "-debug-time-function-bodies",
+      "-Xfrontend",
+      "-warn-long-function-bodies=50",
+      "-Xfrontend",
+      "-warn-long-expression-type-checking=50",
+    ],
+    .when(configuration: .debug)
+  ),
 ]
 
 let swiftUiDependencies: [Package.Dependency] = [
   .package(url: "https://github.com/realm/SwiftLint", from: "0.53.0"),
+  .package(url: "https://github.com/apple/swift-format", from: "509.0.0"),
 ]
 
 let swiftUiPlugins: [Target.PluginUsage] = [
-  //  .plugin(name: "SwiftLintPlugin", package: "SwiftLint"),
+  //  .plugin(name: "SwiftLintPlugin", package: "SwiftLint")
 ]
 
 let package = Package(
@@ -40,7 +44,6 @@ let package = Package(
     .library(name: "PlexUIKit", targets: ["PlexUIKit"]),
   ],
   dependencies: [
-    //      .package(path: "../../../AsyncAwaitHelpers"),
     .package(path: "../../../Inject"),
 
     .package(url: "https://github.com/LeonardoCardoso/InitMacro", branch: "main"),
@@ -84,7 +87,6 @@ let package = Package(
         "PlexApi",
         "PlexShared",
 
-//          "AsyncAwaitHelpers",
         "Inject",
         "Processed",
 
@@ -98,10 +100,10 @@ let package = Package(
       dependencies: [
         "PlexShared",
         "PlexApi",
-//          "PlexCore",
+        "PlexCore",
       ],
       resources: [
-        .process("Resources"),
+        .process("Resources")
       ],
       swiftSettings: swiftSettings,
       plugins: swiftUiPlugins
@@ -111,9 +113,9 @@ let package = Package(
       swiftSettings: swiftSettings,
       plugins: swiftUiPlugins
     ),
-//      .testTarget(
-//          name: "PlexCoreTests",
-//          dependencies: ["PlexCore"]
-//      ),
+    //      .testTarget(
+    //          name: "PlexCoreTests",
+    //          dependencies: ["PlexCore"]
+    //      ),
   ]
 )

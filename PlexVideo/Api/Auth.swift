@@ -28,7 +28,8 @@ class Auth {
     do {
       let token: PinToken = await try await requestor.request(
         url: URL(
-          string: "https://plex.tv/api/v2/pins/\(pinId)?X-Plex-Client-Identifier=\(Storage.shared.uuid)&X-Plex-Product=\(DeviceInfo.shared.product)&X-Plex-Platform=\(DeviceInfo.shared.platform)&X-Plex-Platform-Version=\(DeviceInfo.shared.version)&X-Plex-Device-Name=\(DeviceInfo.shared.product)&X-Plex-Version=\(DeviceInfo.shared.appVersion)"
+          string:
+            "https://plex.tv/api/v2/pins/\(pinId)?X-Plex-Client-Identifier=\(Storage.shared.uuid)&X-Plex-Product=\(DeviceInfo.shared.product)&X-Plex-Platform=\(DeviceInfo.shared.platform)&X-Plex-Platform-Version=\(DeviceInfo.shared.version)&X-Plex-Device-Name=\(DeviceInfo.shared.product)&X-Plex-Version=\(DeviceInfo.shared.appVersion)"
         )!,
         sendDefaultQueries: false
       )
@@ -58,7 +59,8 @@ class Auth {
   func authUrl() async throws -> (URL, Int) {
     let data: PinToken = await try await requestor.request(
       url: URL(
-        string: "https://plex.tv/api/v2/pins?X-Plex-Client-Identifier=\(Storage.shared.uuid)&X-Plex-Product=\(DeviceInfo.shared.product)&X-Plex-Platform=\(DeviceInfo.shared.platform)&X-Plex-Platform-Version=7&X-Plex-Device-Name=\(DeviceInfo.shared.product)&X-Plex-Version=3.2.2.5080&strong=True"
+        string:
+          "https://plex.tv/api/v2/pins?X-Plex-Client-Identifier=\(Storage.shared.uuid)&X-Plex-Product=\(DeviceInfo.shared.product)&X-Plex-Platform=\(DeviceInfo.shared.platform)&X-Plex-Platform-Version=7&X-Plex-Device-Name=\(DeviceInfo.shared.product)&X-Plex-Version=3.2.2.5080&strong=True"
       )!,
       method: "POST",
       sendDefaultQueries: false
@@ -67,9 +69,11 @@ class Auth {
     let url =
       "https://app.plex.tv/auth/#!?clientID=\(data.clientIdentifier)&code=\(data.code)&context[device][product]=\(DeviceInfo.shared.product)&context[device][platform]=\(DeviceInfo.shared.platform)&context[device][platformVersion]=7&context[device][version]=3.2.2.5080"
 
-    guard let url = URL(
-      string: url
-    ) else {
+    guard
+      let url = URL(
+        string: url
+      )
+    else {
       throw AuthError.noUrl
     }
     print(url)

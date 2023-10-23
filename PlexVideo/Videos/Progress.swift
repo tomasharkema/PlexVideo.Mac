@@ -11,9 +11,10 @@ struct Progress: Codable {
   let seconds: Double
   let date: Date
 
-  init(seconds: Double,
-       date: Date)
-  {
+  init(
+    seconds: Double,
+    date: Date
+  ) {
     self.seconds = seconds
     self.date = date
   }

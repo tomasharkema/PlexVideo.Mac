@@ -16,9 +16,9 @@ struct Thumb: View {
   @State
   private var viewModel: ThumbViewModel
 
-  private let video: Video
+  private let video: VideoFromServer
 
-  init(video: Video) {
+  init(video: VideoFromServer) {
     self.video = video
     _viewModel = .init(wrappedValue: ThumbViewModel.get(for: video))
   }

@@ -32,8 +32,8 @@ public actor TaskState<ResultType: Sendable>: Sendable {
   }
 
   public private(set) var state = TaskStateResult<ResultType>.idle
-//  public private(set) var started: Date?
-//  public private(set) var finished: Date?
+  //  public private(set) var started: Date?
+  //  public private(set) var finished: Date?
 
   public init(
     _ handler: @Sendable @escaping () async throws -> ResultType

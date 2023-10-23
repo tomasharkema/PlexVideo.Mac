@@ -28,7 +28,10 @@ public final class Auth {
   public nonisolated init() {}
 
   public func pollForPin(
-    deviceInfo: DeviceInfo, pinId: String, requestDelay: Double, maxRetries: Int
+    deviceInfo: DeviceInfo,
+    pinId: String,
+    requestDelay: Double,
+    maxRetries: Int
   ) async throws -> String {
     try Task.checkCancellation()
 
@@ -42,14 +45,15 @@ public final class Auth {
 
     let urlRoot = URL(string: "https://plex.tv/api/v2/pins/")!.appendingPathComponent("\(pinId)")
     var urlComponents = URLComponents(url: urlRoot, resolvingAgainstBaseURL: true)!
-    urlComponents.queryItems = (urlComponents.queryItems ?? []) + [
-      URLQueryItem(name: "X-Plex-Client-Identifier", value: deviceUuid),
-      URLQueryItem(name: "X-Plex-Product", value: deviceInfo.product),
-      URLQueryItem(name: "X-Plex-Platform", value: deviceInfo.platform),
-      URLQueryItem(name: "X-Plex-Platform-Version", value: deviceInfo.version),
-      URLQueryItem(name: "X-Plex-Device-Name", value: deviceInfo.product),
-      URLQueryItem(name: "X-Plex-Version", value: deviceInfo.appVersion),
-    ]
+    urlComponents.queryItems =
+      (urlComponents.queryItems ?? []) + [
+        URLQueryItem(name: "X-Plex-Client-Identifier", value: deviceUuid),
+        URLQueryItem(name: "X-Plex-Product", value: deviceInfo.product),
+        URLQueryItem(name: "X-Plex-Platform", value: deviceInfo.platform),
+        URLQueryItem(name: "X-Plex-Platform-Version", value: deviceInfo.version),
+        URLQueryItem(name: "X-Plex-Device-Name", value: deviceInfo.product),
+        URLQueryItem(name: "X-Plex-Version", value: deviceInfo.appVersion),
+      ]
 
     let url = urlComponents.url!
 
@@ -90,15 +94,16 @@ public final class Auth {
     let deviceUuid = storage.uuid
 
     var urlComponents = URLComponents(string: "https://plex.tv/api/v2/pins")!
-    urlComponents.queryItems = (urlComponents.queryItems ?? []) + [
-      URLQueryItem(name: "X-Plex-Client-Identifier", value: deviceUuid),
-      URLQueryItem(name: "X-Plex-Product", value: deviceInfo.product),
-      URLQueryItem(name: "X-Plex-Platform", value: deviceInfo.platform),
-      URLQueryItem(name: "X-Plex-Platform-Version", value: deviceInfo.version),
-      URLQueryItem(name: "X-Plex-Device-Name", value: deviceInfo.product),
-      URLQueryItem(name: "X-Plex-Version", value: deviceInfo.appVersion),
-      URLQueryItem(name: "strong", value: "True"),
-    ]
+    urlComponents.queryItems =
+      (urlComponents.queryItems ?? []) + [
+        URLQueryItem(name: "X-Plex-Client-Identifier", value: deviceUuid),
+        URLQueryItem(name: "X-Plex-Product", value: deviceInfo.product),
+        URLQueryItem(name: "X-Plex-Platform", value: deviceInfo.platform),
+        URLQueryItem(name: "X-Plex-Platform-Version", value: deviceInfo.version),
+        URLQueryItem(name: "X-Plex-Device-Name", value: deviceInfo.product),
+        URLQueryItem(name: "X-Plex-Version", value: deviceInfo.appVersion),
+        URLQueryItem(name: "strong", value: "True"),
+      ]
 
     let url = urlComponents.url!
 
@@ -112,23 +117,26 @@ public final class Auth {
 
     let urlWebRoot = URL(string: "https://app.plex.tv/auth/#!?")!
     var urlComponentsWeb = URLComponents(url: urlWebRoot, resolvingAgainstBaseURL: true)!
-    urlComponentsWeb.queryItems = (urlComponents.queryItems ?? []) + [
-      URLQueryItem(name: "clientID", value: data.clientIdentifier),
-      URLQueryItem(name: "code", value: data.code),
-      URLQueryItem(name: "context[device][product]", value: deviceInfo.product),
-      URLQueryItem(name: "context[device][platform]", value: deviceInfo.platform),
-      URLQueryItem(name: "context[device][platformVersion]", value: deviceInfo.version),
-      URLQueryItem(name: "context[device][version]", value: deviceInfo.appVersion),
-    ]
+    urlComponentsWeb.queryItems =
+      (urlComponents.queryItems ?? []) + [
+        URLQueryItem(name: "clientID", value: data.clientIdentifier),
+        URLQueryItem(name: "code", value: data.code),
+        URLQueryItem(name: "context[device][product]", value: deviceInfo.product),
+        URLQueryItem(name: "context[device][platform]", value: deviceInfo.platform),
+        URLQueryItem(name: "context[device][platformVersion]", value: deviceInfo.version),
+        URLQueryItem(name: "context[device][version]", value: deviceInfo.appVersion),
+      ]
 
     let urlWeb = urlComponentsWeb.url!
 
     logger.info("received auth url: \(urlWeb)")
 
-    let urlWebFixed = URL(string: urlWeb.absoluteString.replacingOccurrences(
-      of: "auth/?",
-      with: "auth/#!?"
-    ))!
+    let urlWebFixed = URL(
+      string: urlWeb.absoluteString.replacingOccurrences(
+        of: "auth/?",
+        with: "auth/#!?"
+      )
+    )!
 
     try Task.checkCancellation()
 
@@ -136,8 +144,8 @@ public final class Auth {
   }
 }
 
-public extension InjectedValues {
-  var auth: Auth {
+extension InjectedValues {
+  public var auth: Auth {
     get { Self[AuthKey.self] }
     set { Self[AuthKey.self] = newValue }
   }
@@ -152,8 +160,8 @@ public protocol AuthStorageProviding: AnyObject {
   var plexToken: String? { get set }
 }
 
-public extension InjectedValues {
-  var authStorageProviding: any AuthStorageProviding {
+extension InjectedValues {
+  public var authStorageProviding: any AuthStorageProviding {
     get { Self[AuthStorageProvidingKey.self] }
     set { Self[AuthStorageProvidingKey.self] = newValue }
   }

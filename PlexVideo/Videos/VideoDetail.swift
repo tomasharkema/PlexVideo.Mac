@@ -5,24 +5,24 @@
 //  Created by Tomas Harkema on 05/06/2021.
 //
 
-#if canImport(UIKit)
-  import UIKit
-#endif
-
 import AVKit
 import PlexApi
 import PlexCore
 import PlexShared
 import SwiftUI
 
+#if canImport(UIKit)
+  import UIKit
+#endif
+
 @MainActor
 struct VideoDetail: View {
-  private var video: Video
+  private var video: VideoFromServer
 
   @Environment(CurrentVideoViewModel.self)
   private var viewModel
 
-  init(video: Video) {
+  init(video: VideoFromServer) {
     self.video = video
   }
 
@@ -53,34 +53,34 @@ struct VideoDetail: View {
     .task(id: viewModel.video) {
       await viewModel.load(video: video)
     }
-//    .onChange(of: isFullscreen) {
-//      AppDelegate.orientationLock = $0 ? .landscape : .portrait
-//      UIDevice.current.setValue(
-//        $0 ? UIInterfaceOrientation.landscapeRight.rawValue : UIInterfaceOrientation
-//          .portrait
-//          .rawValue,
-//        forKey: "orientation"
-//      )
-//    }
-//    .onAppear {
-//      AppDelegate.orientationLock = isFullscreen ? .landscape : .portrait
-//      UIDevice.current.setValue(
-//        isFullscreen ? UIInterfaceOrientation.landscapeRight
-//          .rawValue : UIInterfaceOrientation
-//          .portrait.rawValue,
-//        forKey: "orientation"
-//      )
-//    }
-//    .onDisappear {
-//      AppDelegate.orientationLock = isFullscreen ? .landscape : .portrait
-//      UIDevice.current.setValue(
-//        isFullscreen ? UIInterfaceOrientation.landscapeRight
-//          .rawValue : UIInterfaceOrientation
-//          .portrait.rawValue,
-//        forKey: "orientation"
-//      )
-//    }
+    //    .onChange(of: isFullscreen) {
+    //      AppDelegate.orientationLock = $0 ? .landscape : .portrait
+    //      UIDevice.current.setValue(
+    //        $0 ? UIInterfaceOrientation.landscapeRight.rawValue : UIInterfaceOrientation
+    //          .portrait
+    //          .rawValue,
+    //        forKey: "orientation"
+    //      )
+    //    }
+    //    .onAppear {
+    //      AppDelegate.orientationLock = isFullscreen ? .landscape : .portrait
+    //      UIDevice.current.setValue(
+    //        isFullscreen ? UIInterfaceOrientation.landscapeRight
+    //          .rawValue : UIInterfaceOrientation
+    //          .portrait.rawValue,
+    //        forKey: "orientation"
+    //      )
+    //    }
+    //    .onDisappear {
+    //      AppDelegate.orientationLock = isFullscreen ? .landscape : .portrait
+    //      UIDevice.current.setValue(
+    //        isFullscreen ? UIInterfaceOrientation.landscapeRight
+    //          .rawValue : UIInterfaceOrientation
+    //          .portrait.rawValue,
+    //        forKey: "orientation"
+    //      )
+    //    }
     .background(Color.black)
-    .id(video.key)
+    .id(video.video.key)
   }
 }

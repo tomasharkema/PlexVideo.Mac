@@ -1,5 +1,6 @@
-@testable import PlexCore
 import XCTest
+
+@testable import PlexCore
 
 final class PlexCoreTests: XCTestCase {
   func testExample() throws {

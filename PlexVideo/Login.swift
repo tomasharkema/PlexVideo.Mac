@@ -19,11 +19,14 @@ struct Login: View {
 
   @MainActor
   private func loginButton() -> some View {
-    Button("Login", action: {
-      Task {
-        await viewModel.login(deviceInfo: DeviceInfo.current)
+    Button(
+      "Login",
+      action: {
+        Task {
+          await viewModel.login(deviceInfo: DeviceInfo.current)
+        }
       }
-    })
+    )
   }
 
   var body: some View {
@@ -35,9 +38,12 @@ struct Login: View {
       case .loading:
         VStack {
           ProgressView()
-          Button("Cancel", action: {
-            viewModel.cancel()
-          })
+          Button(
+            "Cancel",
+            action: {
+              viewModel.cancel()
+            }
+          )
         }
 
       case .loaded:

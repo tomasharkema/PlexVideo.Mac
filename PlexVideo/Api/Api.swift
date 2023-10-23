@@ -20,7 +20,7 @@ struct DeviceInfo {
   @MainActor
   static let shared = DeviceInfo()
 
-  let platform = "tvOS" // UIDevice().systemName
+  let platform = "tvOS"  // UIDevice().systemName
   // let platform = "Windows"
   let name = UIDevice().name
   let device = "iPhone"
@@ -69,9 +69,12 @@ class Api {
     )
   }
 
-  func videoQueryItems(videoKey: VideoKey, videoUuid: VideoSessionUUID, offset: Int,
-                       vr: String? = "4096x2160") -> [URLQueryItem]
-  {
+  func videoQueryItems(
+    videoKey: VideoKey,
+    videoUuid: VideoSessionUUID,
+    offset: Int,
+    vr: String? = "4096x2160"
+  ) -> [URLQueryItem] {
     [
       URLQueryItem(name: "videoResolution", value: vr),
       URLQueryItem(name: "path", value: videoKey.rawValue),
@@ -116,29 +119,29 @@ class Api {
   }
 
   func videoUrl(video: Video, videoUuid: VideoSessionUUID, offset: Int) async throws -> URL {
-//    guard let media = videob
+    //    guard let media = videob
 
-//    let isNativeFormat = ["hls"].contains(media.protocol) || ["mov", "mp4"]
-//      .contains(media.container) && ["mpeg4", "h264", "drmi", "hevc"]
-//      .contains(media.videoCodec) && ["aac", "ac3", "drms"].contains(media.audioCodec)
+    //    let isNativeFormat = ["hls"].contains(media.protocol) || ["mov", "mp4"]
+    //      .contains(media.container) && ["mpeg4", "h264", "drmi", "hevc"]
+    //      .contains(media.videoCodec) && ["aac", "ac3", "drms"].contains(media.audioCodec)
 
-//    let resu = try await decision(
-//      videoKey: video.key,
-//      videoUuid: videoUuid,
-//      offset: offset
-//    )
-//
-//    print(resu)
+    //    let resu = try await decision(
+    //      videoKey: video.key,
+    //      videoUuid: videoUuid,
+    //      offset: offset
+    //    )
+    //
+    //    print(resu)
 
     try await requestor._requestUrl(
       url: serverLocator.root()
         .appendingPathComponent("/video/:/transcode/universal/start.m3u8"),
       queryItems:
-      videoQueryItems(
-        videoKey: video.key,
-        videoUuid: videoUuid,
-        offset: offset
-      )
+        videoQueryItems(
+          videoKey: video.key,
+          videoUuid: videoUuid,
+          offset: offset
+        )
     )
   }
 
@@ -162,9 +165,11 @@ class Api {
     return url
   }
 
-  func timeline(video: Video, time: CMTime,
-                state: PlayingState) async throws -> Root<TranscodeSessions>
-  {
+  func timeline(
+    video: Video,
+    time: CMTime,
+    state: PlayingState
+  ) async throws -> Root<TranscodeSessions> {
     try await requestor.request(
       url: serverLocator.root()
         .appendingPathComponent("/:/timeline"),

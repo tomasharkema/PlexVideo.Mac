@@ -52,11 +52,13 @@ final class VideoDataService {
   }
 
   func fetchVideos(sections: [Directory]) async throws -> [Video] {
-    try await Array(sections.map { s in
-      Task {
-        try await (self.api.all(key: s.key, deviceInfo: .current)).MediaContainer.Metadata
-      }
-    }.whenAll().joined())
+    try await Array(
+      sections.map { s in
+        Task {
+          try await (self.api.all(key: s.key, deviceInfo: .current)).MediaContainer.Metadata
+        }
+      }.whenAll().joined()
+    )
   }
 
   func getVideoList() async throws -> (onDeck: [Video], all: [Video]) {
@@ -73,22 +75,27 @@ final class VideoDataService {
 
     let continueWatching =
       [VideoKey: PlexShared.Progress](uniqueKeysWithValues: continueWatchingResultKeyValue)
-    let videosByKey = Dictionary(uniqueKeysWithValues: videos.map {
-      ($0.key, $0)
-    })
-
-    async let progressArrayMissing = Array(videos.map { video in
-      Task { () -> [(VideoKey, PlexShared.Progress)] in
-        let progress = try await video
-          .getProgress(storage: self.progress(for: video))
-
-        if !progress.isZero, continueWatching[video.key] == nil {
-          return [(video.key, progress)]
-        } else {
-          return []
-        }
+    let videosByKey = Dictionary(
+      uniqueKeysWithValues: videos.map {
+        ($0.key, $0)
       }
-    }.whenAll().joined())
+    )
+
+    async let progressArrayMissing = Array(
+      videos.map { video in
+        Task { () -> [(VideoKey, PlexShared.Progress)] in
+          let progress =
+            try await video
+            .getProgress(storage: self.progress(for: video))
+
+          if !progress.isZero, continueWatching[video.key] == nil {
+            return [(video.key, progress)]
+          } else {
+            return []
+          }
+        }
+      }.whenAll().joined()
+    )
 
     let fixedContinue = try await [continueWatchingResultKeyValue, progressArrayMissing]
       .joined()

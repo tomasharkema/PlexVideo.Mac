@@ -29,59 +29,63 @@ class ServerLocator: ObservableObject {
 
   func root(force: Bool = false) async throws -> URL {
     if force {
-      return try await rootForceOnce.onceKeepOriginal(Task {
-        guard let url = try await chooseServer() else {
-          throw ServerLocatorError.noUrl
+      return try await rootForceOnce.onceKeepOriginal(
+        Task {
+          guard let url = try await chooseServer() else {
+            throw ServerLocatorError.noUrl
+          }
+          lastForceTryDate = Date()
+          return url
         }
-        lastForceTryDate = Date()
-        return url
-      }).value
+      ).value
     }
 
     if let lastConfirmedUrl {
       return lastConfirmedUrl
     }
 
-    return try await rootOnce.onceKeepOriginal(Task {
-      // phase 1: check for last used root and if its still viable...
-      do {
-        if let lastUsed = await Storage.shared.lastUsedRoot {
-          if lastTriedRootDate == nil {
-            _ = try await ping(server: lastUsed)
-            lastTriedRootDate = Date()
+    return try await rootOnce.onceKeepOriginal(
+      Task {
+        // phase 1: check for last used root and if its still viable...
+        do {
+          if let lastUsed = await Storage.shared.lastUsedRoot {
+            if lastTriedRootDate == nil {
+              _ = try await ping(server: lastUsed)
+              lastTriedRootDate = Date()
+            }
+            lastConfirmedUrl = lastUsed
+            return lastUsed
           }
-          lastConfirmedUrl = lastUsed
-          return lastUsed
+        } catch {
+          await MainActor.run {
+            Storage.shared.lastUsedRoot = nil
+          }
+          print("lastUsedRoot not viable... continuing! \(error)")
         }
-      } catch {
-        await MainActor.run {
-          Storage.shared.lastUsedRoot = nil
-        }
-        print("lastUsedRoot not viable... continuing! \(error)")
-      }
 
-      // phase 2: check if saved local and remote ip's are still viable
-      do {
-        if let localHost = await Storage.shared.lastUsedLocalHost,
-           let remoteHost = await Storage.shared.lastUsedRemoteHost,
-           let url = try await selectHost(l: localHost, r: remoteHost)
-        {
-          return url
+        // phase 2: check if saved local and remote ip's are still viable
+        do {
+          if let localHost = await Storage.shared.lastUsedLocalHost,
+            let remoteHost = await Storage.shared.lastUsedRemoteHost,
+            let url = try await selectHost(l: localHost, r: remoteHost)
+          {
+            return url
+          }
+        } catch {
+          await MainActor.run {
+            Storage.shared.lastUsedLocalHost = nil
+            Storage.shared.lastUsedRemoteHost = nil
+          }
+          print("lastUsedLocalHost and lastUsedRemoteHost not viable... continuing! \(error)")
         }
-      } catch {
-        await MainActor.run {
-          Storage.shared.lastUsedLocalHost = nil
-          Storage.shared.lastUsedRemoteHost = nil
-        }
-        print("lastUsedLocalHost and lastUsedRemoteHost not viable... continuing! \(error)")
-      }
 
-      // phase 3: refetch potential servers to connect to
-      guard let url = try await chooseServer() else {
-        throw ServerLocatorError.noUrl
+        // phase 3: refetch potential servers to connect to
+        guard let url = try await chooseServer() else {
+          throw ServerLocatorError.noUrl
+        }
+        return url
       }
-      return url
-    }).value
+    ).value
   }
 
   private func ping(server: URL) async throws -> (Root<Version>, TimeInterval) {
@@ -133,17 +137,19 @@ class ServerLocator: ObservableObject {
   private func executePings(servers: [(Connection, URL)]) async throws
     -> (Connection, URL)?
   {
-    try await whenAny(servers.map { server in
-      { () -> (Connection, URL)? in
-        do {
-          _ = try await self.ping(server: server.1)
-          return (server.0, server.1)
-        } catch {
-          print(error)
-          return nil
+    try await whenAny(
+      servers.map { server in
+        { () -> (Connection, URL)? in
+          do {
+            _ = try await self.ping(server: server.1)
+            return (server.0, server.1)
+          } catch {
+            print(error)
+            return nil
+          }
         }
       }
-    })
+    )
   }
 
   private func chooseServer() async throws -> URL? {
@@ -158,20 +164,24 @@ class ServerLocator: ObservableObject {
         URL(string: server.uri).map { [(server, $0)] } ?? []
       }
 
-    let serversGroupedByLocal = Dictionary(grouping: servers, by: {
-      $0.0.local
-    })
+    let serversGroupedByLocal = Dictionary(
+      grouping: servers,
+      by: {
+        $0.0.local
+      }
+    )
 
     async let localPings = executePings(servers: serversGroupedByLocal[true] ?? [])
     async let remotePings = executePings(servers: serversGroupedByLocal[false] ?? [])
 
-    let choice: (Connection, URL)? = if let local = try? await localPings {
-      local
-    } else if let remote = try await remotePings {
-      remote
-    } else {
-      nil
-    }
+    let choice: (Connection, URL)? =
+      if let local = try? await localPings {
+        local
+      } else if let remote = try await remotePings {
+        remote
+      } else {
+        nil
+      }
 
     await MainActor.run {
       Storage.shared.lastUsedRoot = choice?.1
@@ -191,16 +201,18 @@ class ServerLocator: ObservableObject {
   }
 
   func invalidate() async {
-    _ = await invalidateOnce.onceKeepOriginal(Task {
-      lastConfirmedUrl = nil
-      await MainActor.run {
-        Storage.shared.lastUsedRoot = nil
+    _ = await invalidateOnce.onceKeepOriginal(
+      Task {
+        lastConfirmedUrl = nil
+        await MainActor.run {
+          Storage.shared.lastUsedRoot = nil
+        }
+        do {
+          _ = try await root(force: true)
+        } catch {
+          print(error)
+        }
       }
-      do {
-        _ = try await root(force: true)
-      } catch {
-        print(error)
-      }
-    }).value
+    ).value
   }
 }

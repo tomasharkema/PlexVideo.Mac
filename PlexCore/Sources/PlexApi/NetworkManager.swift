@@ -16,10 +16,15 @@ public final class NetworkManager: NSObject, Sendable {
   private let delegate: NetworkManagerDelegate
   public let session: URLSession
 
-  private let metricsStream: SharedAsyncSequence<AsyncStream<(
-    URLSessionTaskTransactionMetrics,
-    UUID
-  )>>
+  private let metricsStream:
+    SharedAsyncSequence<
+      AsyncStream<
+        (
+          URLSessionTaskTransactionMetrics,
+          UUID
+        )
+      >
+    >
 
   override init() {
     let delegate = NetworkManagerDelegate()
@@ -88,8 +93,8 @@ class NetworkManagerDelegate: NSObject, URLSessionDataDelegate {
   }
 }
 
-public extension InjectedValues {
-  var networkManager: NetworkManager {
+extension InjectedValues {
+  public var networkManager: NetworkManager {
     get { Self[NetworkManagerKey.self] }
     set { Self[NetworkManagerKey.self] = newValue }
   }

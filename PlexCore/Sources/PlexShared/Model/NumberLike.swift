@@ -42,8 +42,8 @@ public struct NumberLike: Codable, Equatable, Sendable {
   }
 }
 
-public extension Double {
-  var doubleLike: NumberLike {
+extension Double {
+  public var doubleLike: NumberLike {
     NumberLike(value: self)
   }
 }

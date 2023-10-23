@@ -32,8 +32,8 @@ public struct Video: Identifiable, Equatable, Hashable, Sendable {
   public let childCount: NumberLike?
   public let grandparentThumb: String?
 
-  public var id: String {
-    key.rawValue
+  public var id: VideoKey {
+    key
   }
 
   public var displayTitle: String {
@@ -43,16 +43,17 @@ public struct Video: Identifiable, Equatable, Hashable, Sendable {
   public func getProgress(storage storageProgress: Progress?) -> Progress {
     let remoteProgress = Progress(video: self)
 
-    let viableStorageProgress: Progress? = if let storageProgress {
-      if abs(storageProgress.date.timeIntervalSinceNow) < 7 * 24 * 60 * 60 {
-        storageProgress
+    let viableStorageProgress: Progress? =
+      if let storageProgress {
+        if abs(storageProgress.date.timeIntervalSinceNow) < 7 * 24 * 60 * 60 {
+          storageProgress
+        } else {
+          nil
+        }
+
       } else {
         nil
       }
-
-    } else {
-      nil
-    }
 
     switch (remoteProgress, viableStorageProgress) {
     case let (remote?, storage?) where storage.date > remote.date:

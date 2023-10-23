@@ -16,9 +16,9 @@ struct VideoListItem: View {
   @Environment(CurrentVideoViewModel.self)
   private var currentVideoViewModel
 
-  private let video: Video
+  private let video: VideoFromServer
 
-  init(video: Video) {
+  init(video: VideoFromServer) {
     self.video = video
   }
 
@@ -28,7 +28,9 @@ struct VideoListItem: View {
 
   @ViewBuilder
   private func progressBar() -> some View {
-    if let viewOffset = video.viewOffset?.value, let duration = video.media?.first?.duration.value {
+    if let viewOffset = video.video.viewOffset?.value,
+      let duration = video.video.media?.first?.duration.value
+    {
       Rectangle()
         .foregroundColor(PublicColor.plexTint)
         .frame(
@@ -53,7 +55,8 @@ struct VideoListItem: View {
   }
 
   private var currentVideoBackground: Color {
-    currentVideoViewModel.video?.key == video.key ? Color(PublicColor.plexTint) : Color.clear
+    currentVideoViewModel.video?.video.key == video.video.key
+      ? Color(PublicColor.plexTint) : Color.clear
   }
 
   var body: some View {
@@ -65,7 +68,7 @@ struct VideoListItem: View {
       .cornerRadius(5)
       .frame(width: ThumbViewModel.thumbSize.width, height: ThumbViewModel.thumbSize.height)
 
-      Text(video.displayTitle)
+      Text(video.video.displayTitle)
         .fontWeight(.regular)
         .lineLimit(2, reservesSpace: true)
         .truncationMode(.tail)
@@ -74,10 +77,10 @@ struct VideoListItem: View {
     .frame(width: ThumbViewModel.thumbSize.width)
     .padding(5)
     .background(currentVideoBackground)
-//    .background(hoveredVideoBackground)
+    //    .background(hoveredVideoBackground)
     .cornerRadius(5)
     .drawingGroup()
-//    .compositingGroup()
+    //    .compositingGroup()
   }
 }
 
@@ -87,9 +90,9 @@ extension VideoListItem: Equatable {
   }
 }
 
-#Preview(traits: .sizeThatFitsLayout) {
-  VideoListItem(video: .preview())
-    .environment(CurrentVideoViewModel())
-    .preferredColorScheme(.dark)
-    .previewLayout(.sizeThatFits)
-}
+//#Preview(traits: .sizeThatFitsLayout) {
+//  VideoListItem(video: .preview())
+//    .environment(CurrentVideoViewModel())
+//    .preferredColorScheme(.dark)
+//    .previewLayout(.sizeThatFits)
+//}

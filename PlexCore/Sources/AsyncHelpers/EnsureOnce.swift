@@ -12,7 +12,9 @@ public actor EnsureOnce<IdentifierType: Hashable & Sendable, ResultType: Sendabl
   private var handlers = [IdentifierType: StoredTask<IdentifierType, ResultType>]()
 
   public init(
-    file: String = #file, line: UInt = #line, function: String = #function
+    file: String = #file,
+    line: UInt = #line,
+    function: String = #function
   ) {
     self.init(location: HandlerLocation(file: file, line: line, function: function))
   }
@@ -27,10 +29,15 @@ public actor EnsureOnce<IdentifierType: Hashable & Sendable, ResultType: Sendabl
     id: IdentifierType,
     cacheDuration: Duration? = nil,
     _ handler: @Sendable @escaping () async throws -> ResultType,
-    file: String = #file, line: UInt = #line, function: String = #function
+    file: String = #file,
+    line: UInt = #line,
+    function: String = #function
   ) async throws -> ResultType {
     try await once(
-      id: id, cacheDuration: cacheDuration, handler, location: HandlerLocation(
+      id: id,
+      cacheDuration: cacheDuration,
+      handler,
+      location: HandlerLocation(
         file: file,
         line: line,
         function: function
@@ -49,13 +56,16 @@ public actor EnsureOnce<IdentifierType: Hashable & Sendable, ResultType: Sendabl
     }
     let result = try await StaticStorage.shared.get(location: location)
       .once(id: id.hashValue, cacheDuration: cacheDuration, handler, location: location)
+    // swiftlint:disable:next force_cast
     return result as! ResultType
   }
 
   public static func once(
     cacheDuration: Duration? = nil,
     _ handler: @Sendable @escaping () async throws -> ResultType,
-    file: String = #file, line: UInt = #line, function: String = #function
+    file: String = #file,
+    line: UInt = #line,
+    function: String = #function
   ) async throws -> ResultType where IdentifierType == HandlerLocation {
     let location = HandlerLocation(file: file, line: line, function: function)
     return try await once(id: location, cacheDuration: cacheDuration, handler, location: location)
@@ -65,7 +75,9 @@ public actor EnsureOnce<IdentifierType: Hashable & Sendable, ResultType: Sendabl
   public func once(
     cacheDuration: Duration? = nil,
     _ handler: @Sendable @escaping () async throws -> ResultType,
-    file _: String = #file, line _: UInt = #line, function _: String = #function
+    file _: String = #file,
+    line _: UInt = #line,
+    function _: String = #function
   ) async throws -> ResultType where IdentifierType == HandlerLocation {
     try await once(id: initLocation, cacheDuration: cacheDuration, handler, location: initLocation)
   }
@@ -84,7 +96,10 @@ public actor EnsureOnce<IdentifierType: Hashable & Sendable, ResultType: Sendabl
       let task = existingHandler.task
 
       let res = handleExistingResult(
-        id: id, task: task, state: state, cacheDuration: cacheDuration
+        id: id,
+        task: task,
+        state: state,
+        cacheDuration: cacheDuration
       )
 
       switch res {
@@ -105,9 +120,13 @@ public actor EnsureOnce<IdentifierType: Hashable & Sendable, ResultType: Sendabl
       }
     }
 
-    handlers[id] = StoredTask(identifier: id, task: TaskState {
-      try await task.value
-    }, storeDate: .now)
+    handlers[id] = StoredTask(
+      identifier: id,
+      task: TaskState {
+        try await task.value
+      },
+      storeDate: .now
+    )
 
     do {
       let result = try await task.value
@@ -121,7 +140,9 @@ public actor EnsureOnce<IdentifierType: Hashable & Sendable, ResultType: Sendabl
     id: IdentifierType,
     cacheDuration: Duration? = nil,
     _ handler: @Sendable @escaping () async throws -> ResultType,
-    file: String = #file, line: UInt = #line, function: String = #function
+    file: String = #file,
+    line: UInt = #line,
+    function: String = #function
   ) async throws -> ResultType {
     try await once(
       id: id,

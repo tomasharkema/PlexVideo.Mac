@@ -31,7 +31,7 @@ struct MainView: View {
   private var logoutViewModel = LogoutViewModel()
 
   @State
-  private var pinger = ServerPinger()
+  private var serversViewModel = ServersViewModel()
 
   @ViewBuilder
   private func navigationItem(_ item: NavigationItem) -> some View {
@@ -48,37 +48,23 @@ struct MainView: View {
     ZStack(alignment: .top) {
       NavigationSplitView {
         SideMenu(menuSelection: $menuSelection)
-          .background(.black)
+        //          .background(.black)
 
       } detail: {
         switch menuSelection {
         case .some(.home), .none:
           VideosGridScreen()
-            .background(.black)
 
         case .some(.settings):
           SettingsScreen(logoutHandler: {
             logoutViewModel.logout()
           })
-          .background(.black)
 
         case .some(.servers):
-          ServersScreen(
-            servers: serverLocator.servers ?? [],
-            currentConnection: serverLocator.connection,
-            pings: pinger.pingsByConnection
-          )
-          .background(.black)
-          .onAppear {
-            pinger.startPinging()
-          }
-          .onDisappear {
-            pinger.stopPinging()
-          }
+          ServersScreen().environment(serversViewModel)
 
         default:
           VideosGridScreen()
-            .background(.black)
         }
       }
       .navigationSplitViewStyle(.balanced)

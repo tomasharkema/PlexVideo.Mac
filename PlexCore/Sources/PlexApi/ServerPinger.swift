@@ -7,10 +7,18 @@
 
 import Inject
 import OSLog
+import PlexShared
+import Processed
 import SwiftUI
 
+public struct PingerState {
+  public var results: [ServerWithConnection.ID: PingResult]
+  public var lastRun: Date
+}
+
+@MainActor
 @Observable
-public final class ServerPinger: Sendable {
+public final class ServerPinger: Sendable, LoadableSupport {
   @ObservationIgnored
   private let logger = Logger(subsystem: "PlexVideo", category: "ServerPinger")
 
@@ -18,70 +26,54 @@ public final class ServerPinger: Sendable {
   @Injected(\.serverLocator)
   private var serverLocator
 
-  @ObservationIgnored
-  private var pingerTask: Task<Void, Never>?
-
-  @MainActor
-  public private(set) var pings = [PingResult]()
-
-  @MainActor
-  public private(set) var pingsByConnection = [Connection: PingResult]()
+  public private(set) var state: LoadableState<PingerState> = .absent
 
   public init() {}
 
-  @MainActor
-  private func updatePing(ping: PingResult) {
-    pingsByConnection[ping.connection] = ping
-    let values = pingsByConnection.values
-    pings = Array(values)
+  private func updatePing(ping: PingResult, yield: (PingerState) -> Void) {
+    var updated = state.data ?? PingerState(results: [:], lastRun: .now)
+    updated.results[ping.serverWithConnection.id] = ping
+    yield(updated)
   }
 
-  private func ping(timeout: Duration = .seconds(1)) async {
+  private func ping(timeout: Duration = .seconds(1), yield: (PingerState) -> Void) async {
     do {
       let stream = try await serverLocator.pingsStream(
         timeout: timeout
       )
       try Task.checkCancellation()
 
-      for await ping in stream {
-        await updatePing(ping: ping)
-      }
+      var updated = state.data ?? PingerState(results: [:], lastRun: .now)
+      updated.lastRun = .now
+      yield(updated)
 
-//      await MainActor.run {
-//        self.pings = stream
-//        self.pingsByConnection = Dictionary(
-//          stream.map { ($0.connection, $0) }
-//        ) { first, second in
-//          return first
-//        }
-//      }
+      for await ping in stream {
+        updatePing(ping: ping, yield: yield)
+      }
     } catch is CancellationError {
       // noop
     } catch {
-      assertionFailure()
       logger.error("ping error: \(error)")
     }
   }
 
   public func startPinging() {
-    guard pingerTask == nil else {
-      return
-    }
-
-    let task = Task(priority: .low) {
+    self.load(\.state, priority: .low) { yield in
       while !Task.isCancelled {
-        try? await Task.sleep(for: .seconds(5))
-        logger.info("startPinging start")
-        await ping()
-        logger.info("startPinging finished")
+        self.logger.info("startPinging start")
+        await self.ping { value in
+          yield(.loaded(value))
+        }
+        self.logger.info("startPinging finished")
+        try? await Task.sleep(for: .seconds(10))
       }
-      logger.info("CANCELLED?")
+      self.logger.info("CANCELLED?")
     }
-    pingerTask = task
   }
 
   public func stopPinging() {
-    pingerTask?.cancel()
-    pingerTask = nil
+    self.cancel(\.state)
+    //    pingerTask?.cancel()
+    //    pingerTask = nil
   }
 }

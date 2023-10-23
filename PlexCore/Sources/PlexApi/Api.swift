@@ -11,41 +11,48 @@ import Inject
 import PlexShared
 
 public final class Api {
-  @Injected(\.serverLocator)
-  private var serverLocator
+  //  @Injected(\.serverLocator)
+  //  private var serverLocator
 
   @Injected(\.requestor)
   private var requestor
 
-  public func sections() async throws -> Root<DirectoryContainer> {
+  public func sections(server: ServerWithCurrentConnection) async throws -> Root<DirectoryContainer>
+  {
     try await requestor.request(
-      url: serverLocator.root().uri
+      url: server.uri
         .appendingPathComponent("/library/sections"),
       Root<DirectoryContainer>.self
     )
   }
 
-  public func all(key: SectionKey, reload: Bool) async throws -> Root<Metadata<Video>> {
+  public func all(server: ServerWithCurrentConnection, key: SectionKey, reload: Bool) async throws
+    -> Root<Metadata<Video>>
+  {
     try await requestor.request(
-      url: serverLocator.root().uri
+      url: server.uri
         .appendingPathComponent("/library/sections/\(key.rawValue)/all"),
       Root<Metadata<Video>>.self,
       useCache: !reload
     )
   }
 
-  public func onDeck(ratingKey: RatingKey) async throws -> Root<Metadata<Video>> {
+  public func onDeck(server: ServerWithCurrentConnection, ratingKey: RatingKey) async throws
+    -> Root<Metadata<Video>>
+  {
     try await requestor.request(
-      url: serverLocator.root().uri
+      url: server.uri
         .appendingPathComponent("/library/metadata/\(ratingKey.rawValue)"),
       Root<Metadata<Video>>.self,
       queryItems: [URLQueryItem(name: "includeOnDeck", value: "1")]
     )
   }
 
-  private func status(deviceInfo _: DeviceInfo) async throws -> Root<Metadata<SessionStatus>> {
+  private func status(server: ServerWithCurrentConnection) async throws -> Root<
+    Metadata<SessionStatus>
+  > {
     try await requestor.request(
-      url: serverLocator.root().uri
+      url: server.uri
         .appendingPathComponent("/status/sessions"),
       Root<Metadata<SessionStatus>>.self
     )
@@ -83,72 +90,73 @@ public final class Api {
     ]
   }
 
-//  func decision(
-//    videoKey: VideoKey,
-//    videoUuid: VideoSessionUUID,
-//    offset: Int,
-//    videoResolution: String? = "4096x2160",
-//    subtitles: String?,
-//    deviceInfo: DeviceInfo
-//  ) async throws -> Root<Metadata<Video>> {
-//    try await requestor.request(
-//      url: serverLocator.root()
-//        .appendingPathComponent("/video/:/transcode/universal/decision"),
-//      deviceInfo: deviceInfo,
-//      queryItems: videoQueryItems(
-//        videoKey: videoKey,
-//        videoUuid: videoUuid,
-//        offset: offset,
-//        vr: videoResolution,
-//        subtitles: subtitles
-//      )
-//    )
-//  }
+  //  func decision(
+  //    videoKey: VideoKey,
+  //    videoUuid: VideoSessionUUID,
+  //    offset: Int,
+  //    videoResolution: String? = "4096x2160",
+  //    subtitles: String?,
+  //    deviceInfo: DeviceInfo
+  //  ) async throws -> Root<Metadata<Video>> {
+  //    try await requestor.request(
+  //      url: serverLocator.root()
+  //        .appendingPathComponent("/video/:/transcode/universal/decision"),
+  //      deviceInfo: deviceInfo,
+  //      queryItems: videoQueryItems(
+  //        videoKey: videoKey,
+  //        videoUuid: videoUuid,
+  //        offset: offset,
+  //        vr: videoResolution,
+  //        subtitles: subtitles
+  //      )
+  //    )
+  //  }
 
   public func videoUrl(
-    video: Video, videoUuid: VideoSessionUUID, offset: Int
+    server: ServerWithCurrentConnection,
+    video: Video,
+    videoUuid: VideoSessionUUID,
+    offset: Int
   ) async throws -> URL {
-//    guard let media = videob
+    //    guard let media = videob
 
-//    let isNativeFormat = ["hls"].contains(media.protocol) || ["mov", "mp4"]
-//      .contains(media.container) && ["mpeg4", "h264", "drmi", "hevc"]
-//      .contains(media.videoCodec) && ["aac", "ac3", "drms"].contains(media.audioCodec)
+    //    let isNativeFormat = ["hls"].contains(media.protocol) || ["mov", "mp4"]
+    //      .contains(media.container) && ["mpeg4", "h264", "drmi", "hevc"]
+    //      .contains(media.videoCodec) && ["aac", "ac3", "drms"].contains(media.audioCodec)
 
-//    let resu = try await decision(
-//      videoKey: video.key,
-//      videoUuid: videoUuid,
-//      offset: offset
-//    )
-//
-//    print(resu)
+    //    let resu = try await decision(
+    //      videoKey: video.key,
+    //      videoUuid: videoUuid,
+    //      offset: offset
+    //    )
+    //
+    //    print(resu)
 
     try await requestor.requestUrl(
-      url: serverLocator.root().uri
+      url: server.uri
         .appendingPathComponent("/video/:/transcode/universal/start.m3u8"),
       queryItems:
-      videoQueryItems(
-        videoKey: video.key,
-        videoUuid: videoUuid,
-        offset: offset,
-        subtitles: "auto"
-      )
+        videoQueryItems(
+          videoKey: video.key,
+          videoUuid: videoUuid,
+          offset: offset,
+          subtitles: "auto"
+        )
     )
   }
 
   @MainActor
   public func imageUrl(
-    root: URL,
-    item: Video,
+    item: VideoFromServer,
     width: Int,
     height: Int,
-    deviceInfo _: DeviceInfo,
     uuid: String?,
     token: String?
   ) -> URL {
     requestor.requestUrl(
-      url: root.appendingPathComponent("/photo/:/transcode"),
+      url: item.server.connection.uri.appendingPathComponent("/photo/:/transcode"),
       queryItems: [
-        URLQueryItem(name: "url", value: item.grandparentThumb ?? item.thumb),
+        URLQueryItem(name: "url", value: item.video.grandparentThumb ?? item.video.thumb),
         URLQueryItem(name: "width", value: "\(width)"),
         URLQueryItem(name: "height", value: "\(height)"),
         URLQueryItem(name: "upscale", value: "1"),
@@ -159,11 +167,13 @@ public final class Api {
   }
 
   public func timeline(
-    video: Video, time: CMTime,
+    server: ServerWithCurrentConnection,
+    video: Video,
+    time: CMTime,
     state: PlayingState
   ) async throws -> Root<TranscodeSessions> {
     try await requestor.request(
-      url: serverLocator.root().uri
+      url: server.uri
         .appendingPathComponent("/:/timeline"),
       Root<TranscodeSessions>.self,
       queryItems: [
@@ -180,9 +190,12 @@ public final class Api {
     )
   }
 
-  public func continueWatching(contentDirectoryIDs: [SectionKey]) async throws -> Root<Hub<Video>> {
+  public func continueWatching(
+    server: ServerWithCurrentConnection,
+    contentDirectoryIDs: [SectionKey]
+  ) async throws -> Root<Hub<Video>> {
     try await requestor.request(
-      url: serverLocator.root().uri.appendingPathComponent("/hubs/continueWatching"),
+      url: server.uri.appendingPathComponent("/hubs/continueWatching"),
       Root<Hub<Video>>.self,
       queryItems: [
         URLQueryItem(
@@ -193,14 +206,40 @@ public final class Api {
       ]
     )
   }
+
+  public func sessions(server: ServerWithCurrentConnection) async throws -> String {
+    try await requestor.request(
+      url: server.uri.appendingPathComponent("/status/sessions"),
+      String.self
+    )
+  }
 }
 
 enum PlexError: Error {
   case noMedia
 }
 
-public extension InjectedValues {
-  var api: Api {
+extension DateFormatter {
+  public static let iso8601Full: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
+    //    formatter.calendar = Calendar(identifier: .iso8601)
+    //    formatter.timeZone = TimeZone(secondsFromGMT: 0)
+    //    formatter.locale = Locale(identifier: "en_US_POSIX")
+    return formatter
+  }()
+}
+
+extension JSONDecoder {
+  public static let `default`: JSONDecoder = {
+    let decoder = JSONDecoder()
+    decoder.dateDecodingStrategy = .formatted(.iso8601Full)
+    return decoder
+  }()
+}
+
+extension InjectedValues {
+  public var api: Api {
     get { Self[ApiKey.self] }
     set { Self[ApiKey.self] = newValue }
   }

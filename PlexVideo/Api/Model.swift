@@ -156,16 +156,17 @@ struct Video: Codable, Identifiable, Equatable, Hashable {
   func getProgress(storage storageProgress: Progress?) -> Progress {
     let remoteProgress = Progress(video: self)
 
-    let viableStorageProgress: Progress? = if let storageProgress {
-      if abs(storageProgress.date.timeIntervalSinceNow) < 7 * 24 * 60 * 60 {
-        storageProgress
+    let viableStorageProgress: Progress? =
+      if let storageProgress {
+        if abs(storageProgress.date.timeIntervalSinceNow) < 7 * 24 * 60 * 60 {
+          storageProgress
+        } else {
+          nil
+        }
+
       } else {
         nil
       }
-
-    } else {
-      nil
-    }
 
     switch (remoteProgress, viableStorageProgress) {
     case let (remote?, storage?) where storage.date > remote.date:
@@ -189,13 +190,15 @@ struct Video: Codable, Identifiable, Equatable, Hashable {
 extension Video {
   static func preview(id: String = UUID().uuidString) -> Video {
     Video(
-      key: VideoKey(rawValue: id), title: "Dit is een titel van een hele lange film",
+      key: VideoKey(rawValue: id),
+      title: "Dit is een titel van een hele lange film",
       titleSort: "is",
-      parentTitle: nil, grandparentTitle: nil,
+      parentTitle: nil,
+      grandparentTitle: nil,
       thumb: "https://static.posters.cz/image/750/posters/pulp-fiction-cover-i1288.jpg",
       art: "ding",
       Media: [
-        PlexVideo.Media.preview(),
+        PlexVideo.Media.preview()
       ],
       ratingKey: RatingKey(rawValue: id),
       viewOffset: NumberLike(value: 1000),
@@ -204,7 +207,10 @@ extension Video {
       leafCount: NumberLike(value: 1000),
       viewedLeafCount: Date().timeIntervalSince1970.doubleLike,
       OnDeck: nil,
-      grandparentKey: nil, parentKey: nil, childCount: nil, grandparentThumb: nil
+      grandparentKey: nil,
+      parentKey: nil,
+      childCount: nil,
+      grandparentThumb: nil
     )
   }
 }
@@ -250,8 +256,7 @@ extension Media {
       protocol: "mkv",
       indirect: "0",
       selected: true,
-      Part: [
-      ]
+      Part: []
     )
   }
 }

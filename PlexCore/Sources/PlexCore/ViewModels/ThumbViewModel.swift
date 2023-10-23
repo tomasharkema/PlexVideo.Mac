@@ -20,7 +20,7 @@ public final class ThumbViewModel: LoadableSupport {
   private let logger = Logger(subsystem: "PlexVideo", category: "ThumbViewModel")
 
   @MainActor
-  private static var instanceCache = [VideoKey: ThumbViewModel]()
+  private static var instanceCache = [VideoFromServer.ID: ThumbViewModel]()
 
   public nonisolated static let thumbSize = CGSize(width: 120, height: 180)
 
@@ -38,24 +38,24 @@ public final class ThumbViewModel: LoadableSupport {
   @Injected(\.storage)
   private var storage
 
-  private let video: Video
+  private let video: VideoFromServer
 
   private var isLoadingTask: Task<Void, any Error>?
   public private(set) var image: PlexImage?
 
   @MainActor
-  public static func get(for video: Video) -> ThumbViewModel {
-    if let fromCache = instanceCache[video.key] {
+  public static func get(for video: VideoFromServer) -> ThumbViewModel {
+    if let fromCache = instanceCache[video.id] {
       return fromCache
     }
     let newInstance = ThumbViewModel(video: video)
-    instanceCache[video.key] = newInstance
+    instanceCache[video.id] = newInstance
     return newInstance
   }
 
-  private init(video: Video) {
+  private init(video: VideoFromServer) {
     self.video = video
-    image = imageStore.fetchByID(video.assetId)?.image
+    image = imageStore.fetchByID(video.video.assetId)?.image
   }
 
   public func start() async {
@@ -68,7 +68,7 @@ public final class ThumbViewModel: LoadableSupport {
         return
       }
 
-      guard let root = serverLocator.connection, let token = storage.plexToken else {
+      guard let token = storage.plexToken else {
         return
       }
 
@@ -79,16 +79,18 @@ public final class ThumbViewModel: LoadableSupport {
 
         let uuid = storage.uuid
         let url = self.api.imageUrl(
-          root: root.uri,
           item: self.video,
           width: Int(size.width),
           height: Int(size.height),
-          deviceInfo: DeviceInfo.current,
           uuid: uuid,
           token: token
         )
 
-        let (asset, remote) = try await imageStore.loadAssetByID(video.assetId, url, size: size)
+        let (asset, remote) = try await imageStore.loadAssetByID(
+          video.video.assetId,
+          url,
+          size: size
+        )
 
         let assetImage = asset.image
 

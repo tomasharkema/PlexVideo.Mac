@@ -41,7 +41,7 @@ struct PlexVideoApp: App {
       .environment(videosViewModel)
       .environment(currentVideoViewModel)
       .environmentObject(dependencyInjector)
-      .environment(\.font, .plex)
+    //      .environment(\.font, .plex)
   }
 
   var body: some Scene {
@@ -61,7 +61,7 @@ struct PlexVideoApp: App {
     #if os(macOS)
       MenuBarExtra("PlexVideo", systemImage: "recordingtape.circle") {
         if let video = currentVideoViewModel.video {
-          Text("Now playing: \(video.title)")
+          Text("Now playing: \(video.video.title)")
           Divider()
         }
         LoadingButton(

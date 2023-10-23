@@ -17,8 +17,8 @@ public struct LoadingButton<TextViewType: View, LoadingTextViewType: View>: View
   public private(set) var isExecuting = false
 
   public init(
-    text: @escaping () -> TextViewType,
-    loadingText: @escaping () -> LoadingTextViewType,
+    @ViewBuilder text: @escaping () -> TextViewType,
+    @ViewBuilder loadingText: @escaping () -> LoadingTextViewType,
     priority: TaskPriority = .userInitiated,
     action: @escaping @Sendable () async -> Void
   ) {

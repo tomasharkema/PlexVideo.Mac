@@ -105,8 +105,8 @@ public final class Requestor: Sendable {
           queryItems: queryItemsAndUUID,
           sendDefaultQueries: sendDefaultQueries
         ),
-        cachePolicy: (useCache && requestUUID != nil) ? .returnCacheDataElseLoad :
-          .reloadIgnoringLocalAndRemoteCacheData
+        cachePolicy: (useCache && requestUUID != nil)
+          ? .returnCacheDataElseLoad : .reloadIgnoringLocalAndRemoteCacheData
       )
 
     mutualRequest.httpMethod = method
@@ -125,7 +125,7 @@ public final class Requestor: Sendable {
       try HTTPError.throwFor(urlResponse: response)
 
       do {
-        return try JSONDecoder().decode(type, from: data)
+        return try JSONDecoder.default.decode(type, from: data)
       } catch {
         #if DEBUG
           logger
@@ -136,21 +136,22 @@ public final class Requestor: Sendable {
         throw error
       }
     } catch let error as URLError {
-      logger
-        .error(
-          "request URLError \(error.localizedDescription), \(String(describing: error.code)), \(url)"
-        )
+      //      logger
+      //        .error(
+      //          "request URLError \(error.localizedDescription), \(String(describing: error.code)), \(url)"
+      //        )
 
       if invalidateAfterError,
-         error.code == .cannotConnectToHost || error.code == .cannotFindHost || error
-         .code == .dnsLookupFailed
+        error.code == .cannotConnectToHost || error.code == .cannotFindHost
+          || error
+            .code == .dnsLookupFailed
       {
         logger.warning("NO HOST FOUND")
         Task {
           await serverLocator.invalidate()
         }
       }
-//
+      //
       throw error
     } catch {
       logger.error("request error \(error), \(url)")
@@ -165,8 +166,8 @@ public protocol RequestorStorageProviding {
   var uuid: String { get }
 }
 
-public extension InjectedValues {
-  var requestorStorageProviding: any RequestorStorageProviding {
+extension InjectedValues {
+  public var requestorStorageProviding: any RequestorStorageProviding {
     get { Self[RequestorStorageProvidingKey.self] }
     set { Self[RequestorStorageProvidingKey.self] = newValue }
   }
@@ -176,8 +177,8 @@ public struct RequestorStorageProvidingKey: InjectionKey {
   public static var currentValue: (any RequestorStorageProviding)?
 }
 
-public extension InjectedValues {
-  var requestor: Requestor {
+extension InjectedValues {
+  public var requestor: Requestor {
     get { Self[RequestorKey.self] }
     set { Self[RequestorKey.self] = newValue }
   }

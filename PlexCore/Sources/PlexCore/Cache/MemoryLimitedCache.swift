@@ -7,8 +7,8 @@
 
 import Combine
 import Foundation
-import os
 import UniformTypeIdentifiers
+import os
 
 #if os(iOS)
   import UIKit
@@ -28,8 +28,8 @@ final class MemoryLimitedCache: Cache, Sendable {
   private(set) var currentMemoryUsage = Measurement<UnitInformationStorage>.zero
 
   private let accessLock = UnfairLock()
-  private var assets: [Asset.ID: Asset] = [:] // GuardedBy(accessLock)
-  private var protectedAssetIDs: [Asset.ID: Int] = [:] // GuardedBy(accessLock)
+  private var assets: [Asset.ID: Asset] = [:]  // GuardedBy(accessLock)
+  private var protectedAssetIDs: [Asset.ID: Int] = [:]  // GuardedBy(accessLock)
   private var cancellation = [AnyCancellable]()
 
   private let logger: Logger
@@ -38,10 +38,11 @@ final class MemoryLimitedCache: Cache, Sendable {
   // The default memory limit is 320 MB, which is very large. This is because there are
   // incredibly large assets for demonstration purposes. Rely on the Image resizing APIs
   // to scale images to the size needed and to save memory.
-  init(limit: Measurement<UnitInformationStorage> = .init(value: 320, unit: .megabytes),
-       logger: Logger = .default,
-       signposter: OSSignposter? = nil)
-  {
+  init(
+    limit: Measurement<UnitInformationStorage> = .init(value: 320, unit: .megabytes),
+    logger: Logger = .default,
+    signposter: OSSignposter? = nil
+  ) {
     memoryLimit = limit
     self.logger = logger
     self.signposter = signposter ?? OSSignposter(logger: logger)
@@ -65,34 +66,34 @@ final class MemoryLimitedCache: Cache, Sendable {
 
   // Asset with `id` will have its retention priority increased by 1 until `.cancel` is called.
   // - Returns: Cancellable which will decrease the priority by 1.
-//  func takeAssertionForID(_ id: Asset.ID) -> AnyCancellable? {
-//    let lock = self.accessLock.acquire()
-//    defer { lock.cancel() }
-//
-//    guard self.assets[id] != nil else { return nil }
-//
-//    let signpostID = signposter.makeSignpostID()
-//    let interval = signposter.beginInterval("Assertion", id: signpostID, "id=\(id, attributes:
-//    "name=id")")
-//
-//    protectedAssetIDs[id, default: 0] += 1
-//    return AnyCancellable { [weak self] in
-//      guard let self = self else { return }
-//      self.accessLock.withLock {
-//        guard var retainCount = self.protectedAssetIDs[id] else { return }
-//        retainCount -= 1
-//        // Passing nil to remove the id from `protectedAssetID`.
-//        self.protectedAssetIDs[id] = retainCount > 0 ? retainCount : nil
-//      }
-//      self.signposter.endInterval("Assertion", interval)
-//    }
-//  }
+  //  func takeAssertionForID(_ id: Asset.ID) -> AnyCancellable? {
+  //    let lock = self.accessLock.acquire()
+  //    defer { lock.cancel() }
+  //
+  //    guard self.assets[id] != nil else { return nil }
+  //
+  //    let signpostID = signposter.makeSignpostID()
+  //    let interval = signposter.beginInterval("Assertion", id: signpostID, "id=\(id, attributes:
+  //    "name=id")")
+  //
+  //    protectedAssetIDs[id, default: 0] += 1
+  //    return AnyCancellable { [weak self] in
+  //      guard let self = self else { return }
+  //      self.accessLock.withLock {
+  //        guard var retainCount = self.protectedAssetIDs[id] else { return }
+  //        retainCount -= 1
+  //        // Passing nil to remove the id from `protectedAssetID`.
+  //        self.protectedAssetIDs[id] = retainCount > 0 ? retainCount : nil
+  //      }
+  //      self.signposter.endInterval("Assertion", interval)
+  //    }
+  //  }
 
   func add(asset: Asset) {
-//    guard !asset.isPlaceholder else {
-//      logger.notice("Placeholder (\(asset.id)) was sent to MemoryLimitedCache - Rejecting.")
-//      return
-//    }
+    //    guard !asset.isPlaceholder else {
+    //      logger.notice("Placeholder (\(asset.id)) was sent to MemoryLimitedCache - Rejecting.")
+    //      return
+    //    }
 
     let estimatedMemory = estimatedMemory(of: asset)
     signposter.emitEvent("AddAsset", "assetID=\(asset.id) memoryUsage=\(estimatedMemory)")
@@ -142,8 +143,13 @@ final class MemoryLimitedCache: Cache, Sendable {
     }
 
     // Delete non-protected IDs first and then go through the others.
-    let weightedKeys = assets.keys.map { ($0, self.protectedAssetIDs[$0, default: 0]) }
-      .sorted(by: { $0.1 < $1.1 }).map(\.0)
+    let weightedKeys = assets.keys
+      .map {
+        ($0, self.protectedAssetIDs[$0, default: 0])
+      }
+      .sorted(by: { $0.1 < $1.1 })
+      .map(\.0)
+
     for id in weightedKeys {
       guard amountToGo > .zero else { break }
 

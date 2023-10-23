@@ -6,96 +6,104 @@
 //
 
 import PlexApi
+import PlexCore
 import PlexShared
 import SwiftUI
 
 struct ConnectionsView: View {
-  private let connections: [Connection]
-  private let currentConnection: Connection?
-  private let pings: [Connection: PingResult]
+  @Environment(ServersViewModel.self)
+  private var viewModel
 
-  init(connections: [Connection], currentConnection: Connection?, pings: [Connection: PingResult]) {
+  private let connections: [ServerWithConnection]
+
+  init(connections: [ServerWithConnection]) {
     self.connections = connections
-    self.currentConnection = currentConnection
-    self.pings = pings
   }
 
   var body: some View {
-    VStack(alignment: .leading) {
-      ForEach(connections) { connection in
-        ConnectionView(
-          connection: connection,
-          currentConnection: currentConnection,
-          ping: pings[connection]
-        )
+    switch viewModel.pings {
+    case .loaded(let pings):
+      LazyHGrid(rows: [
+        GridItem(.adaptive(minimum: 10), spacing: 20)
+      ]) {
+        ForEach(connections) { server in
+          ConnectionView(
+            server: server,
+            ping: pings.results[server.id]
+          )
+        }
       }
+
+    case .absent, .loading:
+      ProgressView()
+
+    case .error(let error):
+      Text(error.localizedDescription)
+
     }
-    .padding()
-    .background(.black.opacity(0.6))
-    .cornerRadius(10)
+    //    .padding()
+    //    .background(.black.opacity(0.6))
+    //    .cornerRadius(10)
   }
 }
 
+@MainActor
 struct ConnectionView: View {
-  @Environment(\.font)
-  private var font
+  @Environment(ServersViewModel.self)
+  private var viewModel
 
-  private let connection: Connection
-  private let currentConnection: Connection?
+  private let server: ServerWithConnection
   private let ping: PingResult?
 
-  init(connection: Connection, currentConnection: Connection?, ping: PingResult?) {
-    self.connection = connection
-    self.currentConnection = currentConnection
+  init(server: ServerWithConnection, ping: PingResult?) {
+    self.server = server
     self.ping = ping
   }
 
   private var isCurrentDevice: Bool {
-    connection == currentConnection
+    server.server == viewModel.currentConnection?.server
+      && server.connection == viewModel.currentConnection?.connection
+  }
+
+  private var pingResult: PingSuccess? {
+    try? ping?.result.get()
   }
 
   @ViewBuilder
   private var pingText: some View {
-    switch ping?.result {
-    case let .some(.success(success)):
+    if let pingResult {
       Text(
-        success.details.measurement.converted(to: .milliseconds),
+        pingResult.details.measurement.converted(to: .milliseconds),
         format: Measurement<UnitDuration>.FormatStyle(
           width: .abbreviated,
           numberFormatStyle: .localizedDouble(locale: .current).precision(.fractionLength(1))
         )
       )
-
-    case let .failure(error):
-      //        Text(error.localizedDescription)
-      Text("ERROR!")
-
-    case .none:
-      //        Text("NO RESULT")
-      EmptyView()
     }
   }
 
   var body: some View {
     HStack {
-      Text(connection.address)
-        .font(font?.monospaced())
-        .bold(isCurrentDevice)
-      Text(connection.local ? "LOCAL" : "REMOTE")
-        .font(font?.monospaced())
 
-      Spacer()
+      if !server.connection.local {
+        Image(systemName: "cloud")
+      }
+
+      Text(server.connection.address)
+        .font(.body.monospaced())
+        .bold(isCurrentDevice)
 
       pingText
-        .font(font?.monospaced())
+        .font(.body.monospaced())
     }
-    .foregroundColor(.white)
+    .foregroundColor(pingResult != nil ? .white : .gray)
     .padding(5)
     .background {
       if isCurrentDevice {
-        Color.green.opacity(0.6).cornerRadius(3)
+        Color(.plexTint).opacity(0.6).cornerRadius(3)
+        //        Color.green.opacity(0.6).cornerRadius(3)
       } else {
-        Color.clear
+        Color.black.opacity(0.2).cornerRadius(3)
       }
     }
     .disabled(ping == nil)

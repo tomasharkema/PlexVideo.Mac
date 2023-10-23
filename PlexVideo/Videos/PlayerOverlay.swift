@@ -12,8 +12,8 @@ import SwiftUI
 
 @MainActor
 struct PlayerOverlay: View {
-  @Environment(\.font)
-  private var font
+  //  @Environment(\.font)
+  //  private var font
 
   @Environment(CurrentVideoViewModel.self)
   private var viewModel
@@ -31,25 +31,28 @@ struct PlayerOverlay: View {
   private func videoOverlay() -> some View {
     HStack {
       HStack {
-        Button(action: {
-          viewModel.stopPlaying()
-        }, label: {
-          Image(systemName: "xmark")
-            .foregroundColor(.white)
-//            .font(font)
-            .padding(10)
-        })
+        Button(
+          action: {
+            viewModel.stopPlaying()
+          },
+          label: {
+            Image(systemName: "xmark")
+              .foregroundColor(.white)
+              //            .font(font)
+              .padding(10)
+          }
+        )
         .buttonStyle(PlainButtonStyle())
 
-//        Button(action: {
-//          viewModel.fullscreen()
-//        }, label: {
-//          Image(systemName: "arrow.up.left.and.arrow.down.right")
-//            .foregroundColor(.white)
-//            .font(.title)
-//            .padding(10)
-//        })
-//        .buttonStyle(PlainButtonStyle())
+        //        Button(action: {
+        //          viewModel.fullscreen()
+        //        }, label: {
+        //          Image(systemName: "arrow.up.left.and.arrow.down.right")
+        //            .foregroundColor(.white)
+        //            .font(.title)
+        //            .padding(10)
+        //        })
+        //        .buttonStyle(PlainButtonStyle())
       }
     }
     .background(Color.black.opacity(0.6))

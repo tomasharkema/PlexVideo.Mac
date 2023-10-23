@@ -17,36 +17,46 @@ public final class VideoDataService: Sendable {
   @Injected(\.storage)
   private var storage
 
-  nonisolated func progress(for video: Video) async throws -> PlexShared.Progress {
-    try await video.getProgress(storage: storage.getSavedOffset(video: video))
+  @Injected(\.serverLocator)
+  private var serverLocator
+
+  nonisolated func progress(for video: VideoFromServer) async throws -> PlexShared.Progress {
+    try await video.video.getProgress(storage: storage.getSavedOffset(video: video.video))
   }
 
-  private func getSections() async throws -> [Directory] {
-    try await api.sections().mediaContainer.directory.filter {
+  private func getSections(server: ServerWithCurrentConnection) async throws -> [Directory] {
+    try await api.sections(server: server).mediaContainer.directory.filter {
       $0.type == "movie" || $0.type == "show"
     }
   }
 
-  func getContinueWatching(sections: [Directory]) async throws -> [Video] {
+  func getContinueWatching(server: ServerWithCurrentConnection, sections: [Directory]) async throws
+    -> [VideoFromServer]
+  {
     try await api
-      .continueWatching(contentDirectoryIDs: sections.map(\.key))
+      .continueWatching(server: server, contentDirectoryIDs: sections.map(\.key))
       .mediaContainer.hub
       .flatMap(\.metadata)
+      .map {
+        VideoFromServer(video: $0, server: server)
+      }
   }
 
   func getContinueWatchingAndProgress(
+    server: ServerWithCurrentConnection,
     sections: [Directory]
-  ) async throws -> [(VideoKey, PlexShared.Progress)] {
+  ) async throws -> [(VideoFromServer.ID, PlexShared.Progress)] {
     try await withThrowingTaskGroup(
-      of: (VideoKey, PlexShared.Progress).self, returning: [(VideoKey, PlexShared.Progress)].self
+      of: (VideoFromServer.ID, PlexShared.Progress).self,
+      returning: [(VideoFromServer.ID, PlexShared.Progress)].self
     ) { group in
-      let videos = try await getContinueWatching(sections: sections)
+      let videos = try await getContinueWatching(server: server, sections: sections)
 
       for watchingVideo in videos {
         group.addTask {
           try await (
-            watchingVideo.key,
-            watchingVideo.getProgress(storage: self.progress(for: watchingVideo))
+            watchingVideo.id,
+            watchingVideo.video.getProgress(storage: self.progress(for: watchingVideo))
           )
         }
       }
@@ -57,11 +67,16 @@ public final class VideoDataService: Sendable {
     }
   }
 
-  func fetchVideos(sections: [Directory], reload: Bool) async throws -> [Video] {
-    try await withThrowingTaskGroup(of: [Video].self) { group in
+  func fetchVideos(server: ServerWithCurrentConnection, sections: [Directory], reload: Bool)
+    async throws -> [VideoFromServer]
+  {
+    try await withThrowingTaskGroup(of: [VideoFromServer].self) { group in
       for section in sections {
         group.addTask {
-          try await self.api.all(key: section.key, reload: reload).mediaContainer.metadata
+          try await self.api.all(server: server, key: section.key, reload: reload).mediaContainer
+            .metadata.map {
+              VideoFromServer(video: $0, server: server)
+            }
         }
       }
 
@@ -72,20 +87,20 @@ public final class VideoDataService: Sendable {
   }
 
   private func progressMissing(
-    videos: [Video],
-    continueWatching: [VideoKey: PlexShared.Progress]
-  ) async throws -> [(VideoKey, PlexShared.Progress)] {
+    videos: [VideoFromServer],
+    continueWatching: [VideoFromServer.ID: PlexShared.Progress]
+  ) async throws -> [(VideoFromServer.ID, PlexShared.Progress)] {
     try await withThrowingTaskGroup(
-      of: (VideoKey, PlexShared.Progress)?.self,
-      returning: [(VideoKey, PlexShared.Progress)].self
+      of: (VideoFromServer.ID, PlexShared.Progress)?.self,
+      returning: [(VideoFromServer.ID, PlexShared.Progress)].self
     ) { group in
       for video in videos {
         group.addTask {
-          let progress = try await video
-            .getProgress(storage: self.progress(for: video))
+          let progress =
+            try await video.video.getProgress(storage: self.progress(for: video))
 
-          if !progress.isZero, continueWatching[video.key] == nil {
-            return (video.key, progress)
+          if !progress.isZero, continueWatching[video.id] == nil {
+            return (video.id, progress)
           } else {
             return nil
           }
@@ -100,22 +115,33 @@ public final class VideoDataService: Sendable {
     }
   }
 
-  public func getVideoList(reload: Bool) async throws -> (onDeck: [Video], all: [Video]) {
-    let sections = try await getSections()
+  public func getVideoList(reload: Bool) async throws -> (
+    onDeck: [VideoFromServer], all: [VideoFromServer]
+  ) {
 
-    async let videosAsync = fetchVideos(sections: sections, reload: reload)
-    async let continueWatchingAsync = getContinueWatchingAndProgress(sections: sections)
+    let server = try await self.serverLocator.root()
+
+    let sections = try await getSections(server: server)
+
+    async let videosAsync = fetchVideos(server: server, sections: sections, reload: reload)
+    async let continueWatchingAsync = getContinueWatchingAndProgress(
+      server: server,
+      sections: sections
+    )
 
     let (videos, continueWatchingResultKeyValue) = try await (
       videosAsync,
       continueWatchingAsync
     )
 
-    let continueWatching =
-      [VideoKey: PlexShared.Progress](uniqueKeysWithValues: continueWatchingResultKeyValue)
-    let videosByKey = Dictionary(uniqueKeysWithValues: videos.map {
-      ($0.key, $0)
-    })
+    let continueWatching = [VideoFromServer.ID: PlexShared.Progress](
+      uniqueKeysWithValues: continueWatchingResultKeyValue
+    )
+    let videosByKey: [VideoFromServer.ID: VideoFromServer] = Dictionary(
+      uniqueKeysWithValues: videos.map {
+        ($0.id, $0)
+      }
+    )
 
     async let progressArrayMissing = progressMissing(
       videos: videos,
@@ -132,15 +158,15 @@ public final class VideoDataService: Sendable {
       }
 
     let videosSorted = videos.sorted {
-      $0.titleSort ?? $0.title < $1.titleSort ?? $1.title
+      $0.video.titleSort ?? $0.video.title < $1.video.titleSort ?? $1.video.title
     }
 
     return (fixedContinue, videosSorted)
   }
 }
 
-public extension InjectedValues {
-  var videoDataService: VideoDataService {
+extension InjectedValues {
+  public var videoDataService: VideoDataService {
     get { Self[VideoDataServiceKey.self] }
     set { Self[VideoDataServiceKey.self] = newValue }
   }

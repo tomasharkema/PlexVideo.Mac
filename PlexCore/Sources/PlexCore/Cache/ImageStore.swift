@@ -12,6 +12,7 @@ import OSLog
 import PlexApi
 import PlexShared
 import Processed
+
 #if os(iOS)
   import UIKit
 #endif
@@ -35,7 +36,10 @@ final class ImageStore: Sendable {
 
     // swiftlint:disable:next force_try
     let cachesDirectory = try! fileManager.url(
-      for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: true
+      for: .cachesDirectory,
+      in: .userDomainMask,
+      appropriateFor: nil,
+      create: true
     ).appendingPathComponent("asset-images", isDirectory: true)
 
     if !fileManager.fileExists(atPath: cachesDirectory.path) {
@@ -69,9 +73,11 @@ final class ImageStore: Sendable {
   @RequestCacheActor
   private var requestsCache: [Asset.ID: Task<(asset: Asset, remote: Bool), any Error>] = [:]
 
-  private func prepareAssetIfNeeded(id: Asset.ID, url: URL,
-                                    size: CGSize) async throws -> (asset: Asset, remote: Bool)
-  {
+  private func prepareAssetIfNeeded(
+    id: Asset.ID,
+    url: URL,
+    size: CGSize
+  ) async throws -> (asset: Asset, remote: Bool) {
     if let cached = await requestsCache[id] {
       return try await cached.value
     }
@@ -97,23 +103,25 @@ final class ImageStore: Sendable {
     return try await task.value
   }
 
-  private func prepareAsset(id: Asset.ID, url: URL,
-                            size: CGSize) async throws -> (asset: Asset, remote: Bool)
-  {
-//    let asset: Asset
-//    if let localAsset = localAssets.fetchByID(id) {
-//      asset = localAsset
-//    } else {
-//      try await fetchAsset(id: id, url: url)
-//      guard let remoteAsset = localAssets.fetchByID(id) else {
-//        throw NSError(domain: "asset not found", code: 69)
-//      }
-//      asset = remoteAsset
-//    }
+  private func prepareAsset(
+    id: Asset.ID,
+    url: URL,
+    size: CGSize
+  ) async throws -> (asset: Asset, remote: Bool) {
+    //    let asset: Asset
+    //    if let localAsset = localAssets.fetchByID(id) {
+    //      asset = localAsset
+    //    } else {
+    //      try await fetchAsset(id: id, url: url)
+    //      guard let remoteAsset = localAssets.fetchByID(id) else {
+    //        throw NSError(domain: "asset not found", code: 69)
+    //      }
+    //      asset = remoteAsset
+    //    }
 
-//    guard let preparedImage = asset.image.preparingForDisplay() else {
-//      throw AssetError.preparingImageFailed
-//    }
+    //    guard let preparedImage = asset.image.preparingForDisplay() else {
+    //      throw AssetError.preparingImageFailed
+    //    }
 
     let asset = localAssets.url(forID: id)
 
@@ -130,19 +138,22 @@ final class ImageStore: Sendable {
       remote = false
     }
 
-//      let data = try Data(contentsOf: asset)
+    //      let data = try Data(contentsOf: asset)
     #if os(iOS)
       let image = await UIImageReader.default.image(contentsOf: asset)?.preparingThumbnail(of: size)
     #endif
     #if os(macOS)
-      let image = ImageIO
-        .resizedImageWithHintingAndSubsampling(at: asset,
-                                               for: size) // .preloadImage(at: asset, for: size)//.resizedImageWithHintingAndSubsampling(at: asset, for: size)
+      let image =
+        ImageIO
+        .resizedImageWithHintingAndSubsampling(
+          at: asset,
+          for: size
+        )  // .preloadImage(at: asset, for: size)//.resizedImageWithHintingAndSubsampling(at: asset, for: size)
     #endif
 
     guard
-      let image // = asset.//ImageIO.resizedImageWithHintingAndSubsampling(at: asset, for:
-    // size)?.preparingForDisplay()
+      let image  // = asset.//ImageIO.resizedImageWithHintingAndSubsampling(at: asset, for:
+      // size)?.preparingForDisplay()
     else {
       throw AssetError.assetNotFound
     }
@@ -155,9 +166,11 @@ final class ImageStore: Sendable {
     return (asset: prepared, remote: remote)
   }
 
-  func loadAssetByID(_ id: Asset.ID, _ url: URL,
-                     size: CGSize) async throws -> (asset: Asset, remote: Bool)
-  {
+  func loadAssetByID(
+    _ id: Asset.ID,
+    _ url: URL,
+    size: CGSize
+  ) async throws -> (asset: Asset, remote: Bool) {
     try await prepareAssetIfNeeded(id: id, url: url, size: size)
   }
 }

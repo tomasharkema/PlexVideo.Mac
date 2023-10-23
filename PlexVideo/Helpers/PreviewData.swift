@@ -11,13 +11,15 @@ import PlexShared
 extension Video {
   static func preview(id: String = UUID().uuidString) -> Video {
     Video(
-      key: VideoKey(rawValue: id), title: "Dit is een titel van een hele lange film",
+      key: VideoKey(rawValue: id),
+      title: "Dit is een titel van een hele lange film",
       titleSort: "is",
-      parentTitle: nil, grandparentTitle: nil,
+      parentTitle: nil,
+      grandparentTitle: nil,
       thumb: "https://static.posters.cz/image/750/posters/pulp-fiction-cover-i1288.jpg",
       art: "ding",
       media: [
-        PlexShared.Media.preview(),
+        PlexShared.Media.preview()
       ],
       ratingKey: RatingKey(rawValue: id),
       viewOffset: NumberLike(value: 1000),
@@ -26,7 +28,10 @@ extension Video {
       leafCount: NumberLike(value: 1000),
       viewedLeafCount: Date().timeIntervalSince1970.doubleLike,
       onDeck: nil,
-      grandparentKey: nil, parentKey: nil, childCount: nil, grandparentThumb: nil
+      grandparentKey: nil,
+      parentKey: nil,
+      childCount: nil,
+      grandparentThumb: nil
     )
   }
 }
@@ -51,8 +56,7 @@ extension Media {
       protocol: "mkv",
       indirect: "0",
       selected: true,
-      part: [
-      ]
+      part: []
     )
   }
 }
