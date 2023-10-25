@@ -87,7 +87,7 @@ public final class VideosViewModel: LoadableSupport {
   }
 }
 
-//extension Video {
+// extension Video {
 //  init(onDeck: OnDeck) {
 //    self.init(
 //      key: onDeck.key,
@@ -110,7 +110,7 @@ public final class VideosViewModel: LoadableSupport {
 //      grandparentThumb: onDeck.grandparentThumb
 //    )
 //  }
-//}
+// }
 
 // enum ViewError: LocalizedError, Equatable {
 //  case error(any LocalizedError)

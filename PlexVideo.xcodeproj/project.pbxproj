@@ -157,8 +157,8 @@
 				C36279EB265FE4D100DEF2B6 /* PlexVideo.entitlements */,
 				C36279DC265FE44400DEF2B6 /* PlexVideoApp.swift */,
 				C36279DE265FE44400DEF2B6 /* RootView.swift */,
-				C3FB90D82AE858E100167891 /* GoogleService-Info.plist */,
 				C378F6BE2AE1C8D9000B980F /* MainView.swift */,
+				C3FB90D82AE858E100167891 /* GoogleService-Info.plist */,
 			);
 			path = PlexVideo;
 			sourceTree = "<group>";

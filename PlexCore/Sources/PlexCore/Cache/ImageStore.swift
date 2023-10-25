@@ -149,9 +149,9 @@ final class ImageStore: Sendable {
             for: size
           ) // .preloadImage(at: asset, for: size)//.resizedImageWithHintingAndSubsampling(at: asset, for: size)
     #else
-    #error("unsupported platform")
+      #error("unsupported platform")
     #endif
-    
+
     guard
       let image // = asset.//ImageIO.resizedImageWithHintingAndSubsampling(at: asset, for:
     // size)?.preparingForDisplay()

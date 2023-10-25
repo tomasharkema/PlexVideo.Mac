@@ -1,13 +1,13 @@
 //
 //  StreamHelpers.swift
-//  
+//
 //
 //  Created by Tomas Harkema on 25/10/2023.
 //
 
 import Foundation
-import PlexShared
 import PlexCore
+import PlexShared
 
 let bandwidthFormatter: MeasurementFormatter = {
   let formatter = MeasurementFormatter()
@@ -43,38 +43,37 @@ extension SessionVideo {
   }
 }
 
-extension SessionStatus {
-
-  public var selectedMedia: Media? {
+public extension SessionStatus {
+  var selectedMedia: Media? {
     media?.selected?.value
   }
 
-  public var streams: [PlexShared.Stream] {
+  var streams: [PlexShared.Stream] {
     let media: Media? = selectedMedia
     let part = media?.part?.selected?.value
     let streams = part?.stream
     return streams?.compactMap(\.value) ?? []
   }
 
-  public var videoStream: PlexShared.Stream? {
+  var videoStream: PlexShared.Stream? {
     streams.selected {
       $0.streamType == .video
     }
   }
 
-  public var audioStream: PlexShared.Stream? {
+  var audioStream: PlexShared.Stream? {
     streams.selected {
       $0.streamType == .audio
     }
   }
 
-  public var subtitleStream: PlexShared.Stream? {
+  var subtitleStream: PlexShared.Stream? {
     streams.selected {
       $0.streamType == .subtitles
     }
   }
 
-  public var videoSourceString: String {
+  var videoSourceString: String {
     let stream = videoStream
     let displayTitle = stream?.displayTitle ?? ""
 
@@ -93,7 +92,7 @@ extension SessionStatus {
     return components.joined(separator: " ")
   }
 
-  public var videoString: String {
+  var videoString: String {
     let selectedMedia = selectedMedia
     let stream = videoStream
 
@@ -108,7 +107,7 @@ extension SessionStatus {
     let bitrate = stream?.bitrateMeasurement?.converted(to: .megabits)
     let bitrateString = bitrate
       .map { bandwidthFormatter.string(from: $0) }
-      .map { "\($0)ps"}
+      .map { "\($0)ps" }
 
     let components = [
       selectedMedia?.videoResolution,
@@ -120,7 +119,7 @@ extension SessionStatus {
     return components.joined(separator: " ")
   }
 
-  public var audioSourceString: String {
+  var audioSourceString: String {
     let stream = audioStream
     let displayTitle = stream?.displayTitle ?? ""
 
@@ -139,7 +138,7 @@ extension SessionStatus {
     return components.joined(separator: " ")
   }
 
-  public var audioString: String {
+  var audioString: String {
     let stream = audioStream
 
     guard stream?.decision == "transcode" else {
@@ -153,7 +152,7 @@ extension SessionStatus {
     let bitrate = stream?.bitrateMeasurement?.converted(to: .megabits)
     let bitrateString = bitrate
       .map { bandwidthFormatter.string(from: $0) }
-      .map { "\($0)ps"}
+      .map { "\($0)ps" }
 
     let components = [
       codecString,
@@ -163,12 +162,12 @@ extension SessionStatus {
     return components.joined(separator: " ")
   }
 
-  public var subtitleString: String? {
+  var subtitleString: String? {
     let stream = subtitleStream
     return stream?.displayTitle
   }
 
-  public var hardwareTranscodingString: String? {
+  var hardwareTranscodingString: String? {
     let components = [
       transcodeSession?.value?.transcodeHwDecoding,
       transcodeSession?.value?.transcodeHwEncoding,

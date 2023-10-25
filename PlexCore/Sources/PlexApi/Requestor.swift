@@ -5,11 +5,11 @@
 //  Created by Tomas Harkema on 09/06/2021.
 //
 
+import FirebaseCrashlytics
 import Foundation
 import Inject
 import OSLog
 import PlexShared
-import FirebaseCrashlytics
 
 public final class Requestor: Sendable {
   private let logger = Logger(subsystem: "PlexVideo", category: "Requestor")
@@ -88,8 +88,7 @@ public final class Requestor: Sendable {
   private nonisolated func executeRequest(
     request: URLRequest,
     onlyCached: Bool
-  ) async throws -> (Data, URLResponse)
-  {
+  ) async throws -> (Data, URLResponse) {
     if onlyCached, let cache = networkManager.session.configuration.urlCache {
       if let cachedResponse = cache.cachedResponse(for: request) {
         return (cachedResponse.data, cachedResponse.response)
@@ -159,7 +158,6 @@ public final class Requestor: Sendable {
         throw error
       }
     } catch let error as URLError {
-
       if invalidateAfterError,
          error.code == .cannotConnectToHost || error.code == .cannotFindHost
          || error

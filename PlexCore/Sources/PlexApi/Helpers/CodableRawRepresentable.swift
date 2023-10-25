@@ -5,11 +5,11 @@
 //  Created by Tomas Harkema on 24/10/2023.
 //
 
+import FirebaseCrashlytics
 import Foundation
 import OSLog
-import FirebaseCrashlytics
 
-fileprivate let logger = Logger(subsystem: "PlexVideo", category: "CodableWrapper")
+private let logger = Logger(subsystem: "PlexVideo", category: "CodableWrapper")
 
 public struct CodableWrapper<Value: Codable> {
   public let value: Value

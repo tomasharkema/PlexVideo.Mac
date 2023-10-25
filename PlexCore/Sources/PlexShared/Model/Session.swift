@@ -1,6 +1,6 @@
 //
 //  Session.swift
-//  
+//
 //
 //  Created by Tomas Harkema on 24/10/2023.
 //

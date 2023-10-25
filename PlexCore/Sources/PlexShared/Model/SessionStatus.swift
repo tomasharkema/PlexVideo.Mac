@@ -46,17 +46,17 @@ extension SessionStatus: Identifiable {
   }
 }
 
-extension PartialCodable: Hashable where ConcreteType: Hashable { 
+extension PartialCodable: Hashable where ConcreteType: Hashable {
   public func hash(into hasher: inout Hasher) {
     hasher.combine(value)
     hasher.combine(raw)
   }
 }
 
-extension SessionStatus {
-  public var videoID: VideoKey {
+public extension SessionStatus {
+  var videoID: VideoKey {
     VideoKey(rawValue: key)
   }
 }
 
-extension PartialCodable: @unchecked Sendable where ConcreteType: Sendable { }
+extension PartialCodable: @unchecked Sendable where ConcreteType: Sendable {}

@@ -14,30 +14,37 @@ struct ConnectionsView: View {
   @Environment(ServersViewModel.self)
   private var viewModel
 
-  private let connections: [ServerWithConnection]
+  private let connections: ServerAndPings
 
-  init(connections: [ServerWithConnection]) {
+  init(connections: ServerAndPings) {
     self.connections = connections
   }
 
   var body: some View {
-    switch viewModel.pings {
-    case let .loaded(pings):
-      VStack(alignment: .leading) {
-        ForEach(connections) { server in
-          ConnectionView(
-            server: server,
-            ping: pings.results[server.id]
-          )
-        }
-      }
-
-    case .absent, .loading:
-      ProgressView()
-
-    case let .error(error):
-      Text(error.localizedDescription)
+    let _ = print("pings:", connections.pings)
+    ForEach(connections.pings) { server in
+      ConnectionView(
+        server: server.serverWithConnection,
+        ping: server
+      )
     }
+//    switch viewModel.pings {
+//    case let .loaded(pings):
+//      VStack(alignment: .leading) {
+//        ForEach(connections) { server in
+//          ConnectionView(
+//            server: server,
+//            ping: pings.results[server.id]
+//          )
+//        }
+//      }
+//
+//    case .absent, .loading:
+//      ProgressView()
+//
+//    case let .error(error):
+//      Text(error.localizedDescription)
+//    }
     //    .padding()
     //    .background(.black.opacity(0.6))
     //    .cornerRadius(10)

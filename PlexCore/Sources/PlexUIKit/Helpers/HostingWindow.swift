@@ -5,19 +5,18 @@
 //  Created by Tomas Harkema on 25/10/2023.
 //
 
-import SwiftUI
 import Combine
+import SwiftUI
 
 #if canImport(UIKit)
-public  typealias Window = UIWindow
+  public typealias Window = UIWindow
 #elseif canImport(AppKit)
-public typealias Window = NSWindow
+  public typealias Window = NSWindow
 #else
-#error("Unsupported platform")
+  #error("Unsupported platform")
 #endif
 
 public class WeakAccessor<ValueType: AnyObject & Equatable>: Equatable {
-
   public internal(set) weak var value: ValueType?
 
   init(value: ValueType?) {
@@ -39,19 +38,19 @@ public struct HostingWindowSizeKey: EnvironmentKey {
   public static let defaultValue: Self.Value = .zero
 }
 
-extension EnvironmentValues {
-  public var hostingWindow: HostingWindowKey.Value {
+public extension EnvironmentValues {
+  var hostingWindow: HostingWindowKey.Value {
     get {
-      return self[HostingWindowKey.self]
+      self[HostingWindowKey.self]
     }
     set {
       self[HostingWindowKey.self] = newValue
     }
   }
 
-  public var hostingWindowSize: HostingWindowSizeKey.Value {
+  var hostingWindowSize: HostingWindowSizeKey.Value {
     get {
-      return self[HostingWindowSizeKey.self]
+      self[HostingWindowSizeKey.self]
     }
     set {
       self[HostingWindowSizeKey.self] = newValue
@@ -65,17 +64,19 @@ public struct WindowInjector: ViewModifier {
   @State
   private(set) var size: CGSize = .zero
 
-  private let handler: (WeakAccessor<Window>?) -> ()
-  private let sizeHandler: (CGSize) -> ()
+  private let handler: (WeakAccessor<Window>?) -> Void
+  private let sizeHandler: (CGSize) -> Void
 
-  init(handler: @escaping (WeakAccessor<Window>?) -> (), sizeHandler: @escaping (CGSize) -> ()) {
+  init(handler: @escaping (WeakAccessor<Window>?) -> Void,
+       sizeHandler: @escaping (CGSize) -> Void)
+  {
     self.handler = handler
     self.sizeHandler = sizeHandler
   }
 
   init() {
-    self.handler = { _ in }
-    self.sizeHandler = { _ in }
+    handler = { _ in }
+    sizeHandler = { _ in }
   }
 
   public func body(content: Content) -> some View {
@@ -94,119 +95,120 @@ public struct WindowInjector: ViewModifier {
   }
 }
 
-extension View {
-  public func windowInjector(
-    handler: @escaping (WeakAccessor<Window>?) -> (), sizeHandler: @escaping (CGSize) -> ()
+public extension View {
+  func windowInjector(
+    handler: @escaping (WeakAccessor<Window>?) -> Void, sizeHandler: @escaping (CGSize) -> Void
   ) -> some View {
     modifier(WindowInjector(handler: handler, sizeHandler: sizeHandler))
   }
 
-  public func windowInjector() -> some View {
+  func windowInjector() -> some View {
     modifier(WindowInjector())
   }
 }
 
 #if canImport(AppKit)
 
-public final class ContainerView: NSView {
-  var cancellable: AnyCancellable?
-}
-
-public struct WindowAccessor: NSViewRepresentable {
-  @Binding
-  private var window: WeakAccessor<NSWindow>?
-
-  @Binding
-  private var size: CGSize
-
-  init(window: Binding<WeakAccessor<NSWindow>?>, size: Binding<CGSize>) {
-    self._window = window
-    self._size = size
+  public final class ContainerView: NSView {
+    var cancellable: AnyCancellable?
   }
 
-  private func update(size: CGSize?) {
-    if let size, self.size != size {
-      self.size = size
-    }
-  }
+  public struct WindowAccessor: NSViewRepresentable {
+    @Binding
+    private var window: WeakAccessor<NSWindow>?
 
-  public func makeNSView(context: Context) -> ContainerView {
-    let view = ContainerView()
-    update(size: view.window?.frame.size)
-    Task { @MainActor in
-      self.window = WeakAccessor(value: view.window)
+    @Binding
+    private var size: CGSize
+
+    init(window: Binding<WeakAccessor<NSWindow>?>, size: Binding<CGSize>) {
+      _window = window
+      _size = size
     }
 
-    view.cancellable = NotificationCenter.default.publisher(for: NSWindow.didResizeNotification)
-      .receive(on: DispatchQueue.main)
-      .map { _ in self.window?.value?.frame.size ?? .zero }
-      .filter { $0 != .zero }
-      .removeDuplicates()
-      .sink { size in
-        self.update(size: size)
+    private func update(size: CGSize?) {
+      if let size, self.size != size {
+        self.size = size
+      }
+    }
+
+    public func makeNSView(context _: Context) -> ContainerView {
+      let view = ContainerView()
+      update(size: view.window?.frame.size)
+      Task { @MainActor in
+        window = WeakAccessor(value: view.window)
       }
 
-    return view
-  }
+      view.cancellable = NotificationCenter.default.publisher(for: NSWindow.didResizeNotification)
+        .receive(on: DispatchQueue.main)
+        .map { _ in window?.value?.frame.size ?? .zero }
+        .filter { $0 != .zero }
+        .removeDuplicates()
+        .sink { size in
+          update(size: size)
+        }
 
-  public func updateNSView(_ nsView: ContainerView, context: Context) {}
+      return view
+    }
 
-  public static func dismantleNSView(_ nsView: ContainerView, coordinator: ()) {
-    nsView.cancellable?.cancel()
+    public func updateNSView(_: ContainerView, context _: Context) {}
+
+    public static func dismantleNSView(_ nsView: ContainerView, coordinator _: ()) {
+      nsView.cancellable?.cancel()
+    }
   }
-}
 
 #elseif canImport(UIKit)
 
-public final class ContainerView: UIView {
-  var cancellable: AnyCancellable?
-}
-
-public struct WindowAccessor: UIViewRepresentable {
-  @Binding
-  private var window: WeakAccessor<UIWindow>?
-
-  @Binding
-  private var size: CGSize
-
-  init(window: Binding<WeakAccessor<UIWindow>?>, size: Binding<CGSize>) {
-    self._window = window
-    self._size = size
+  public final class ContainerView: UIView {
+    var cancellable: AnyCancellable?
   }
 
-  private func update(size: CGSize?) {
-    if let size, self.size != size {
-      self.size = size
+  public struct WindowAccessor: UIViewRepresentable {
+    @Binding
+    private var window: WeakAccessor<UIWindow>?
+
+    @Binding
+    private var size: CGSize
+
+    init(window: Binding<WeakAccessor<UIWindow>?>, size: Binding<CGSize>) {
+      _window = window
+      _size = size
     }
-  }
 
-  public func makeUIView(context: Context) -> ContainerView {
-    let view = ContainerView()
+    private func update(size: CGSize?) {
+      if let size, self.size != size {
+        self.size = size
+      }
+    }
 
-    update(size: view.window?.bounds.size)
-    Task { @MainActor in
+    public func makeUIView(context _: Context) -> ContainerView {
+      let view = ContainerView()
+
       update(size: view.window?.bounds.size)
-      self.window = WeakAccessor(value: view.window)
-    }
-
-    view.cancellable = NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)
-      .receive(on: DispatchQueue.main)
-      .map { _ in self.window?.value?.bounds.size ?? .zero }
-      .filter { $0 != .zero }
-      .removeDuplicates()
-      .sink { size in
-        self.update(size: view.window?.bounds.size)
+      Task { @MainActor in
+        update(size: view.window?.bounds.size)
+        window = WeakAccessor(value: view.window)
       }
 
-    return view
-  }
+      view.cancellable = NotificationCenter.default
+        .publisher(for: UIDevice.orientationDidChangeNotification)
+        .receive(on: DispatchQueue.main)
+        .map { _ in window?.value?.bounds.size ?? .zero }
+        .filter { $0 != .zero }
+        .removeDuplicates()
+        .sink { _ in
+          update(size: view.window?.bounds.size)
+        }
 
-  public func updateUIView(_ nsView: ContainerView, context: Context) {}
+      return view
+    }
 
-  public static func dismantleUIView(_ uiView: ContainerView, coordinator: ()) {
-    uiView.cancellable?.cancel()
+    public func updateUIView(_: ContainerView, context _: Context) {}
+
+    public static func dismantleUIView(_ uiView: ContainerView, coordinator _: ()) {
+      uiView.cancellable?.cancel()
+    }
   }
-}
 #else
-#error("Unsupported platform")
+  #error("Unsupported platform")
 #endif

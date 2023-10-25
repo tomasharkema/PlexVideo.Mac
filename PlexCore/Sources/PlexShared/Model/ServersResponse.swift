@@ -6,14 +6,13 @@
 //
 
 import Foundation
-import MetaCodable
 import InitMacro
+import MetaCodable
 
 public typealias ServersResponse = [ServerAndCapabilities]
 
 @Init(public: true)
 public struct ServerAndCapabilities: Sendable {
-
   public let server: Server
   public let capabilities: Result<Root<Capabilities>, any Error>
 

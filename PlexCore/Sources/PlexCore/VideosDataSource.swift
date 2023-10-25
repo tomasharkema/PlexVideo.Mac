@@ -52,6 +52,7 @@ public final class VideosDataSource: LoadableSupport {
     }, onChange: {
       Task { @MainActor in
         self.serversChanged()
+        self.track()
       }
     })
   }
@@ -59,7 +60,7 @@ public final class VideosDataSource: LoadableSupport {
   private func serversChanged() {
     Task {
       if data.isLoading || data.isError {
-        await self.reset(\.data)
+        self.reset(\.data)
         await self.load(silently: false, reload: true)
       }
     }
@@ -113,7 +114,7 @@ public final class VideosDataSource: LoadableSupport {
   public func load(silently: Bool, reload: Bool) async {
     loadingTask?.cancel()
 
-    let task = await load(\.data, silently: silently, priority: .userInitiated) { yield in
+    let task = load(\.data, silently: silently, priority: .userInitiated) { yield in
       do {
         if !reload, !self.data.isLoaded {
           let freshData = try await self.executeDataLoading(reload: reload, onlyCached: true)
@@ -140,7 +141,7 @@ public final class VideosDataSource: LoadableSupport {
 }
 
 public extension VideosDataSource {
-  struct Data: Equatable {
+  struct Data: Equatable, Sendable {
     public let continueWatching: [VideoFromServer]
     public let videos: [VideoFromServer]
     public let videosById: [Video.ID: VideoFromServer]

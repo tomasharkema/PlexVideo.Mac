@@ -19,7 +19,7 @@ public final class Api: Sendable {
 
   public func sections(
     server: ServerWithCurrentConnection,
-                       onlyCached: Bool
+    onlyCached: Bool
   ) async throws -> Root<DirectoryContainer> {
     try await requestor.request(
       url: server.uri

@@ -5,8 +5,8 @@
 //  Created by Tomas Harkema on 25/10/2023.
 //
 
-import SwiftUI
 import PlexShared
+import SwiftUI
 
 public struct ProgressBar: View {
   private let video: Video

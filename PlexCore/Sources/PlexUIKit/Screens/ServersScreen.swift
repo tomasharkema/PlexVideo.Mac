@@ -18,26 +18,22 @@ public struct ServersScreen: View {
   public init() {}
 
   public var body: some View {
-    if let servers = viewModel.servers {
-      ScrollView {
-        VStack {
-          ForEach(servers) { server in
-            ServerView(
-              server: server
-            )
+    ScrollView {
+      VStack {
+        ForEach(viewModel.servers) { server in
+          ServerView(server: server)
             .id(server.id)
-          }
         }
-        .padding()
       }
-      .navigationTitle("Servers")
-      .environment(viewModel)
-      .onAppear {
-        viewModel.start()
-      }
-      .onDisappear {
-        viewModel.stop()
-      }
+      .padding()
+    }
+    .navigationTitle("Servers")
+    .environment(viewModel)
+    .onAppear {
+      viewModel.start()
+    }
+    .onDisappear {
+      viewModel.stop()
     }
   }
 }

@@ -79,9 +79,7 @@ public final class VideoDataService: Sendable {
     sections: [Directory],
     reload: Bool,
     onlyCached: Bool
-  )
-    async throws -> [VideoFromServer]
-  {
+  ) async throws -> [VideoFromServer] {
     try await withThrowingTaskGroup(of: [VideoFromServer].self) { group in
       for section in sections {
         group.addTask {

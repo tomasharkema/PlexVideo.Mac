@@ -13,8 +13,8 @@ public protocol Selecting {
   var `default`: Bool? { get }
 }
 
-extension Array where Element: Selecting {
-  public var selected: Element? {
+public extension Array where Element: Selecting {
+  var selected: Element? {
     first {
       $0.selected ?? false
     } ?? first {
@@ -22,7 +22,7 @@ extension Array where Element: Selecting {
     }
   }
 
-  public func selected(where handler: (Element) -> Bool) -> Element? {
+  func selected(where handler: (Element) -> Bool) -> Element? {
     first {
       $0.selected ?? false && handler($0)
     } ?? first {
@@ -39,7 +39,6 @@ extension PartialCodable: Selecting where ConcreteType: Selecting {
   }
 
   public var `default`: Bool? {
-    value?.`default`
+    value?.default
   }
 }
-

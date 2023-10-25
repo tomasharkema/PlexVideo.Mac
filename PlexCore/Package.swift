@@ -24,7 +24,7 @@ let swiftUiDependencies: [Package.Dependency] = [
 ]
 
 let swiftUiPlugins: [Target.PluginUsage] = [
-      .plugin(name: "SwiftLintPlugin", package: "SwiftLint"),
+  .plugin(name: "SwiftLintPlugin", package: "SwiftLint"),
 ]
 
 let package = Package(
@@ -62,7 +62,7 @@ let package = Package(
         "InitMacro",
         "MetaCodable",
 
-          .product(name: "RawJson", package: "swift-rawjson"),
+        .product(name: "RawJson", package: "swift-rawjson"),
       ],
       swiftSettings: swiftSettings,
       plugins: swiftUiPlugins

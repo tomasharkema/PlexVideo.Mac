@@ -8,10 +8,10 @@
 import Foundation
 import Inject
 import Observation
+import OSLog
 import PlexApi
 import PlexShared
 import Processed
-import OSLog
 
 public struct KeyValue: Hashable, Identifiable {
   public let key: String
@@ -25,20 +25,19 @@ public struct KeyValue: Hashable, Identifiable {
 @MainActor
 @Observable
 public final class ServersViewModel: LoadableSupport {
-
   private let logger = Logger(subsystem: "PlexVideo", category: "ServersViewModel")
 
   @ObservationIgnored
   @Injected(\.api)
   private var api
 
-  @ObservationIgnored
-  @Injected(\.videosDataSource)
-  private var videosDataSource
+//  @ObservationIgnored
+//  @Injected(\.videosDataSource)
+  private var videosDataSource = InjectedValues.get(\.videosDataSource)
 
-  @ObservationIgnored
-  @Injected(\.serverPinger)
-  private var pinger
+//  @ObservationIgnored
+//  @Injected(\.serverPinger)
+  private var pinger = InjectedValues.get(\.serverPinger)
 
   private var serverLocator: ServerLocator = InjectedValues.get(\.serverLocator)
 
@@ -48,31 +47,70 @@ public final class ServersViewModel: LoadableSupport {
 
   public private(set) var sessions: LoadableState<[Server.ID: [SessionVideo]]> = .absent
 
+  public private(set) var servers = [ServerAndPings]()
+
   public init() {
     observe()
   }
 
+  public var pingerDate: Date? {
+    pinger.state.data?.lastRun
+  }
+
   private func observe() {
-    withObservationTracking(
-      {
-        _ = serverLocator.servers
-      },
-      onChange: {
-        Task { @MainActor in
-          try? await self.updateInfo()
-        }
+    withObservationTracking({
+      _ = (serverLocator.servers, pinger.state)
+    }, onChange: {
+      Task { @MainActor in
+        try? await self.updateInfo()
       }
-    )
-    withObservationTracking(
-      {
-        _ = serverLocator.servers
-      },
-      onChange: {
-        Task { @MainActor in
-          try? await self.updateRawInfo()
-        }
+      Task { @MainActor in
+        try? await self.updateRawInfo()
       }
-    )
+      Task {
+        await self.updateServerResult()
+      }
+      Task { @MainActor in
+        self.observe()
+      }
+    })
+  }
+
+  private nonisolated func pings(data: PingerState?,
+                                 server: ServerAndCapabilities) -> ServerAndPings
+  {
+    let pings: [PingResult] = server.connections
+      .compactMap { data?.results[$0.id] }
+      .sorted { lhs, rhs in
+        guard let lResult = try? lhs.get() else {
+          return false
+        }
+        guard let rResult = try? rhs.get() else {
+          return true
+        }
+
+        if lResult.serverWithConnection.connection.local {
+          return true
+        }
+        return false
+      }
+
+    return ServerAndPings(server: server.server, pings: pings)
+  }
+
+  private nonisolated func updateServerResult() async {
+    guard let servers = await serverLocator.servers else {
+      return
+    }
+    let data = await pinger.state.data
+    let oldValue = await self.servers
+    let results: [ServerAndPings] = servers.map { server -> ServerAndPings in
+      self.pings(data: data, server: server)
+    }
+
+    await MainActor.run {
+      self.servers = results
+    }
   }
 
   private func updateInfo() async throws {
@@ -162,22 +200,18 @@ public final class ServersViewModel: LoadableSupport {
         }
       }
     } catch {
-      self.logger.error("session error: \(error)")
+      logger.error("session error: \(error)")
       return [:]
     }
-  }
-
-  public var servers: ServersResponse? {
-    serverLocator.servers
   }
 
   public var currentConnection: [Server.ID: ServerWithCurrentConnection] {
     serverLocator.connection
   }
 
-  public var pings: LoadableState<PingerState> {
-    pinger.state
-  }
+//  public var pings: LoadableState<PingerState> {
+//    pinger.state
+//  }
 
   public func start() {
     startSessions()

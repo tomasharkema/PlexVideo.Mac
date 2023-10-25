@@ -11,7 +11,6 @@ import OSLog
 private let logger = Logger(subsystem: "PlexVideo", category: "EnsureOnce")
 
 public actor EnsureOnce<IdentifierType: Hashable & Sendable, ResultType: Sendable>: Sendable {
-
   private let initLocation: HandlerLocation
   private var handlers = [IdentifierType: StoredTask<IdentifierType, ResultType>]()
 

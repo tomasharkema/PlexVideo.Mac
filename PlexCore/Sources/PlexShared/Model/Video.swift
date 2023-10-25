@@ -9,14 +9,10 @@ import Foundation
 import InitMacro
 import MetaCodable
 
-//"audiencerating": 7.7,
-//"tagline": "A country occupied, a child's innocence lost.",
-//"audienceRatingImage": "rottentomatoes://image.rating.upright",
-
 @Init(public: true) @Codable
 public struct Video: Equatable, Sendable {
   public let key: VideoKey
-  public let guid: String
+  public let guid: String?
   public let title: String
   public let titleSort: String?
   public let parentTitle: String?

@@ -7,8 +7,8 @@
 
 import PlexApi
 import PlexCore
-import SwiftUI
 import PlexShared
+import SwiftUI
 
 struct NowPlayingView: View {
   @Environment(\.hostingWindowSize)
@@ -26,11 +26,12 @@ struct NowPlayingView: View {
 
   private var durationString: String? {
     guard let duration = session.duration,
-       let offsetFormat = Self.timeFormatter.string(from: session.viewOffset),
-       let durationFormat = Self.timeFormatter.string(from: duration) else {
+          let offsetFormat = Self.timeFormatter.string(from: session.viewOffset),
+          let durationFormat = Self.timeFormatter.string(from: duration)
+    else {
       return nil
     }
-    
+
     return "\(offsetFormat) / \(durationFormat)"
   }
 
@@ -44,7 +45,7 @@ struct NowPlayingView: View {
   }
 
   @ViewBuilder
-  private func playingState(session: SessionVideo) -> some View {
+  private func playingState(session _: SessionVideo) -> some View {
     if let playingStateCombined {
       Text(playingStateCombined)
         .foregroundColor(.white.opacity(0.6))
@@ -113,7 +114,7 @@ struct NowPlayingView: View {
           AsyncImage(url: thumb) { image in
             image.resizable()
           } placeholder: {
-              Color.clear
+            Color.clear
           }
           .frame(width: 40, height: 40)
           .cornerRadius(40)
@@ -131,50 +132,50 @@ struct NowPlayingView: View {
 
   var body: some View {
     HStack {
-        let size = if smallUI {
-          CGSize(width: 67, height: 104)
-        } else {
-          ThumbViewModel.thumbSize
-        }
+      let size = if smallUI {
+        CGSize(width: 67, height: 104)
+      } else {
+        ThumbViewModel.thumbSize
+      }
 
-        VStack(alignment: .leading, spacing: 0) {
-          VStack(spacing: 0) {
-            HStack {
-              Thumb(video: session.video, size: size)
-              VStack(alignment: .leading, spacing: smallUI ? 5 : 20) {
-                Text(session.video.video.title)
-                  .font(.headline.bold())
-                if let year = session.video.video.year?.value {
-                  Text("\(year as NSNumber, formatter: Self.yearFormatter)")
-                    .foregroundColor(.white.opacity(0.6))
-                }
-                if let duration = session.video.video.duration {
-                  Text("\(Self.durationFormatter.string(from: duration / 1000) ?? "")")
-                    .foregroundColor(.white.opacity(0.6))
-                }
-              }.padding()
-              Spacer()
-            }
-            .background(.black.opacity(0.6))
-
-            ProgressBar(video: session.video.video)
-          }
-          
-          progressText(session: session)
-            .padding()
-
+      VStack(alignment: .leading, spacing: 0) {
+        VStack(spacing: 0) {
           HStack {
-            transcodeState(session: session.session)
-              .padding()
+            Thumb(video: session.video, size: size)
+            VStack(alignment: .leading, spacing: smallUI ? 5 : 20) {
+              Text(session.video.video.title)
+                .font(.headline.bold())
+              if let year = session.video.video.year?.value {
+                Text("\(year as NSNumber, formatter: Self.yearFormatter)")
+                  .foregroundColor(.white.opacity(0.6))
+              }
+              if let duration = session.video.video.duration {
+                Text("\(Self.durationFormatter.string(from: duration / 1000) ?? "")")
+                  .foregroundColor(.white.opacity(0.6))
+              }
+            }.padding()
             Spacer()
           }
-          .background(Color(.black).opacity(0.2))
+          .background(.black.opacity(0.6))
 
-          userState(session: session.session)
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(Color(.black).opacity(0.4))
+          ProgressBar(video: session.video.video)
         }
+
+        progressText(session: session)
+          .padding()
+
+        HStack {
+          transcodeState(session: session.session)
+            .padding()
+          Spacer()
+        }
+        .background(Color(.black).opacity(0.2))
+
+        userState(session: session.session)
+          .padding()
+          .frame(maxWidth: .infinity)
+          .background(Color(.black).opacity(0.4))
+      }
     }
     .background(Color(.plexTint).opacity(0.3))
     .cornerRadius(10)
@@ -206,14 +207,14 @@ extension NowPlayingView {
 }
 
 #if DEBUG
-#Preview {
-  NowPlayingView(
-    session: SessionVideo(
-      video: .preview,
-      session: .preview
+  #Preview {
+    NowPlayingView(
+      session: SessionVideo(
+        video: .preview,
+        session: .preview
+      )
     )
-  )
-  .padding()
-  .preferredColorScheme(.dark)
-}
+    .padding()
+    .preferredColorScheme(.dark)
+  }
 #endif

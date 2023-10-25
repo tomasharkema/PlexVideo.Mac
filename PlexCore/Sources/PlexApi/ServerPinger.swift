@@ -10,7 +10,6 @@ import OSLog
 import PlexShared
 import Processed
 import SwiftUI
-import Inject
 
 public struct PingerState {
   public var results: [ServerWithConnection.ID: PingResult]
@@ -76,8 +75,8 @@ public final class ServerPinger: Sendable, LoadableSupport {
 
 //  public func stopPinging() {
 //    cancel(\.state)
-    //    pingerTask?.cancel()
-    //    pingerTask = nil
+  //    pingerTask?.cancel()
+  //    pingerTask = nil
 //  }
 }
 

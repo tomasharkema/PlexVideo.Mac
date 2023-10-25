@@ -13,9 +13,21 @@ public struct PingResult: Sendable, Equatable {
   public let details: Result<PingResultDetails, PingResultError>
 }
 
+extension PingResult: Identifiable {
+  public var id: Connection.ID {
+    serverWithConnection.connection.id
+  }
+}
+
 public struct PingSuccess: Sendable, Equatable {
   public let serverWithConnection: ServerWithConnection
   public let details: PingResultDetails
+}
+
+extension PingSuccess: Identifiable {
+  public var id: Connection.ID {
+    serverWithConnection.connection.id
+  }
 }
 
 public extension PingResult {

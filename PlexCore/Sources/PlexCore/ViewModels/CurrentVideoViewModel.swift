@@ -232,7 +232,6 @@ public final class CurrentVideoViewModel: LoadableSupport {
       )
 
       if let res = onDeckResponse.mediaContainer.metadata.first?.onDeck?.metadata {
-
         let video = videosDataSource.getVideo(by: res.key)
         assertionFailure(String(describing: video))
         return video

@@ -15,10 +15,10 @@ struct ServerView: View {
   @Environment(ServersViewModel.self)
   private var viewModel: ServersViewModel
 
-  private let server: ServerAndCapabilities
+  private let server: ServerAndPings
 
   init(
-    server: ServerAndCapabilities
+    server: ServerAndPings
   ) {
     self.server = server
   }
@@ -55,13 +55,13 @@ struct ServerView: View {
     InfoSection(
       title: "Connections",
       extra: {
-        if let date = viewModel.pings.data?.lastRun {
+        if let date = viewModel.pingerDate {
           Text(date, format: .relative(presentation: .named))
         }
       }
     ) {
       ConnectionsView(
-        connections: server.connections
+        connections: server
       )
     }
   }
@@ -97,7 +97,7 @@ struct ServerView: View {
         ProgressView()
 
       case let .loaded(sessions):
-        if let session = sessions[server.id], !session.isEmpty {
+        if let session = sessions[server.server.id], !session.isEmpty {
           playing(sessions: session)
         } else {
           Text("Nothing is playing...")
@@ -114,7 +114,7 @@ struct ServerView: View {
 
   @ViewBuilder
   private var rawInfo: some View {
-    if let (serverResult, capabilitiesString) = viewModel.rawResults[server.id] {
+    if let (serverResult, capabilitiesString) = viewModel.rawResults[server.server.id] {
       InfoSection(title: "Raw JSON info", collapsible: true) {
         VStack(alignment: .leading, spacing: 20) {
           Text("Server Result").font(.title3.bold())
@@ -141,7 +141,7 @@ struct ServerView: View {
 
       nowPlayingSection
 
-//      infoSection
+      infoSection
 
       rawInfo
     }

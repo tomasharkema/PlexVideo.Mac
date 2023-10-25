@@ -58,8 +58,8 @@ extension ServerWithConnection: Identifiable {
     public let connectionID: Connection.ID
 
     public init(server: Server, connection: Connection) {
-      self.serverID = server.id
-      self.connectionID = connection.id
+      serverID = server.id
+      connectionID = connection.id
     }
   }
 
@@ -88,7 +88,7 @@ extension ServerWithCurrentConnection: Identifiable {
     public let serverID: Server.ID
 
     public init(server: Server) {
-      self.serverID = server.id
+      serverID = server.id
     }
   }
 
