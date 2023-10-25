@@ -83,9 +83,7 @@ class NetworkManagerDelegate: NSObject, URLSessionDataDelegate {
     for metric in metrics.transactionMetrics {
       let uuid = metric.request.value(forHTTPHeaderField: "X-MetricsUUID")
         .flatMap { UUID(uuidString: $0) }
-      guard let uuid else {
-        return
-      }
+      guard let uuid else { return }
       Task {
         continuation.yield((metric, uuid))
       }
@@ -93,8 +91,8 @@ class NetworkManagerDelegate: NSObject, URLSessionDataDelegate {
   }
 }
 
-extension InjectedValues {
-  public var networkManager: NetworkManager {
+public extension InjectedValues {
+  var networkManager: NetworkManager {
     get { Self[NetworkManagerKey.self] }
     set { Self[NetworkManagerKey.self] = newValue }
   }

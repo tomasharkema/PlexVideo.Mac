@@ -11,18 +11,18 @@ import Foundation
 
   import UIKit
 
-  extension DeviceInfo {
+  public extension DeviceInfo {
     @MainActor
-    public static let current = DeviceInfo(name: UIDevice.current.name)
+    static let current = DeviceInfo(name: UIDevice.current.name)
   }
 
 #elseif canImport(AppKit)
 
   import AppKit
 
-  extension DeviceInfo {
+  public extension DeviceInfo {
     @MainActor
-    public static let current = DeviceInfo(name: Host.current().localizedName ?? "")
+    static let current = DeviceInfo(name: Host.current().localizedName ?? "")
   }
 
 #endif

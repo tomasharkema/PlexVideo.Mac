@@ -37,7 +37,7 @@ import SwiftUI
       vc.delegate = context.coordinator
       //    vc.videoGravity = .resizeAspectFill
       vc.videoGravity = .resizeAspect
-      vc.title = viewModel.video!.displayTitle
+      vc.title = viewModel.video!.video.displayTitle
 
       //    player.addPeriodicTimeObserver(
       //      forInterval: CMTime(seconds: 10, preferredTimescale: 1),

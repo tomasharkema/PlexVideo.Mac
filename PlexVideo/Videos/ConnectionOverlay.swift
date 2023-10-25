@@ -24,20 +24,20 @@ struct ConnectionOverlay: View {
   @ViewBuilder
   private var connectionOverlay: some View {
     HStack {
-      if let connection = serverLocator.connection {
-        Text("\(connection.connection.local ? "Local" : "Remote") connection")
+      if let connection = serverLocator.connection.values.first?.connection {
+        Text("\(connection.local == true ? "Local" : "Remote") connection")
           .font(.body.bold().lowercaseSmallCaps())
           .foregroundColor(.white)
           .edgesIgnoringSafeArea(.top)
           .padding(5)
-          .background(connection.connection.local ? Color.green : Color.yellow)
+          .background(connection.local == true ? Color.green : Color.yellow)
           .cornerRadius(10)
           .onAppear {
             let old = serverLocator.connection
             showOverlay = true
 
             Task { @MainActor in
-              try await Task.sleep(for: .seconds(5))
+              try? await Task.sleep(for: .seconds(5))
               if old == serverLocator.connection {
                 showOverlay = false
               }

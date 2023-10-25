@@ -57,7 +57,7 @@ struct VideosGrid: View {
   var body: some View {
     LazyVGrid(
       columns: [
-        GridItem(.adaptive(minimum: ThumbViewModel.thumbSize.width), spacing: 10)
+        GridItem(.adaptive(minimum: ThumbViewModel.thumbSize.width), spacing: 10),
       ],
       spacing: 10
     ) {

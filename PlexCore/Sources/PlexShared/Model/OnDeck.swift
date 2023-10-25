@@ -9,7 +9,7 @@ import Foundation
 import MetaCodable
 
 @Codable
-public struct OnDeck: Identifiable, Equatable, Sendable {
+public struct OnDeck: Equatable, Sendable {
   public let key: VideoKey
   public let title: String
   public let titleSort: String?
@@ -30,8 +30,18 @@ public struct OnDeck: Identifiable, Equatable, Sendable {
   public let parentKey: VideoKey?
   public let childCount: NumberLike?
   public let grandparentThumb: String?
+}
 
-  public var id: String {
-    key.rawValue
+extension OnDeck: Identifiable {
+  public struct ID: RawRepresentable, Hashable, Codable {
+    public let rawValue: String
+
+    public init(rawValue: String) {
+      self.rawValue = rawValue
+    }
+  }
+
+  public var id: ID {
+    ID(rawValue: key.id)
   }
 }

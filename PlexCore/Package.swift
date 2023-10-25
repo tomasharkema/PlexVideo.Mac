@@ -7,18 +7,12 @@ let swiftSettings: [SwiftSetting] = [
   .enableUpcomingFeature("ConciseMagicFile"),
   .enableUpcomingFeature("BareSlashRegexLiterals"),
   .enableUpcomingFeature("ExistentialAny"),
-  .enableUpcomingFeature("DisableOutwardActorInference"),
-  .enableExperimentalFeature("AccessLevelOnImport"),
-  .enableExperimentalFeature("VariadicGenerics"),
   .unsafeFlags(
     [
+      "-Xfrontend",
       "-warn-concurrency",
       "-Xfrontend",
-      "-debug-time-function-bodies",
-      "-Xfrontend",
-      "-warn-long-function-bodies=50",
-      "-Xfrontend",
-      "-warn-long-expression-type-checking=50",
+      "-enable-actor-data-race-checks",
     ],
     .when(configuration: .debug)
   ),
@@ -30,7 +24,7 @@ let swiftUiDependencies: [Package.Dependency] = [
 ]
 
 let swiftUiPlugins: [Target.PluginUsage] = [
-  //  .plugin(name: "SwiftLintPlugin", package: "SwiftLint")
+      .plugin(name: "SwiftLintPlugin", package: "SwiftLint"),
 ]
 
 let package = Package(
@@ -54,6 +48,9 @@ let package = Package(
 
     .package(url: "https://github.com/siteline/swiftui-introspect", from: "1.0.0"),
     .package(url: "https://github.com/reddavis/Asynchrone", from: "0.21.0"),
+    .package(url: "https://github.com/apple/swift-async-algorithms", from: "0.1.0"),
+    .package(url: "https://github.com/tomasharkema/swift-rawjson", from: "0.0.26"),
+    .package(url: "https://github.com/firebase/firebase-ios-sdk", from: "10.16.0"),
 
   ] + swiftUiDependencies,
   targets: [
@@ -64,6 +61,8 @@ let package = Package(
 
         "InitMacro",
         "MetaCodable",
+
+          .product(name: "RawJson", package: "swift-rawjson"),
       ],
       swiftSettings: swiftSettings,
       plugins: swiftUiPlugins
@@ -77,6 +76,12 @@ let package = Package(
         "MetaCodable",
         "Asynchrone",
         "SwiftMacros",
+
+        .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
+        .product(name: "FirebaseCrashlytics", package: "firebase-ios-sdk"),
+      ],
+      resources: [
+        .process("PreviewResources"),
       ],
       swiftSettings: swiftSettings,
       plugins: swiftUiPlugins
@@ -91,6 +96,8 @@ let package = Package(
         "Processed",
 
         .product(name: "SwiftUIIntrospect", package: "swiftui-introspect"),
+        .product(name: "FirebaseAnalyticsWithoutAdIdSupport", package: "firebase-ios-sdk"),
+        .product(name: "FirebaseCrashlytics", package: "firebase-ios-sdk"),
       ],
       swiftSettings: swiftSettings,
       plugins: swiftUiPlugins
@@ -103,7 +110,7 @@ let package = Package(
         "PlexCore",
       ],
       resources: [
-        .process("Resources")
+        .process("Resources"),
       ],
       swiftSettings: swiftSettings,
       plugins: swiftUiPlugins

@@ -26,34 +26,6 @@ struct VideoListItem: View {
     ThumbViewModel.thumbSize.width * (viewOffset / duration)
   }
 
-  @ViewBuilder
-  private func progressBar() -> some View {
-    if let viewOffset = video.video.viewOffset?.value,
-      let duration = video.video.media?.first?.duration.value
-    {
-      Rectangle()
-        .foregroundColor(PublicColor.plexTint)
-        .frame(
-          width: width(viewOffset: viewOffset, duration: duration),
-          height: 5,
-          alignment: .leading
-        )
-    }
-  }
-
-  @ViewBuilder
-  private func progressOverlay() -> some View {
-    VStack {
-      Spacer()
-      HStack {
-        progressBar()
-        Spacer()
-      }
-      .background(Color.black.opacity(0.2))
-      .frame(height: 5)
-    }
-  }
-
   private var currentVideoBackground: Color {
     currentVideoViewModel.video?.video.key == video.video.key
       ? Color(PublicColor.plexTint) : Color.clear
@@ -63,7 +35,10 @@ struct VideoListItem: View {
     VStack(alignment: .leading) {
       ZStack {
         Thumb(video: video)
-        progressOverlay()
+        VStack {
+          Spacer()
+          ProgressBar(video: video.video)
+        }
       }
       .cornerRadius(5)
       .frame(width: ThumbViewModel.thumbSize.width, height: ThumbViewModel.thumbSize.height)
@@ -90,9 +65,9 @@ extension VideoListItem: Equatable {
   }
 }
 
-//#Preview(traits: .sizeThatFitsLayout) {
+// #Preview(traits: .sizeThatFitsLayout) {
 //  VideoListItem(video: .preview())
 //    .environment(CurrentVideoViewModel())
 //    .preferredColorScheme(.dark)
 //    .previewLayout(.sizeThatFits)
-//}
+// }

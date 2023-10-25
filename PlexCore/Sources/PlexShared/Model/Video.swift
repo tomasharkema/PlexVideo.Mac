@@ -9,9 +9,14 @@ import Foundation
 import InitMacro
 import MetaCodable
 
+//"audiencerating": 7.7,
+//"tagline": "A country occupied, a child's innocence lost.",
+//"audienceRatingImage": "rottentomatoes://image.rating.upright",
+
 @Init(public: true) @Codable
-public struct Video: Identifiable, Equatable, Hashable, Sendable {
+public struct Video: Equatable, Sendable {
   public let key: VideoKey
+  public let guid: String
   public let title: String
   public let titleSort: String?
   public let parentTitle: String?
@@ -31,10 +36,20 @@ public struct Video: Identifiable, Equatable, Hashable, Sendable {
   public let parentKey: VideoKey?
   public let childCount: NumberLike?
   public let grandparentThumb: String?
-
-  public var id: VideoKey {
-    key
-  }
+  public let type: String
+  public let studio: String?
+  public let contentRating: String?
+  public let summary: String
+  public let tagline: String?
+  public let rating: NumberLike?
+  public let year: NumberLike?
+  public let duration: Double?
+  public let ratingImage: String?
+  public let primaryExtraKey: String?
+  public let addedAt: Double
+  public let updatedAt: Double?
+  public let originallyAvailableAt: String?
+  public let viewCount: Int?
 
   public var displayTitle: String {
     grandparentTitle ?? parentTitle ?? title
@@ -44,16 +59,17 @@ public struct Video: Identifiable, Equatable, Hashable, Sendable {
     let remoteProgress = Progress(video: self)
 
     let viableStorageProgress: Progress? =
-      if let storageProgress {
-        if abs(storageProgress.date.timeIntervalSinceNow) < 7 * 24 * 60 * 60 {
-          storageProgress
-        } else {
-          nil
-        }
-
+      if let storageProgress
+    {
+      if abs(storageProgress.date.timeIntervalSinceNow) < 7 * 24 * 60 * 60 {
+        storageProgress
       } else {
         nil
       }
+
+    } else {
+      nil
+    }
 
     switch (remoteProgress, viableStorageProgress) {
     case let (remote?, storage?) where storage.date > remote.date:
@@ -68,8 +84,10 @@ public struct Video: Identifiable, Equatable, Hashable, Sendable {
       return .zero
     }
   }
+}
 
-  public func hash(into hasher: inout Hasher) {
-    hasher.combine(key.rawValue)
+extension Video: Identifiable {
+  public var id: VideoKey {
+    key
   }
 }

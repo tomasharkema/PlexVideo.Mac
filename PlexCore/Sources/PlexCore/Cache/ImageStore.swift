@@ -141,19 +141,20 @@ final class ImageStore: Sendable {
     //      let data = try Data(contentsOf: asset)
     #if os(iOS)
       let image = await UIImageReader.default.image(contentsOf: asset)?.preparingThumbnail(of: size)
-    #endif
-    #if os(macOS)
+    #elseif os(macOS)
       let image =
         ImageIO
-        .resizedImageWithHintingAndSubsampling(
-          at: asset,
-          for: size
-        )  // .preloadImage(at: asset, for: size)//.resizedImageWithHintingAndSubsampling(at: asset, for: size)
+          .resizedImageWithHintingAndSubsampling(
+            at: asset,
+            for: size
+          ) // .preloadImage(at: asset, for: size)//.resizedImageWithHintingAndSubsampling(at: asset, for: size)
+    #else
+    #error("unsupported platform")
     #endif
-
+    
     guard
-      let image  // = asset.//ImageIO.resizedImageWithHintingAndSubsampling(at: asset, for:
-      // size)?.preparingForDisplay()
+      let image // = asset.//ImageIO.resizedImageWithHintingAndSubsampling(at: asset, for:
+    // size)?.preparingForDisplay()
     else {
       throw AssetError.assetNotFound
     }

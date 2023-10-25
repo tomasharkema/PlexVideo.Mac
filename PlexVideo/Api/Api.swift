@@ -20,7 +20,7 @@ struct DeviceInfo {
   @MainActor
   static let shared = DeviceInfo()
 
-  let platform = "tvOS"  // UIDevice().systemName
+  let platform = "tvOS" // UIDevice().systemName
   // let platform = "Windows"
   let name = UIDevice().name
   let device = "iPhone"
@@ -137,11 +137,11 @@ class Api {
       url: serverLocator.root()
         .appendingPathComponent("/video/:/transcode/universal/start.m3u8"),
       queryItems:
-        videoQueryItems(
-          videoKey: video.key,
-          videoUuid: videoUuid,
-          offset: offset
-        )
+      videoQueryItems(
+        videoKey: video.key,
+        videoUuid: videoUuid,
+        offset: offset
+      )
     )
   }
 

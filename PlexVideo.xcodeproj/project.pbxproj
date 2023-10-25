@@ -25,10 +25,10 @@
 		C391F3CD2ADDEE26000452B5 /* BackupVideoPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C391F3CC2ADDEE26000452B5 /* BackupVideoPlayer.swift */; };
 		C391F3CF2ADE03C3000452B5 /* PreviewData.swift in Sources */ = {isa = PBXBuildFile; fileRef = C391F3CE2ADE03C3000452B5 /* PreviewData.swift */; };
 		C3A8320726722A8D00AB8E19 /* VideosGridScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3A8320626722A8D00AB8E19 /* VideosGridScreen.swift */; };
-		C3D0F350266E3C6F002EC3F8 /* Thumb.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D0F34F266E3C6F002EC3F8 /* Thumb.swift */; };
 		C3D776E92ADF566C0073F01C /* MacosVideoPlayerContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D776E82ADF566C0073F01C /* MacosVideoPlayerContainer.swift */; };
 		C3D89C522ADF38CF0028B17A /* DependencyInjector.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D89C512ADF38CF0028B17A /* DependencyInjector.swift */; };
 		C3EACAD626710332003A9299 /* ConnectionOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3EACAD526710332003A9299 /* ConnectionOverlay.swift */; };
+		C3FB90D92AE858E100167891 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C3FB90D82AE858E100167891 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -65,10 +65,10 @@
 		C391F3CC2ADDEE26000452B5 /* BackupVideoPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupVideoPlayer.swift; sourceTree = "<group>"; };
 		C391F3CE2ADE03C3000452B5 /* PreviewData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewData.swift; sourceTree = "<group>"; };
 		C3A8320626722A8D00AB8E19 /* VideosGridScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideosGridScreen.swift; sourceTree = "<group>"; };
-		C3D0F34F266E3C6F002EC3F8 /* Thumb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Thumb.swift; sourceTree = "<group>"; };
 		C3D776E82ADF566C0073F01C /* MacosVideoPlayerContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacosVideoPlayerContainer.swift; sourceTree = "<group>"; };
 		C3D89C512ADF38CF0028B17A /* DependencyInjector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DependencyInjector.swift; sourceTree = "<group>"; };
 		C3EACAD526710332003A9299 /* ConnectionOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionOverlay.swift; sourceTree = "<group>"; };
+		C3FB90D82AE858E100167891 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -157,6 +157,7 @@
 				C36279EB265FE4D100DEF2B6 /* PlexVideo.entitlements */,
 				C36279DC265FE44400DEF2B6 /* PlexVideoApp.swift */,
 				C36279DE265FE44400DEF2B6 /* RootView.swift */,
+				C3FB90D82AE858E100167891 /* GoogleService-Info.plist */,
 				C378F6BE2AE1C8D9000B980F /* MainView.swift */,
 			);
 			path = PlexVideo;
@@ -168,7 +169,6 @@
 				C3D776EA2ADF58590073F01C /* VideoViews */,
 				C3337853266BA811007C3D41 /* VideoDetail.swift */,
 				C3337858266CD568007C3D41 /* VideoListItem.swift */,
-				C3D0F34F266E3C6F002EC3F8 /* Thumb.swift */,
 				C32868DF266EC5F000A6F88B /* PlayerOverlay.swift */,
 				C3EACAD526710332003A9299 /* ConnectionOverlay.swift */,
 				C32868E1266EC62000A6F88B /* VideosGrid.swift */,
@@ -260,6 +260,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C36279E1265FE44500DEF2B6 /* Assets.xcassets in Resources */,
+				C3FB90D92AE858E100167891 /* GoogleService-Info.plist in Resources */,
 				C33F74182AE49ED600F46659 /* Colors.xcassets in Resources */,
 				C33F74132AE498D000F46659 /* PlexeinaRegular.ttf in Resources */,
 				C33F74142AE498D000F46659 /* PlexeinaBold.ttf in Resources */,
@@ -273,7 +274,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C3D0F350266E3C6F002EC3F8 /* Thumb.swift in Sources */,
 				C3D89C522ADF38CF0028B17A /* DependencyInjector.swift in Sources */,
 				C3EACAD626710332003A9299 /* ConnectionOverlay.swift in Sources */,
 				C391F3CF2ADE03C3000452B5 /* PreviewData.swift in Sources */,
@@ -449,6 +449,7 @@
 				DEVELOPMENT_TEAM = 3LF943TRKL;
 				"ENABLE_HARDENED_RUNTIME[sdk=macosx*]" = YES;
 				ENABLE_PREVIEWS = YES;
+				EXCLUDED_ARCHS = x86_64;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PlexVideo/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PlexVideo;
@@ -467,7 +468,7 @@
 				);
 				MARKETING_VERSION = 1.0.1;
 				MERGED_BINARY_TYPE = automatic;
-				OTHER_SWIFT_FLAGS = "-Xfrontend -debug-time-function-bodies -Xfrontend -warn-long-function-bodies=50 -Xfrontend -warn-long-expression-type-checking=50";
+				OTHER_SWIFT_FLAGS = "-warn-concurrency -enable-actor-data-race-checks";
 				PRODUCT_BUNDLE_IDENTIFIER = ma.harke.PlexVideo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
@@ -495,6 +496,8 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 3LF943TRKL;
 				ENABLE_PREVIEWS = YES;
+				"EXCLUDED_ARCHS[sdk=iphoneos*]" = x86_64;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PlexVideo/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PlexVideo;

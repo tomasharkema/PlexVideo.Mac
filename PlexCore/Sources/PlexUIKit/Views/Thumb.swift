@@ -12,14 +12,16 @@ import PlexShared
 import SwiftUI
 
 @MainActor
-struct Thumb: View {
+public struct Thumb: View {
   @State
   private var viewModel: ThumbViewModel
 
   private let video: VideoFromServer
+  private let size: CGSize
 
-  init(video: VideoFromServer) {
+  public init(video: VideoFromServer, size: CGSize = ThumbViewModel.thumbSize) {
     self.video = video
+    self.size = size
     _viewModel = .init(wrappedValue: ThumbViewModel.get(for: video))
   }
 
@@ -34,9 +36,9 @@ struct Thumb: View {
     }
   }
 
-  var body: some View {
+  public var body: some View {
     image()
-      .frame(width: ThumbViewModel.thumbSize.width, height: ThumbViewModel.thumbSize.height)
+      .frame(width: size.width, height: size.height)
       .clipped()
       .task {
         await viewModel.start()

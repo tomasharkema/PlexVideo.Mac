@@ -1,0 +1,445 @@
+{
+        "addedAt": 1643555844,
+        "art": "/library/metadata/55345/art/1694834275",
+        "audienceRating": 7.7,
+        "audienceRatingImage": "rottentomatoes://image.rating.upright",
+        "chapterSource": "media",
+        "contentRating": "nl/16",
+        "duration": 9651840,
+        "guid": "plex://movie/5d776ae4594b2b001e6c8d46",
+        "key": "/library/metadata/55345",
+        "lastViewedAt": 1698173626,
+        "librarySectionID": "1",
+        "librarySectionKey": "/library/sections/1",
+        "librarySectionTitle": "Films",
+        "originallyAvailableAt": "2015-12-30",
+        "primaryExtraKey": "/library/metadata/55352",
+        "rating": 7.5,
+        "ratingImage": "rottentomatoes://image.rating.ripe",
+        "ratingKey": "55345",
+        "sessionKey": "16",
+        "skipCount": "2",
+        "studio": "The Weinstein Company",
+        "summary": "Wyoming, enkele jaren na de Amerikaanse Burgeroorlog. Premiejager John Ruth is met een voortvluchtige, Daisy Domergue genaamd, op weg naar een dorpje dat luistert naar de naam Red Rock om haar voor het gerecht te slepen.",
+        "tagline": "No one comes up here without a damn good reason.",
+        "thumb": "/library/metadata/55345/thumb/1694834275",
+        "title": "The Hateful Eight",
+        "titleSort": "Hateful Eight",
+        "type": "movie",
+        "updatedAt": 1694834275,
+        "viewCount": 11,
+        "viewOffset": 7496000,
+        "year": 2015,
+        "Media": [
+          {
+            "audioProfile": "ma",
+            "id": "53604",
+            "videoProfile": "high",
+            "audioChannels": 6,
+            "audioCodec": "opus",
+            "bitrate": 11381,
+            "container": "mkv",
+            "duration": 9651840,
+            "height": 698,
+            "videoCodec": "h264",
+            "videoFrameRate": "PAL",
+            "videoResolution": "1080p",
+            "width": 1920,
+            "selected": true,
+            "Part": [
+              {
+                "audioProfile": "ma",
+                "id": "301610",
+                "indexes": "sd",
+                "videoProfile": "high",
+                "bitrate": 11381,
+                "container": "mkv",
+                "duration": 9651840,
+                "height": 698,
+                "width": 1920,
+                "decision": "transcode",
+                "selected": true,
+                "Stream": [
+                  {
+                    "bitrate": 10748,
+                    "codec": "h264",
+                    "default": true,
+                    "displayTitle": "4K (H.264)",
+                    "extendedDisplayTitle": "The Hateful Eight (2015) (4K H.264)",
+                    "frameRate": 25,
+                    "height": 698,
+                    "id": "1539257",
+                    "language": "English",
+                    "languageCode": "eng",
+                    "languageTag": "en",
+                    "streamType": 1,
+                    "width": 1920,
+                    "decision": "transcode",
+                    "location": "direct"
+                  },
+                  {
+                    "bitrate": 633,
+                    "bitrateMode": "cbr",
+                    "channels": 6,
+                    "codec": "opus",
+                    "displayTitle": "English (DTS-HD MA 5.1)",
+                    "extendedDisplayTitle": "DTS-HD MA 5.1 - Blu-ray (English)",
+                    "id": "1539258",
+                    "language": "English",
+                    "languageCode": "eng",
+                    "languageTag": "en",
+                    "selected": true,
+                    "streamType": 2,
+                    "decision": "transcode",
+                    "location": "direct"
+                  },
+                  {
+                    "bitrate": 0,
+                    "codec": "srt",
+                    "displayTitle": "English (SRT)",
+                    "extendedDisplayTitle": "English (SRT)",
+                    "format": "srt",
+                    "id": "1539260",
+                    "language": "English",
+                    "languageCode": "eng",
+                    "languageTag": "en",
+                    "selected": true,
+                    "streamType": 3,
+                    "decision": "copy",
+                    "location": "embedded"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "Genre": [
+          {
+            "count": "5",
+            "filter": "genre=1024",
+            "id": "1024",
+            "tag": "Western"
+          },
+          {
+            "count": "82",
+            "filter": "genre=1025",
+            "id": "1025",
+            "tag": "Misdaad"
+          },
+          {
+            "count": "155",
+            "filter": "genre=5",
+            "id": "5",
+            "tag": "Drama"
+          },
+          {
+            "count": "45",
+            "filter": "genre=392",
+            "id": "392",
+            "tag": "Mysterie"
+          },
+          {
+            "count": "106",
+            "filter": "genre=391",
+            "id": "391",
+            "tag": "Thriller"
+          }
+        ],
+        "Country": [
+          {
+            "count": "249",
+            "filter": "country=93",
+            "id": "93",
+            "tag": "United States of America"
+          }
+        ],
+        "Rating": [
+          {
+            "count": "282",
+            "image": "imdb://image.rating",
+            "type": "audience",
+            "value": "7.8"
+          },
+          {
+            "count": "206",
+            "image": "rottentomatoes://image.rating.ripe",
+            "type": "critic",
+            "value": "7.5"
+          },
+          {
+            "count": "231",
+            "image": "rottentomatoes://image.rating.upright",
+            "type": "audience",
+            "value": "7.7"
+          },
+          {
+            "count": "282",
+            "image": "themoviedb://image.rating",
+            "type": "audience",
+            "value": "7.7"
+          }
+        ],
+        "Director": [
+          {
+            "count": "7",
+            "filter": "director=31299",
+            "id": "31299",
+            "tag": "Quentin Tarantino",
+            "tagKey": "5d7768255af944001f1f638b",
+            "thumb": "https://metadata-static.plex.tv/people/5d7768255af944001f1f638b.jpg"
+          }
+        ],
+        "Writer": [
+          {
+            "count": "7",
+            "filter": "writer=31300",
+            "id": "31300",
+            "tag": "Quentin Tarantino",
+            "tagKey": "5d7768255af944001f1f638b",
+            "thumb": "https://metadata-static.plex.tv/people/5d7768255af944001f1f638b.jpg"
+          }
+        ],
+        "Role": [
+          {
+            "count": "10",
+            "filter": "actor=31305",
+            "id": "31305",
+            "role": "Major Marquis Warren",
+            "tag": "Samuel L. Jackson",
+            "tagKey": "5d7768255af944001f1f638e",
+            "thumb": "https://metadata-static.plex.tv/1/people/1e9e4728165c4db8ae5c58462997d53e.jpg"
+          },
+          {
+            "count": "4",
+            "filter": "actor=33243",
+            "id": "33243",
+            "role": "John 'The Hangman' Ruth",
+            "tag": "Kurt Russell",
+            "tagKey": "5d776826103a2d001f56424d",
+            "thumb": "https://metadata-static.plex.tv/a/people/ada71a2b9ba38388e8fe95037f09a7ed.jpg"
+          },
+          {
+            "count": "2",
+            "filter": "actor=41691",
+            "id": "41691",
+            "role": "Daisy Domergue",
+            "tag": "Jennifer Jason Leigh",
+            "tagKey": "5d7768278718ba001e311e84",
+            "thumb": "https://metadata-static.plex.tv/d/people/d0c0451f18d14d7e80c4ef9467ba29ce.jpg"
+          },
+          {
+            "count": "3",
+            "filter": "actor=31306",
+            "id": "31306",
+            "role": "Sheriff Chris Mannix",
+            "tag": "Walton Goggins",
+            "tagKey": "5d77682c8718ba001e312c4f",
+            "thumb": "https://metadata-static.plex.tv/c/people/cb9ce76e2283253fa669390b0f01a579.jpg"
+          },
+          {
+            "filter": "actor=43755",
+            "id": "43755",
+            "role": "Bob",
+            "tag": "Demián Bichir",
+            "tagKey": "5d776832f59e58002189860c",
+            "thumb": "https://metadata-static.plex.tv/9/people/902d4a3a875f369d46df2ce117d3dca8.jpg"
+          },
+          {
+            "count": "2",
+            "filter": "actor=36917",
+            "id": "36917",
+            "role": "Oswaldo Mobray",
+            "tag": "Tim Roth",
+            "tagKey": "5d7768256f4521001ea9898f",
+            "thumb": "https://metadata-static.plex.tv/b/people/b3ed1cc020f70bdb09c2110c0d47913b.jpg"
+          },
+          {
+            "count": "5",
+            "filter": "actor=36916",
+            "id": "36916",
+            "role": "Joe Gage",
+            "tag": "Michael Madsen",
+            "tagKey": "5d776826103a2d001f563f1d",
+            "thumb": "https://metadata-static.plex.tv/d/people/d2c2e6e472f0fe8056299b0472ab16b6.jpg"
+          },
+          {
+            "count": "3",
+            "filter": "actor=31324",
+            "id": "31324",
+            "role": "General Sandy Smithers",
+            "tag": "Bruce Dern",
+            "tagKey": "5d776826999c64001ec2c5e4",
+            "thumb": "https://metadata-static.plex.tv/b/people/be2764b9c4b71fcde7d1c53d50fef837.jpg"
+          },
+          {
+            "count": "4",
+            "filter": "actor=31335",
+            "id": "31335",
+            "role": "O. B. Jackson",
+            "tag": "James Parks",
+            "tagKey": "5d776826103a2d001f563f8a",
+            "thumb": "https://metadata-static.plex.tv/people/5d776826103a2d001f563f8a.jpg"
+          },
+          {
+            "count": "2",
+            "filter": "actor=31310",
+            "id": "31310",
+            "role": "Minnie",
+            "tag": "Dana Gourrier",
+            "tagKey": "5d7768adebdf2200209c5e34",
+            "thumb": "https://metadata-static.plex.tv/8/people/81cfee7e812d1472f78ce9fc32ce5cf0.jpg"
+          },
+          {
+            "count": "3",
+            "filter": "actor=31330",
+            "id": "31330",
+            "role": "'Six-Horse' Judy",
+            "tag": "Zoë Bell",
+            "tagKey": "5d77682654f42c001f8c26c2",
+            "thumb": "https://metadata-static.plex.tv/people/5d77682654f42c001f8c26c2.jpg"
+          },
+          {
+            "count": "2",
+            "filter": "actor=31329",
+            "id": "31329",
+            "role": "Ed",
+            "tag": "Lee Horsley",
+            "tagKey": "5d776830961905001eb92ffc",
+            "thumb": "https://metadata-static.plex.tv/e/people/edd2391e660fe4cdc89d8190a6fb35cb.jpg"
+          },
+          {
+            "filter": "actor=43756",
+            "id": "43756",
+            "role": "Sweet Dave",
+            "tag": "Gene Jones",
+            "tagKey": "5d7768313c3c2a001fbcd469",
+            "thumb": "https://metadata-static.plex.tv/4/people/46d5cc821341c64ea44ffc2f294e02ee.jpg"
+          },
+          {
+            "count": "3",
+            "filter": "actor=31341",
+            "id": "31341",
+            "role": "Charly",
+            "tag": "Keith Jefferson",
+            "tagKey": "5d776832151a60001f24d381",
+            "thumb": "https://metadata-static.plex.tv/2/people/2faf38c3bf5f07a9c04cf27fcc953039.jpg"
+          },
+          {
+            "count": "3",
+            "filter": "actor=31366",
+            "id": "31366",
+            "role": "Chester Charles Smithers",
+            "tag": "Craig Stark",
+            "tagKey": "5d77685ee6d55c0020411b81",
+            "thumb": "https://metadata-static.plex.tv/3/people/3e043686e5aa9a695b6ca80e60639b95.jpg"
+          },
+          {
+            "count": "2",
+            "filter": "actor=31408",
+            "id": "31408",
+            "role": "Gemma",
+            "tag": "Belinda Owino",
+            "tagKey": "5d7768adebdf2200209c5e61"
+          },
+          {
+            "count": "6",
+            "filter": "actor=34027",
+            "id": "34027",
+            "role": "Jody",
+            "tag": "Channing Tatum",
+            "tagKey": "5d77682e5af944001f1f86c1",
+            "thumb": "https://metadata-static.plex.tv/1/people/13605f149a02d141834fe1419671ea3d.jpg"
+          },
+          {
+            "count": "5",
+            "filter": "actor=31339",
+            "id": "31339",
+            "role": "Narrator (voice) (uncredited)",
+            "tag": "Quentin Tarantino",
+            "tagKey": "5d7768255af944001f1f638b",
+            "thumb": "https://metadata-static.plex.tv/people/5d7768255af944001f1f638b.jpg"
+          }
+        ],
+        "Producer": [
+          {
+            "count": "2",
+            "filter": "producer=31412",
+            "id": "31412",
+            "tag": "Stacey Sher",
+            "tagKey": "5d77682685719b001f3a0b86",
+            "thumb": "https://metadata-static.plex.tv/f/people/f759b82a03d3de4fa28742f54c300382.jpg"
+          },
+          {
+            "filter": "producer=43757",
+            "id": "43757",
+            "tag": "Richard N. Gladstein",
+            "tagKey": "5d7768288718ba001e3121c9",
+            "thumb": "https://metadata-static.plex.tv/8/people/80233cf7d35aa81dc551282fc886da8f.jpg"
+          },
+          {
+            "count": "3",
+            "filter": "producer=36958",
+            "id": "36958",
+            "tag": "Shannon McIntosh",
+            "tagKey": "5d776a8b9ab5440021500463",
+            "thumb": "https://metadata-static.plex.tv/9/people/9fc61666b6e859a81c9ca2691c931633.jpg"
+          }
+        ],
+        "User": {
+          "id": "1",
+          "thumb": "https://plex.tv/users/9eba55be56637b20/avatar?c=1698154817",
+          "title": "teumaauss"
+        },
+        "Player": {
+          "address": "88.159.250.32",
+          "machineIdentifier": "m62rn8fnjmaov8g55fmv09yg",
+          "model": "standalone",
+          "platform": "macos",
+          "platformVersion": "14.0",
+          "product": "Plex for Mac",
+          "profile": "Plex Desktop",
+          "remotePublicAddress": "88.159.250.32",
+          "state": "playing",
+          "title": "MacBook-Pro-van-Tomas.local",
+          "version": "1.79.1.3984-879339ed",
+          "local": false,
+          "relayed": false,
+          "secure": true,
+          "userID": 1
+        },
+        "Session": {
+          "id": "wgwp16u0nr0wpwiynvre7z91",
+          "bandwidth": 11952,
+          "location": "wan"
+        },
+        "TranscodeSession": {
+          "key": "/transcode/sessions/08sasi0sog15wpujup3m7hyf",
+          "throttled": true,
+          "complete": false,
+          "progress": 58.599998474121094,
+          "size": -22,
+          "speed": 0,
+          "error": false,
+          "duration": 9651840,
+          "context": "streaming",
+          "sourceVideoCodec": "h264",
+          "sourceAudioCodec": "dca",
+          "videoDecision": "transcode",
+          "audioDecision": "transcode",
+          "subtitleDecision": "copy",
+          "protocol": "http",
+          "container": "mkv",
+          "videoCodec": "h264",
+          "audioCodec": "opus",
+          "audioChannels": 6,
+          "transcodeHwRequested": true,
+          "transcodeHwDecoding": "nvdec",
+          "transcodeHwEncoding": "nvenc",
+          "transcodeHwDecodingTitle": "NVIDIA (NVDEC)",
+          "transcodeHwFullPipeline": true,
+          "transcodeHwEncodingTitle": "NVIDIA (NVENC)",
+          "timeStamp": 1698175767.611311,
+          "maxOffsetAvailable": 7720.96,
+          "minOffsetAvailable": 2069
+        }
+      }

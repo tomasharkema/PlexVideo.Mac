@@ -11,9 +11,9 @@ public struct DeviceInfo: Sendable {
   //  @MainActor
   //  static let shared = DeviceInfo()
 
-  public let platform = "tvOS"  // UIDevice().systemName
+  public let platform = "tvOS" // UIDevice().systemName
   // let platform = "Windows"
-  public let name: String  // UIDevice().name
+  public let name: String // UIDevice().name
   public let device = "iPhone"
   public let version: String
   public let appVersion = "0.1"

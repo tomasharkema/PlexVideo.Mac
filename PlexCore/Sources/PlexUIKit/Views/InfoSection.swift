@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct InfoSection<ExtraType: View, ContentType: View>: View {
-
   @State
   private var collapsed = true
 
@@ -36,7 +35,7 @@ struct InfoSection<ExtraType: View, ContentType: View>: View {
   ) where ExtraType == EmptyView {
     self.title = title
     self.collapsible = collapsible
-    self.extra = { EmptyView() }
+    extra = { EmptyView() }
     self.content = content
   }
 

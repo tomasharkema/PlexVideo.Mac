@@ -9,7 +9,8 @@ import Foundation
 import MetaCodable
 
 struct RawRepresentableCoder<RawType: RawRepresentable>: HelperCoder
-where RawType.RawValue == String {
+  where RawType.RawValue == String
+{
   func decode(from decoder: any Decoder) throws -> RawType {
     let single = try decoder.singleValueContainer()
     guard let value = try RawType(rawValue: single.decode(String.self)) else {
@@ -19,5 +20,10 @@ where RawType.RawValue == String {
       )
     }
     return value
+  }
+
+  func encode(_ value: RawType, to encoder: any Encoder) throws {
+    var single = encoder.singleValueContainer()
+    try single.encode(value.rawValue)
   }
 }

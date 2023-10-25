@@ -10,34 +10,45 @@ import Foundation
 import Inject
 import PlexShared
 
-public final class Api {
+public final class Api: Sendable {
   //  @Injected(\.serverLocator)
   //  private var serverLocator
 
   @Injected(\.requestor)
   private var requestor
 
-  public func sections(server: ServerWithCurrentConnection) async throws -> Root<DirectoryContainer>
-  {
+  public func sections(
+    server: ServerWithCurrentConnection,
+                       onlyCached: Bool
+  ) async throws -> Root<DirectoryContainer> {
     try await requestor.request(
       url: server.uri
         .appendingPathComponent("/library/sections"),
-      Root<DirectoryContainer>.self
+      Root<DirectoryContainer>.self,
+      onlyCached: onlyCached
     )
   }
 
-  public func all(server: ServerWithCurrentConnection, key: SectionKey, reload: Bool) async throws
+  public func all(
+    server: ServerWithCurrentConnection,
+    key: SectionKey,
+    reload: Bool,
+    onlyCached: Bool
+  ) async throws
     -> Root<Metadata<Video>>
   {
     try await requestor.request(
       url: server.uri
         .appendingPathComponent("/library/sections/\(key.rawValue)/all"),
       Root<Metadata<Video>>.self,
-      useCache: !reload
+      useCache: !reload,
+      onlyCached: onlyCached
     )
   }
 
-  public func onDeck(server: ServerWithCurrentConnection, ratingKey: RatingKey) async throws
+  public func onDeck(
+    server: ServerWithCurrentConnection, ratingKey: RatingKey
+  ) async throws
     -> Root<Metadata<Video>>
   {
     try await requestor.request(
@@ -48,7 +59,9 @@ public final class Api {
     )
   }
 
-  private func status(server: ServerWithCurrentConnection) async throws -> Root<
+  public func sessions(
+    server: ServerWithCurrentConnection
+  ) async throws -> Root<
     Metadata<SessionStatus>
   > {
     try await requestor.request(
@@ -136,12 +149,12 @@ public final class Api {
       url: server.uri
         .appendingPathComponent("/video/:/transcode/universal/start.m3u8"),
       queryItems:
-        videoQueryItems(
-          videoKey: video.key,
-          videoUuid: videoUuid,
-          offset: offset,
-          subtitles: "auto"
-        )
+      videoQueryItems(
+        videoKey: video.key,
+        videoUuid: videoUuid,
+        offset: offset,
+        subtitles: "auto"
+      )
     )
   }
 
@@ -206,21 +219,14 @@ public final class Api {
       ]
     )
   }
-
-  public func sessions(server: ServerWithCurrentConnection) async throws -> String {
-    try await requestor.request(
-      url: server.uri.appendingPathComponent("/status/sessions"),
-      String.self
-    )
-  }
 }
 
 enum PlexError: Error {
   case noMedia
 }
 
-extension DateFormatter {
-  public static let iso8601Full: DateFormatter = {
+public extension DateFormatter {
+  static let iso8601Full: DateFormatter = {
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
     //    formatter.calendar = Calendar(identifier: .iso8601)
@@ -230,16 +236,16 @@ extension DateFormatter {
   }()
 }
 
-extension JSONDecoder {
-  public static let `default`: JSONDecoder = {
+public extension JSONDecoder {
+  static let `default`: JSONDecoder = {
     let decoder = JSONDecoder()
     decoder.dateDecodingStrategy = .formatted(.iso8601Full)
     return decoder
   }()
 }
 
-extension InjectedValues {
-  public var api: Api {
+public extension InjectedValues {
+  var api: Api {
     get { Self[ApiKey.self] }
     set { Self[ApiKey.self] = newValue }
   }

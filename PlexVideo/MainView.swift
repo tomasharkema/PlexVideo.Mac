@@ -61,7 +61,8 @@ struct MainView: View {
           })
 
         case .some(.servers):
-          ServersScreen().environment(serversViewModel)
+          ServersScreen()
+            .environment(serversViewModel)
 
         default:
           VideosGridScreen()

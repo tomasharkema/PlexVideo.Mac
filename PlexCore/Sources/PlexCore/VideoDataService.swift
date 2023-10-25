@@ -10,6 +10,11 @@ import Inject
 import PlexApi
 import PlexShared
 
+struct ListResult {
+  var videos: [VideoFromServer]
+  var progress: [(VideoFromServer.ID, PlexShared.Progress)]
+}
+
 public final class VideoDataService: Sendable {
   @Injected(\.api)
   private var api
@@ -24,8 +29,10 @@ public final class VideoDataService: Sendable {
     try await video.video.getProgress(storage: storage.getSavedOffset(video: video.video))
   }
 
-  private func getSections(server: ServerWithCurrentConnection) async throws -> [Directory] {
-    try await api.sections(server: server).mediaContainer.directory.filter {
+  private func getSections(server: ServerWithCurrentConnection,
+                           onlyCached: Bool) async throws -> [Directory]
+  {
+    try await api.sections(server: server, onlyCached: onlyCached).mediaContainer.directory.filter {
       $0.type == "movie" || $0.type == "show"
     }
   }
@@ -67,13 +74,23 @@ public final class VideoDataService: Sendable {
     }
   }
 
-  func fetchVideos(server: ServerWithCurrentConnection, sections: [Directory], reload: Bool)
+  func fetchVideos(
+    server: ServerWithCurrentConnection,
+    sections: [Directory],
+    reload: Bool,
+    onlyCached: Bool
+  )
     async throws -> [VideoFromServer]
   {
     try await withThrowingTaskGroup(of: [VideoFromServer].self) { group in
       for section in sections {
         group.addTask {
-          try await self.api.all(server: server, key: section.key, reload: reload).mediaContainer
+          try await self.api.all(
+            server: server,
+            key: section.key,
+            reload: reload,
+            onlyCached: onlyCached
+          ).mediaContainer
             .metadata.map {
               VideoFromServer(video: $0, server: server)
             }
@@ -115,40 +132,58 @@ public final class VideoDataService: Sendable {
     }
   }
 
-  public func getVideoList(reload: Bool) async throws -> (
+  public func getVideoList(reload: Bool, onlyCached: Bool) async throws -> (
     onDeck: [VideoFromServer], all: [VideoFromServer]
   ) {
+    let servers = try await serverLocator.getServers()
 
-    let server = try await self.serverLocator.root()
+    let lists: ListResult = try await withThrowingTaskGroup(of: ListResult.self) { group in
+      for serv in servers {
+        group.addTask {
+          let server = try await self.serverLocator.root(server: serv.server)
+          try Task.checkCancellation()
+          let sections = try await self.getSections(server: server, onlyCached: onlyCached)
+          try Task.checkCancellation()
+          async let videosAsync = self.fetchVideos(
+            server: server,
+            sections: sections,
+            reload: reload,
+            onlyCached: onlyCached
+          )
+          async let continueWatchingAsync = self.getContinueWatchingAndProgress(
+            server: server,
+            sections: sections
+          )
+          try Task.checkCancellation()
+          return try await ListResult(videos: videosAsync, progress: continueWatchingAsync)
+        }
+      }
 
-    let sections = try await getSections(server: server)
-
-    async let videosAsync = fetchVideos(server: server, sections: sections, reload: reload)
-    async let continueWatchingAsync = getContinueWatchingAndProgress(
-      server: server,
-      sections: sections
-    )
-
-    let (videos, continueWatchingResultKeyValue) = try await (
-      videosAsync,
-      continueWatchingAsync
-    )
+      return try await group.reduce(into: ListResult(videos: [], progress: [])) { prev, curr in
+        prev.progress.append(contentsOf: curr.progress)
+        prev.videos.append(contentsOf: curr.videos)
+      }
+    }
+    try Task.checkCancellation()
 
     let continueWatching = [VideoFromServer.ID: PlexShared.Progress](
-      uniqueKeysWithValues: continueWatchingResultKeyValue
+      uniqueKeysWithValues: lists.progress
     )
     let videosByKey: [VideoFromServer.ID: VideoFromServer] = Dictionary(
-      uniqueKeysWithValues: videos.map {
+      uniqueKeysWithValues: lists.videos.map {
         ($0.id, $0)
       }
     )
 
+    try Task.checkCancellation()
+
     async let progressArrayMissing = progressMissing(
-      videos: videos,
+      videos: lists.videos,
       continueWatching: continueWatching
     )
 
-    let fixedContinue = try await [continueWatchingResultKeyValue, progressArrayMissing]
+    try Task.checkCancellation()
+    let fixedContinue = try await [lists.progress, progressArrayMissing]
       .joined()
       .sorted {
         $0.1.date > $1.1.date
@@ -157,16 +192,16 @@ public final class VideoDataService: Sendable {
         videosByKey[$0.0].map { [$0] } ?? []
       }
 
-    let videosSorted = videos.sorted {
+    let videosSorted = lists.videos.sorted {
       $0.video.titleSort ?? $0.video.title < $1.video.titleSort ?? $1.video.title
     }
-
+    try Task.checkCancellation()
     return (fixedContinue, videosSorted)
   }
 }
 
-extension InjectedValues {
-  public var videoDataService: VideoDataService {
+public extension InjectedValues {
+  var videoDataService: VideoDataService {
     get { Self[VideoDataServiceKey.self] }
     set { Self[VideoDataServiceKey.self] = newValue }
   }

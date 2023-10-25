@@ -1,5 +1,5 @@
 //
-//  DeviceView.swift
+//  ServerView.swift
 //
 //
 //  Created by Tomas Harkema on 20/10/2023.
@@ -25,26 +25,26 @@ struct ServerView: View {
 
   private var heading: some View {
     VStack {
-      HStack {
-        Text(server.server.server.name)
+      HStack(alignment: .firstTextBaseline) {
+        Text(server.server.name)
           .font(.title)
           .bold()
 
-        if server.server.server.home {
+        if server.server.home {
           Image(systemName: "house")
         }
 
-        if server.server.server.publicAddressMatches {
+        if server.server.publicAddressMatches {
           Image(systemName: "house")
         }
 
-        if server.server.server.owned {
+        if server.server.owned {
           Text("owned")
         }
 
         Spacer()
 
-        Text(server.server.server.lastSeenAt, format: .relative(presentation: .named))
+        Text(server.server.lastSeenAt, format: .relative(presentation: .named))
       }
       Divider()
     }
@@ -68,7 +68,7 @@ struct ServerView: View {
 
   @ViewBuilder
   private var infoSection: some View {
-    if let info = viewModel.keyValueInfo[server.server.server.id] {
+    if let info = viewModel.keyValueInfo[server.server.id] {
       InfoSection(title: "Info", collapsible: true) {
         Table(info) {
           TableColumn("Key", value: \.key)
@@ -81,9 +81,41 @@ struct ServerView: View {
   }
 
   @ViewBuilder
+  private func playing(sessions: [SessionVideo]) -> some View {
+    LazyVStack {
+      ForEach(sessions) { session in
+        NowPlayingView(session: session)
+      }
+    }
+  }
+
+  @ViewBuilder
+  private var nowPlayingSection: some View {
+    InfoSection(title: "Now Playing") {
+      switch viewModel.sessions {
+      case .absent, .loading:
+        ProgressView()
+
+      case let .loaded(sessions):
+        if let session = sessions[server.id], !session.isEmpty {
+          playing(sessions: session)
+        } else {
+          Text("Nothing is playing...")
+            .foregroundColor(.white.opacity(0.6))
+            .padding(.vertical)
+        }
+
+      case let .error(error):
+        Text("error: \(error.localizedDescription)")
+          .padding()
+      }
+    }
+  }
+
+  @ViewBuilder
   private var rawInfo: some View {
     if let (serverResult, capabilitiesString) = viewModel.rawResults[server.id] {
-      InfoSection(title: "RAW JSON Result", collapsible: true) {
+      InfoSection(title: "Raw JSON info", collapsible: true) {
         VStack(alignment: .leading, spacing: 20) {
           Text("Server Result").font(.title3.bold())
           Text(serverResult)
@@ -100,13 +132,16 @@ struct ServerView: View {
       }
     }
   }
+
   var body: some View {
     VStack(alignment: .leading, spacing: 20) {
       heading
 
       connectionsSection
 
-      infoSection
+      nowPlayingSection
+
+//      infoSection
 
       rawInfo
     }
@@ -117,12 +152,10 @@ struct ServerView: View {
   }
 }
 
-//#Preview {
+// #Preview {
 //  ServerView(
-//    server: .preview1,
-//    currentConnection: .preview3,
-//    pings: [
-//      .preview3: .success(server: .preview1, connection: .preview3, details: .preview)
-//    ]
+//    server: .preview1
 //  )
-//}
+//  .environment(VideosViewModel())
+//  .environment(ServersViewModel())
+// }

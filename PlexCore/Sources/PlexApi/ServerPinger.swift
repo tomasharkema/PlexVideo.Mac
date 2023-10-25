@@ -10,6 +10,7 @@ import OSLog
 import PlexShared
 import Processed
 import SwiftUI
+import Inject
 
 public struct PingerState {
   public var results: [ServerWithConnection.ID: PingResult]
@@ -28,7 +29,9 @@ public final class ServerPinger: Sendable, LoadableSupport {
 
   public private(set) var state: LoadableState<PingerState> = .absent
 
-  public init() {}
+  public init() {
+    startPinging()
+  }
 
   private func updatePing(ping: PingResult, yield: (PingerState) -> Void) {
     var updated = state.data ?? PingerState(results: [:], lastRun: .now)
@@ -57,8 +60,8 @@ public final class ServerPinger: Sendable, LoadableSupport {
     }
   }
 
-  public func startPinging() {
-    self.load(\.state, priority: .low) { yield in
+  private func startPinging() {
+    load(\.state, priority: .low) { yield in
       while !Task.isCancelled {
         self.logger.info("startPinging start")
         await self.ping { value in
@@ -71,9 +74,21 @@ public final class ServerPinger: Sendable, LoadableSupport {
     }
   }
 
-  public func stopPinging() {
-    self.cancel(\.state)
+//  public func stopPinging() {
+//    cancel(\.state)
     //    pingerTask?.cancel()
     //    pingerTask = nil
+//  }
+}
+
+public extension InjectedValues {
+  var serverPinger: ServerPinger {
+    get { Self[ServerPingerKey.self] }
+    set { Self[ServerPingerKey.self] = newValue }
   }
+}
+
+private struct ServerPingerKey: InjectionKey {
+  @MainActor
+  static var currentValue: ServerPinger? = .init()
 }

@@ -29,6 +29,10 @@ public final class CurrentVideoViewModel: LoadableSupport {
   private var api
 
   @ObservationIgnored
+  @Injected(\.videosDataSource)
+  private var videosDataSource
+
+  @ObservationIgnored
   private var playingCancellables = Set<AnyCancellable>()
 
   public var video: VideoFromServer?
@@ -129,7 +133,7 @@ public final class CurrentVideoViewModel: LoadableSupport {
     lastTime = time
 
     guard let video,
-      let player = player.data
+          let player = player.data
     else {
       reset(\.updateTimeline)
       return
@@ -168,8 +172,8 @@ public final class CurrentVideoViewModel: LoadableSupport {
 
       let offset =
         await video.video
-        .getProgress(storage: try? self.storage.getSavedOffset(video: video.video))
-        .seconds
+          .getProgress(storage: try? self.storage.getSavedOffset(video: video.video))
+          .seconds
 
       let url = try await self.api.videoUrl(
         server: video.server,
@@ -228,7 +232,10 @@ public final class CurrentVideoViewModel: LoadableSupport {
       )
 
       if let res = onDeckResponse.mediaContainer.metadata.first?.onDeck?.metadata {
-        return VideoFromServer(video: Video(onDeck: res), server: video.server)  //Video(onDeck: res)
+
+        let video = videosDataSource.getVideo(by: res.key)
+        assertionFailure(String(describing: video))
+        return video
       } else {
         return video
       }

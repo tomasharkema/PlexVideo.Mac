@@ -6,10 +6,10 @@
 //
 
 import Foundation
-// import XMLCoder
 import Inject
 import OSLog
 import PlexShared
+import FirebaseCrashlytics
 
 public final class Requestor: Sendable {
   private let logger = Logger(subsystem: "PlexVideo", category: "Requestor")
@@ -85,6 +85,23 @@ public final class Requestor: Sendable {
     return url
   }
 
+  private nonisolated func executeRequest(
+    request: URLRequest,
+    onlyCached: Bool
+  ) async throws -> (Data, URLResponse)
+  {
+    if onlyCached, let cache = networkManager.session.configuration.urlCache {
+      if let cachedResponse = cache.cachedResponse(for: request) {
+        return (cachedResponse.data, cachedResponse.response)
+      } else {
+        throw NSError(domain: "NO CACHED RESPONSE", code: 69)
+      }
+    } else {
+      let (data, response) = try await networkManager.session.data(for: request)
+      return (data, response)
+    }
+  }
+
   nonisolated func request<DecodableType: Decodable>(
     url: URL,
     _ type: DecodableType.Type,
@@ -94,7 +111,8 @@ public final class Requestor: Sendable {
     sendDefaultQueries: Bool = true,
     timeout: Duration? = nil,
     invalidateAfterError: Bool = true,
-    useCache: Bool = true
+    useCache: Bool = true,
+    onlyCached: Bool = false
   ) async throws -> DecodableType {
     let queryItemsAndUUID = (queryItems ?? [])
 
@@ -120,7 +138,10 @@ public final class Requestor: Sendable {
     }
 
     do {
-      let (data, response) = try await networkManager.session.data(for: mutualRequest)
+      let (data, response) = try await executeRequest(
+        request: mutualRequest,
+        onlyCached: onlyCached && useCache
+      )
 
       try HTTPError.throwFor(urlResponse: response)
 
@@ -128,33 +149,31 @@ public final class Requestor: Sendable {
         return try JSONDecoder.default.decode(type, from: data)
       } catch {
         #if DEBUG
-          logger
-            .error(
-              "JSON ERROR:\nurl: \(url)\nerror: \(error)\njson: \(String(data: data, encoding: .utf8) ?? "")"
-            )
+          logger.error("""
+          JSON ERROR:
+          url: \(url)
+          error: \(error)
+          json: \(String(data: data, encoding: .utf8) ?? "")
+          """)
         #endif
         throw error
       }
     } catch let error as URLError {
-      //      logger
-      //        .error(
-      //          "request URLError \(error.localizedDescription), \(String(describing: error.code)), \(url)"
-      //        )
 
       if invalidateAfterError,
-        error.code == .cannotConnectToHost || error.code == .cannotFindHost
-          || error
-            .code == .dnsLookupFailed
+         error.code == .cannotConnectToHost || error.code == .cannotFindHost
+         || error
+         .code == .dnsLookupFailed || error.code == .timedOut
       {
-        logger.warning("NO HOST FOUND")
+        logger.error("NO HOST FOUND \(error)")
         Task {
           await serverLocator.invalidate()
         }
       }
-      //
+
       throw error
     } catch {
-      logger.error("request error \(error), \(url)")
+      Crashlytics.crashlytics().record(error: error)
       throw error
     }
   }
@@ -166,8 +185,8 @@ public protocol RequestorStorageProviding {
   var uuid: String { get }
 }
 
-extension InjectedValues {
-  public var requestorStorageProviding: any RequestorStorageProviding {
+public extension InjectedValues {
+  var requestorStorageProviding: any RequestorStorageProviding {
     get { Self[RequestorStorageProvidingKey.self] }
     set { Self[RequestorStorageProvidingKey.self] = newValue }
   }
@@ -177,8 +196,8 @@ public struct RequestorStorageProvidingKey: InjectionKey {
   public static var currentValue: (any RequestorStorageProviding)?
 }
 
-extension InjectedValues {
-  public var requestor: Requestor {
+public extension InjectedValues {
+  var requestor: Requestor {
     get { Self[RequestorKey.self] }
     set { Self[RequestorKey.self] = newValue }
   }

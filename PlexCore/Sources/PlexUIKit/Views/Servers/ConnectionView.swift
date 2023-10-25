@@ -22,10 +22,8 @@ struct ConnectionsView: View {
 
   var body: some View {
     switch viewModel.pings {
-    case .loaded(let pings):
-      LazyHGrid(rows: [
-        GridItem(.adaptive(minimum: 10), spacing: 20)
-      ]) {
+    case let .loaded(pings):
+      VStack(alignment: .leading) {
         ForEach(connections) { server in
           ConnectionView(
             server: server,
@@ -37,9 +35,8 @@ struct ConnectionsView: View {
     case .absent, .loading:
       ProgressView()
 
-    case .error(let error):
+    case let .error(error):
       Text(error.localizedDescription)
-
     }
     //    .padding()
     //    .background(.black.opacity(0.6))
@@ -60,9 +57,13 @@ struct ConnectionView: View {
     self.ping = ping
   }
 
+  private var currentConnection: ServerWithCurrentConnection? {
+    viewModel.currentConnection[server.server.id]
+  }
+
   private var isCurrentDevice: Bool {
-    server.server == viewModel.currentConnection?.server
-      && server.connection == viewModel.currentConnection?.connection
+    server.server == currentConnection?.server
+      && server.connection == currentConnection?.connection
   }
 
   private var pingResult: PingSuccess? {
@@ -84,7 +85,6 @@ struct ConnectionView: View {
 
   var body: some View {
     HStack {
-
       if !server.connection.local {
         Image(systemName: "cloud")
       }

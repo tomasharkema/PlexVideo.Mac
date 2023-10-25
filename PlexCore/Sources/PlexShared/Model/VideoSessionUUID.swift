@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct VideoSessionUUID: RawRepresentable, Sendable {
+public struct VideoSessionUUID: RawRepresentable, Sendable, Codable {
   public let rawValue: String
 
   public init(rawValue: String) {

@@ -7,8 +7,8 @@
 
 import Combine
 import Foundation
-import UniformTypeIdentifiers
 import os
+import UniformTypeIdentifiers
 
 #if os(iOS)
   import UIKit
@@ -28,8 +28,8 @@ final class MemoryLimitedCache: Cache, Sendable {
   private(set) var currentMemoryUsage = Measurement<UnitInformationStorage>.zero
 
   private let accessLock = UnfairLock()
-  private var assets: [Asset.ID: Asset] = [:]  // GuardedBy(accessLock)
-  private var protectedAssetIDs: [Asset.ID: Int] = [:]  // GuardedBy(accessLock)
+  private var assets: [Asset.ID: Asset] = [:] // GuardedBy(accessLock)
+  private var protectedAssetIDs: [Asset.ID: Int] = [:] // GuardedBy(accessLock)
   private var cancellation = [AnyCancellable]()
 
   private let logger: Logger
@@ -137,7 +137,6 @@ final class MemoryLimitedCache: Cache, Sendable {
 
     guard var amountToGo = amount, amountToGo < currentMemoryUsage else {
       assets.removeAll()
-      logger.log("Removed all. Saving \(self.currentMemoryUsage)")
       currentMemoryUsage = .zero
       return
     }

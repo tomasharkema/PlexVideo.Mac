@@ -6,8 +6,12 @@
 //
 
 import Foundation
+import OSLog
+
+private let logger = Logger(subsystem: "PlexVideo", category: "EnsureOnce")
 
 public actor EnsureOnce<IdentifierType: Hashable & Sendable, ResultType: Sendable>: Sendable {
+
   private let initLocation: HandlerLocation
   private var handlers = [IdentifierType: StoredTask<IdentifierType, ResultType>]()
 
@@ -89,7 +93,7 @@ public actor EnsureOnce<IdentifierType: Hashable & Sendable, ResultType: Sendabl
     location: HandlerLocation
   ) async throws -> ResultType {
     if let cacheDuration {
-      print(cacheDuration)
+      logger.info("cacheDuration: \(cacheDuration)")
     }
     if let existingHandler = handlers[id] {
       let state = await existingHandler.task.state
@@ -113,7 +117,7 @@ public actor EnsureOnce<IdentifierType: Hashable & Sendable, ResultType: Sendabl
 
     let task = Task {
       do {
-        print("EXCUTE FOR: handlerLocation \(location)")
+        logger.info("EXCUTE FOR: handlerLocation \(String(describing: location))")
         return try await handler()
       } catch {
         throw error
@@ -166,7 +170,7 @@ public actor EnsureOnce<IdentifierType: Hashable & Sendable, ResultType: Sendabl
     if !handlers.isEmpty {
       assertionFailure("HANDLERS NOT DONE!")
     }
-    print("DEINIT")
+    logger.info("DEINIT")
   }
 }
 

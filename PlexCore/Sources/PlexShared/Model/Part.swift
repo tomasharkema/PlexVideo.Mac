@@ -6,9 +6,10 @@
 //
 
 import MetaCodable
+import RawJson
 
 @Codable
-public struct Part: Equatable, Sendable {
+public struct Part: Equatable, Sendable, Selecting {
   public let id: NumberLike
   public let key: String?
   public let duration: NumberLike?
@@ -19,7 +20,9 @@ public struct Part: Equatable, Sendable {
   public let indexes: String?
   public let videoProfile: String?
   public let decision: String?
+  public let selected: Bool?
+  public let `default`: Bool?
 
   @CodedAt("Stream")
-  public let stream: [Stream]?
+  public let stream: [PartialCodable<Stream>]?
 }

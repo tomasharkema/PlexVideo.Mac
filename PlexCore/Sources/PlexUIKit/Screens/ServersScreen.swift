@@ -12,37 +12,37 @@ import SwiftUI
 
 @MainActor
 public struct ServersScreen: View {
-
   @Environment(ServersViewModel.self)
   private var viewModel
 
-  public init() {
-  }
+  public init() {}
 
   public var body: some View {
-    ScrollView {
-      VStack {
-        ForEach(viewModel.servers ?? []) { server in
-          ServerView(
-            server: server
-          )
-          .id(server.id)
+    if let servers = viewModel.servers {
+      ScrollView {
+        VStack {
+          ForEach(servers) { server in
+            ServerView(
+              server: server
+            )
+            .id(server.id)
+          }
         }
+        .padding()
       }
-      .padding()
-    }
-    .navigationTitle("Servers")
-    .environment(viewModel)
-    .onAppear {
-      viewModel.start()
-    }
-    .onDisappear {
-      viewModel.stop()
+      .navigationTitle("Servers")
+      .environment(viewModel)
+      .onAppear {
+        viewModel.start()
+      }
+      .onDisappear {
+        viewModel.stop()
+      }
     }
   }
 }
 
-//#Preview {
+// #Preview {
 //  ServersScreen(
 //    servers: [
 //      .preview1
@@ -53,4 +53,4 @@ public struct ServersScreen: View {
 //  )
 //  .background(Color.black)
 //  .preferredColorScheme(.dark)
-//}
+// }

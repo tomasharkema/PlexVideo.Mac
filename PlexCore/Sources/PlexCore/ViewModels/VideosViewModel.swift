@@ -13,12 +13,16 @@ import PlexShared
 import Processed
 
 @MainActor @Observable
-public final class VideosViewModel: ObservableObject, LoadableSupport {
+public final class VideosViewModel: LoadableSupport {
   private let logger = Logger(subsystem: "PlexVideo", category: "VideosViewModel")
 
   @ObservationIgnored
   @Injected(\.videoDataService)
   private var service
+
+//  @ObservationIgnored
+//  @Injected(\.videosDataSource)
+  private var videosDataSource = InjectedValues.get(\.videosDataSource)
 
   @ObservationIgnored
   @Injected(\.storage)
@@ -28,47 +32,20 @@ public final class VideosViewModel: ObservableObject, LoadableSupport {
   @Injected(\.api)
   private var api
 
-  public private(set) var data: LoadableState<Data> = .absent
-
   public private(set) var searchResults: LoadableState<[VideoFromServer]> = .absent
-
-  public private(set) var savedLastPlayed: Video?
 
   public init() {}
 
-  public func reload(silently _: Bool, minimalTime: Duration = .seconds(1)) async {
-    await withDiscardingTaskGroup { group in
-      group.addTask {
-        await self.load(silently: true, reload: true)
-      }
-      group.addTask {
-        try? await Task.sleep(for: minimalTime)
-      }
-    }
+  public var data: LoadableState<VideosDataSource.Data> {
+    videosDataSource.data
+  }
+
+  public func reload(silently: Bool) async {
+    await videosDataSource.reload(silently: silently)
   }
 
   public func load(silently: Bool, reload: Bool) async {
-    _ = await load(\.data, silently: silently, priority: .userInitiated) { yield in
-      async let lastPlayer = self.storage.getLastPlayed()
-      let (onDeck, all) = try await self.service.getVideoList(reload: reload)
-
-      //      Task {
-      //        for (index, video) in all.enumerated() {
-      //          Task(priority: index < 10 ? .high : .low) {
-      //            await ThumbViewModel.get(for: video).start()
-      //          }
-      //        }
-      //      }
-
-      do {
-        self.savedLastPlayed = try await lastPlayer
-      } catch {
-        self.logger.error("Videos load error: \(error)")
-        self.savedLastPlayed = nil
-      }
-
-      yield(.loaded(Data(continueWatching: onDeck, videos: all)))
-    }.value
+    await videosDataSource.load(silently: silently, reload: reload)
   }
 
   public nonisolated func searchText(_ searchText: String) async {
@@ -84,7 +61,7 @@ public final class VideosViewModel: ObservableObject, LoadableSupport {
       return
     }
 
-    guard case let .loaded(data) = await data else {
+    guard case let .loaded(data) = await videosDataSource.data else {
       await reset(\.searchResults)
       return
     }
@@ -110,37 +87,30 @@ public final class VideosViewModel: ObservableObject, LoadableSupport {
   }
 }
 
-extension VideosViewModel {
-  public struct Data: Equatable {
-    public let continueWatching: [VideoFromServer]
-    public let videos: [VideoFromServer]
-  }
-}
-
-extension Video {
-  init(onDeck: OnDeck) {
-    self.init(
-      key: onDeck.key,
-      title: onDeck.title,
-      titleSort: onDeck.titleSort,
-      parentTitle: onDeck.parentTitle,
-      grandparentTitle: onDeck.grandparentTitle,
-      thumb: onDeck.thumb,
-      art: onDeck.art,
-      media: onDeck.media,
-      ratingKey: onDeck.ratingKey,
-      viewOffset: onDeck.viewOffset,
-      lastViewedAt: onDeck.lastViewedAt,
-      leafCount: onDeck.leafCount,
-      viewedLeafCount: onDeck.viewedLeafCount,
-      onDeck: nil,
-      grandparentKey: onDeck.grandparentKey,
-      parentKey: onDeck.parentKey,
-      childCount: onDeck.childCount,
-      grandparentThumb: onDeck.grandparentThumb
-    )
-  }
-}
+//extension Video {
+//  init(onDeck: OnDeck) {
+//    self.init(
+//      key: onDeck.key,
+//      title: onDeck.title,
+//      titleSort: onDeck.titleSort,
+//      parentTitle: onDeck.parentTitle,
+//      grandparentTitle: onDeck.grandparentTitle,
+//      thumb: onDeck.thumb,
+//      art: onDeck.art,
+//      media: onDeck.media,
+//      ratingKey: onDeck.ratingKey,
+//      viewOffset: onDeck.viewOffset,
+//      lastViewedAt: onDeck.lastViewedAt,
+//      leafCount: onDeck.leafCount,
+//      viewedLeafCount: onDeck.viewedLeafCount,
+//      onDeck: nil,
+//      grandparentKey: onDeck.grandparentKey,
+//      parentKey: onDeck.parentKey,
+//      childCount: onDeck.childCount,
+//      grandparentThumb: onDeck.grandparentThumb
+//    )
+//  }
+//}
 
 // enum ViewError: LocalizedError, Equatable {
 //  case error(any LocalizedError)

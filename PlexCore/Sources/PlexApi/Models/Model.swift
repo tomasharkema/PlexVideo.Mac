@@ -9,38 +9,15 @@ import Foundation
 import MetaCodable
 import PlexShared
 
-struct Player: Codable {
-  let machineIdentifier: String
-  let address: String
-}
-
-struct Session: Codable {
-  let id: String
-  let bandwidth: Int
-}
-
-struct PinToken: Codable {
-  let authToken: String?
-  let clientIdentifier: String
-  let code: String
-  let createdAt: String?
-  let expiresAt: String?
-  let expiresIn: NumberLike?
-  let id: Int
-  let newRegistration: Bool?
-  let product: String?
-  let trusted: Bool?
-  /*
-   authToken: string | null,
-   clientIdentifier: string,
-   code: string,
-   createdAt: string,
-   expiresAt: string,
-   expiresIn: number,
-   id: number,
-   location: IPlexCodeLocation,
-   newRegistration:boolean | null,
-   product: string,
-   trusted: boolean
-   */
+public struct PinToken: Codable {
+  public let authToken: String?
+  public let clientIdentifier: String
+  public let code: String
+  public let createdAt: String?
+  public let expiresAt: String?
+  public let expiresIn: NumberLike?
+  public let id: Int
+  public let newRegistration: Bool?
+  public let product: String?
+  public let trusted: Bool?
 }

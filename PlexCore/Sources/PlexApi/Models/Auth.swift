@@ -144,8 +144,8 @@ public final class Auth {
   }
 }
 
-extension InjectedValues {
-  public var auth: Auth {
+public extension InjectedValues {
+  var auth: Auth {
     get { Self[AuthKey.self] }
     set { Self[AuthKey.self] = newValue }
   }
@@ -160,8 +160,8 @@ public protocol AuthStorageProviding: AnyObject {
   var plexToken: String? { get set }
 }
 
-extension InjectedValues {
-  public var authStorageProviding: any AuthStorageProviding {
+public extension InjectedValues {
+  var authStorageProviding: any AuthStorageProviding {
     get { Self[AuthStorageProvidingKey.self] }
     set { Self[AuthStorageProvidingKey.self] = newValue }
   }

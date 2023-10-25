@@ -28,7 +28,7 @@ enum ImageIO {
     ]
 
     guard let imageSource = CGImageSourceCreateWithURL(url as NSURL, nil),
-      let image = CGImageSourceCreateThumbnailAtIndex(imageSource, 0, options as CFDictionary)
+          let image = CGImageSourceCreateThumbnailAtIndex(imageSource, 0, options as CFDictionary)
     else {
       return nil
     }
@@ -83,13 +83,13 @@ enum ImageIO {
 
   static func resizedImageWithHintingAndSubsampling(at url: URL, for size: CGSize) -> PlexImage? {
     guard let imageSource = CGImageSourceCreateWithURL(url as NSURL, nil),
-      let properties = CGImageSourceCopyPropertiesAtIndex(
-        imageSource,
-        0,
-        nil
-      ) as? [CFString: Any],
-      let imageWidth = properties[kCGImagePropertyPixelWidth] as? CGFloat,
-      let imageHeight = properties[kCGImagePropertyPixelHeight] as? CGFloat
+          let properties = CGImageSourceCopyPropertiesAtIndex(
+            imageSource,
+            0,
+            nil
+          ) as? [CFString: Any],
+          let imageWidth = properties[kCGImagePropertyPixelWidth] as? CGFloat,
+          let imageHeight = properties[kCGImagePropertyPixelHeight] as? CGFloat
     else {
       return nil
     }
@@ -114,7 +114,7 @@ enum ImageIO {
         case ...2.0:
           options[kCGImageSourceSubsampleFactor] = 2.0
 
-        case 2.0...4.0:
+        case 2.0 ... 4.0:
           options[kCGImageSourceSubsampleFactor] = 4.0
 
         case 4.0...:

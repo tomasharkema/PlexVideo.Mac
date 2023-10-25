@@ -14,13 +14,23 @@ public struct DirectoryContainer {
   public let directory: [Directory]
 }
 
-public struct Directory: Codable, Identifiable, Sendable {
+public struct Directory: Codable, Sendable {
   public let key: SectionKey
   public let title: String
   public let uuid: String
   public let type: String
+}
 
-  public var id: String {
-    uuid
+extension Directory: Identifiable {
+  public struct ID: RawRepresentable, Codable, Hashable {
+    public let rawValue: String
+
+    public init(rawValue: String) {
+      self.rawValue = rawValue
+    }
+  }
+
+  public var id: ID {
+    ID(rawValue: uuid)
   }
 }

@@ -16,10 +16,10 @@ public struct NavigationItem: Equatable, Hashable, Identifiable, Codable {
   }
 }
 
-extension NavigationItem {
-  public static let home = NavigationItem(name: "Home", image: "house")
-  public static let servers = NavigationItem(name: "Servers", image: "server.rack")
-  public static let settings = NavigationItem(name: "Settings", image: "gearshape")
+public extension NavigationItem {
+  static let home = NavigationItem(name: "Home", image: "house")
+  static let servers = NavigationItem(name: "Servers", image: "server.rack")
+  static let settings = NavigationItem(name: "Settings", image: "gearshape")
 
-  public static let menuItems: [NavigationItem] = [.home, .servers, .settings]
+  static let menuItems: [NavigationItem] = [.home, .servers, .settings]
 }

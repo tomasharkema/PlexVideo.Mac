@@ -1,0 +1,47 @@
+[
+        {
+        "name": "Hera",
+        "product": "Plex Media Server",
+        "productVersion": "1.31.3.6868-28fc46b27",
+        "platform": "Linux",
+        "platformVersion": "5.19.17-Unraid (#2 SMP PREEMPT_DYNAMIC Wed Nov 2 11:54:15 PDT 2022)",
+        "device": "PC",
+        "clientIdentifier": "96f2fe7a78c9dc1f16a16bedbe90f98149be16b4",
+        "createdAt": "2022-06-02T00:54:26Z",
+        "lastSeenAt": "2023-04-11T05:53:59Z",
+        "provides": "server",
+        "ownerId": "string",
+        "sourceTitle": "string",
+        "publicAddress": "68.248.140.20",
+        "accessToken": "CR3nxzsaSHdWx_WwZsJL",
+        "owned": true,
+        "home": true,
+        "synced": true,
+        "relay": false,
+        "presence": true,
+        "httpsRequired": true,
+        "publicAddressMatches": true,
+        "dnsRebindingProtection": true,
+        "natLoopbackSupported": true,
+        "connections": [
+          {
+            "protocol": "http",
+            "address": "172.18.0.1",
+            "port": 32400,
+            "uri": "http://172.18.0.1:32400",
+            "local": true,
+            "relay": false,
+            "IPv6": false
+          },
+          {
+            "protocol": "http",
+            "address": "68.248.140.20",
+            "port": 32400,
+            "uri": "http://68.248.140.20:32400",
+            "local": false,
+            "relay": false,
+            "IPv6": false
+          }
+        ]
+        }
+        ]

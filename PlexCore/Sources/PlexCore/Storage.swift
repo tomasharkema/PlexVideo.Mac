@@ -22,13 +22,16 @@ public final class Storage: ObservableObject, ServerLocatorStorageProviding,
   public var plexToken: String?
 
   @AppStorage("lastUsedLocalConnection")
-  public var lastUsedLocalConnection: ServerWithCurrentConnection?
+  public var lastUsedLocalConnection: CodableWrapper<ServerWithCurrentConnection>?
 
   @AppStorage("lastUsedRemoteConnection")
-  public var lastUsedRemoteConnection: ServerWithCurrentConnection?
+  public var lastUsedRemoteConnection: CodableWrapper<ServerWithCurrentConnection>?
 
   @AppStorage("lastUsedConnection")
-  public var lastUsedConnection: ServerWithCurrentConnection?
+  public var lastUsedConnection: CodableWrapper<ServerWithCurrentConnection>?
+
+  @AppStorage("serversResponse")
+  public var servers: CodableWrapper<[Server]>?
 
   public nonisolated init() {}
 
@@ -78,8 +81,8 @@ public final class Storage: ObservableObject, ServerLocatorStorageProviding,
   }
 }
 
-extension InjectedValues {
-  public var storage: Storage {
+public extension InjectedValues {
+  var storage: Storage {
     get { Self[StorageKey.self] }
     set { Self[StorageKey.self] = newValue }
   }
@@ -89,27 +92,27 @@ private struct StorageKey: InjectionKey {
   static var currentValue: Storage? = .init()
 }
 
-extension ServerWithCurrentConnection: RawRepresentable {
-  public init?(rawValue: String) {
-    guard let data = rawValue.data(using: .utf8) else {
-      return nil
-    }
-
-    do {
-      self = try JSONDecoder.default.decode(ServerWithCurrentConnection.self, from: data)
-    } catch {
-      Storage.logger.error("Connection raw decode error: \(error)")
-      return nil
-    }
-  }
-
-  public var rawValue: String {
-    do {
-      let data = try JSONEncoder().encode(self)
-      return String(data: data, encoding: .utf8) ?? ""
-    } catch {
-      Storage.logger.error("Connection raw encode error: \(error)")
-      return ""
-    }
-  }
-}
+// extension ServerWithCurrentConnection: RawRepresentable {
+//  public init?(rawValue: String) {
+//    guard let data = rawValue.data(using: .utf8) else {
+//      return nil
+//    }
+//
+//    do {
+//      self = try JSONDecoder.default.decode(ServerWithCurrentConnection.self, from: data)
+//    } catch {
+//      Storage.logger.error("Connection raw decode error: \(error)")
+//      return nil
+//    }
+//  }
+//
+//  public var rawValue: String {
+//    do {
+//      let data = try JSONEncoder().encode(self)
+//      return String(data: data, encoding: .utf8) ?? ""
+//    } catch {
+//      Storage.logger.error("Connection raw encode error: \(error)")
+//      return ""
+//    }
+//  }
+// }

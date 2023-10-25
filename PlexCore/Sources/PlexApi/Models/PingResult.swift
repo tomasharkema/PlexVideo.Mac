@@ -18,15 +18,15 @@ public struct PingSuccess: Sendable, Equatable {
   public let details: PingResultDetails
 }
 
-extension PingResult {
-  public static func success(
+public extension PingResult {
+  static func success(
     serverWithConnection: ServerWithConnection,
     details: PingResultDetails
   ) -> PingResult {
     PingResult(serverWithConnection: serverWithConnection, details: .success(details))
   }
 
-  public static func failure(
+  static func failure(
     serverWithConnection: ServerWithConnection,
     error: PingResultErrorDetails
   ) -> PingResult {
@@ -37,8 +37,8 @@ extension PingResult {
   }
 }
 
-extension PingResult {
-  public var result: Result<PingSuccess, PingResultError> {
+public extension PingResult {
+  var result: Result<PingSuccess, PingResultError> {
     switch details {
     case let .success(details):
       .success(
@@ -53,7 +53,7 @@ extension PingResult {
     }
   }
 
-  public func get() throws -> PingSuccess {
+  func get() throws -> PingSuccess {
     try result.get()
   }
 }
@@ -107,8 +107,8 @@ public enum PingResultErrorDetails: Sendable, Equatable, LocalizedError {
   }
 }
 
-extension PingResultDetails {
-  public static let preview = PingResultDetails(
+public extension PingResultDetails {
+  static let preview = PingResultDetails(
     result: nil,
     interval: 0.01
   )

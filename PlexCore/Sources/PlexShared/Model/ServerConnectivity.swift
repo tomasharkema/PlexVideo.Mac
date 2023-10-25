@@ -14,7 +14,7 @@ public struct ServerWithCurrentConnectionID: Hashable {
   init(
     server: Server
   ) {
-    self.serverID = server.id
+    serverID = server.id
   }
 }
 
@@ -26,13 +26,13 @@ public struct ServerWithConnectionID: Hashable {
     server: Server,
     connection: Connection
   ) {
-    self.serverID = server.id
-    self.connectionID = connection.id
+    serverID = server.id
+    connectionID = connection.id
   }
 }
 
 @Codable
-public struct ServerWithConnection: Sendable, Equatable, Identifiable {
+public struct ServerWithConnection: Sendable, Equatable {
   public let server: Server
   public let connection: Connection
 
@@ -43,13 +43,6 @@ public struct ServerWithConnection: Sendable, Equatable, Identifiable {
 
   public var uri: URL {
     connection.uri
-  }
-
-  public var id: ServerWithConnectionID {
-    ServerWithConnectionID(
-      server: server,
-      connection: connection
-    )
   }
 
   public var connections: [ServerWithConnection] {
@@ -59,8 +52,24 @@ public struct ServerWithConnection: Sendable, Equatable, Identifiable {
   }
 }
 
+extension ServerWithConnection: Identifiable {
+  public struct ID: Hashable {
+    public let serverID: Server.ID
+    public let connectionID: Connection.ID
+
+    public init(server: Server, connection: Connection) {
+      self.serverID = server.id
+      self.connectionID = connection.id
+    }
+  }
+
+  public var id: ID {
+    ID(server: server, connection: connection)
+  }
+}
+
 @Codable
-public struct ServerWithCurrentConnection: Sendable, Equatable, Identifiable {
+public struct ServerWithCurrentConnection: Sendable, Equatable {
   public let server: Server
   public let connection: Connection
 
@@ -72,32 +81,24 @@ public struct ServerWithCurrentConnection: Sendable, Equatable, Identifiable {
   public var uri: URL {
     connection.uri
   }
-
-  public var id: ServerWithCurrentConnectionID {
-    ServerWithCurrentConnectionID(
-      server: server
-    )
-  }
-
-  //  public var connections: [ServerWithCurrentConnection] {
-  //    server.connections.map {
-  //      ServerWithCurrentConnection(server: server, connection: $0)
-  //    }
-  //  }
 }
 
-public struct VideoFromServerID: Hashable {
-  let videoID: Video.ID
-  let serverID: ServerWithCurrentConnection.ID
+extension ServerWithCurrentConnection: Identifiable {
+  public struct ID: Hashable {
+    public let serverID: Server.ID
 
-  init(video: Video, server: ServerWithCurrentConnection) {
-    self.videoID = video.id
-    self.serverID = server.id
+    public init(server: Server) {
+      self.serverID = server.id
+    }
+  }
+
+  public var id: ID {
+    ID(server: server)
   }
 }
 
 @Codable
-public struct VideoFromServer: Sendable, Equatable, Identifiable {
+public struct VideoFromServer: Sendable, Equatable {
   public let video: Video
   public let server: ServerWithCurrentConnection
 
@@ -105,8 +106,20 @@ public struct VideoFromServer: Sendable, Equatable, Identifiable {
     self.video = video
     self.server = server
   }
+}
 
-  public var id: VideoFromServerID {
-    VideoFromServerID(video: video, server: server)
+extension VideoFromServer: Identifiable {
+  public struct ID: Hashable {
+    let videoID: Video.ID
+    let serverID: ServerWithCurrentConnection.ID
+
+    init(video: Video, server: ServerWithCurrentConnection) {
+      videoID = video.id
+      serverID = server.id
+    }
+  }
+
+  public var id: ID {
+    ID(video: video, server: server)
   }
 }

@@ -157,16 +157,17 @@ struct Video: Codable, Identifiable, Equatable, Hashable {
     let remoteProgress = Progress(video: self)
 
     let viableStorageProgress: Progress? =
-      if let storageProgress {
-        if abs(storageProgress.date.timeIntervalSinceNow) < 7 * 24 * 60 * 60 {
-          storageProgress
-        } else {
-          nil
-        }
-
+      if let storageProgress
+    {
+      if abs(storageProgress.date.timeIntervalSinceNow) < 7 * 24 * 60 * 60 {
+        storageProgress
       } else {
         nil
       }
+
+    } else {
+      nil
+    }
 
     switch (remoteProgress, viableStorageProgress) {
     case let (remote?, storage?) where storage.date > remote.date:
@@ -198,7 +199,7 @@ extension Video {
       thumb: "https://static.posters.cz/image/750/posters/pulp-fiction-cover-i1288.jpg",
       art: "ding",
       Media: [
-        PlexVideo.Media.preview()
+        PlexVideo.Media.preview(),
       ],
       ratingKey: RatingKey(rawValue: id),
       viewOffset: NumberLike(value: 1000),

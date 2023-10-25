@@ -7,7 +7,7 @@
 
 import Foundation
 
-//{
+// {
 //    "size: Int
 //    "allowCameraUpload: Bool
 //    "allowChannelAccess: Bool
@@ -65,10 +65,9 @@ import Foundation
 //        "title": "string"
 //      }
 //    ]
-//}
+// }
 
 public struct Capabilities: Codable, Sendable, Equatable, Hashable {
-
   public let size: Int
   public let allowCameraUpload: Bool
   public let allowChannelAccess: Bool

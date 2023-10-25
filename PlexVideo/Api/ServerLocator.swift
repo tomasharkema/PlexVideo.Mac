@@ -66,8 +66,8 @@ class ServerLocator: ObservableObject {
         // phase 2: check if saved local and remote ip's are still viable
         do {
           if let localHost = await Storage.shared.lastUsedLocalHost,
-            let remoteHost = await Storage.shared.lastUsedRemoteHost,
-            let url = try await selectHost(l: localHost, r: remoteHost)
+             let remoteHost = await Storage.shared.lastUsedRemoteHost,
+             let url = try await selectHost(l: localHost, r: remoteHost)
           {
             return url
           }
@@ -175,13 +175,14 @@ class ServerLocator: ObservableObject {
     async let remotePings = executePings(servers: serversGroupedByLocal[false] ?? [])
 
     let choice: (Connection, URL)? =
-      if let local = try? await localPings {
-        local
-      } else if let remote = try await remotePings {
-        remote
-      } else {
-        nil
-      }
+      if let local = try? await localPings
+    {
+      local
+    } else if let remote = try await remotePings {
+      remote
+    } else {
+      nil
+    }
 
     await MainActor.run {
       Storage.shared.lastUsedRoot = choice?.1

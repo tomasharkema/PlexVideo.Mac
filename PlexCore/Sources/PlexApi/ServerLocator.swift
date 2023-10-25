@@ -5,6 +5,7 @@
 //  Created by Tomas Harkema on 09/06/2021.
 //
 
+import AsyncAlgorithms
 import AsyncHelpers
 import Foundation
 import Inject
@@ -19,6 +20,8 @@ enum ServerLocatorError: LocalizedError {
 @Observable
 public final class ServerLocator: Sendable {
   private let logger = Logger(subsystem: "PlexVideo", category: "ServerLocator")
+
+  private let resources = ResourcesService()
 
   @ObservationIgnored
   @Injected(\.requestor)
@@ -42,7 +45,7 @@ public final class ServerLocator: Sendable {
   private var isInvalidating = false
 
   @MainActor
-  public private(set) var connection: ServerWithCurrentConnection?
+  public private(set) var connection = [Server.ID: ServerWithCurrentConnection]()
 
   @MainActor
   public private(set) var devicesLastFetch: Date?
@@ -54,12 +57,15 @@ public final class ServerLocator: Sendable {
   //  public private(set) var pings = [PingResult]()
 
   @ObservationIgnored
-  fileprivate let rootEnsureOnce = EnsureOnce<HandlerLocation, ServerWithCurrentConnection>()
+  fileprivate let rootEnsureOnce = EnsureOnce<Server.ID, ServerWithCurrentConnection>()
 
   public init() {
     Task(priority: .low) {
-      _ = try await root()
-      _ = try await rootForced()
+      _ = try await getServersForced()
+    }
+    Task(priority: .low) {
+      _ = try await rootForAll()
+      _ = try await rootForcedForAll()
     }
   }
 
@@ -70,21 +76,23 @@ public final class ServerLocator: Sendable {
     // phase 2: check if saved local and remote ip's are still viable
     do {
       guard let localConnection = await storage.lastUsedLocalConnection,
-        let remoteConnection = await storage.lastUsedRemoteConnection
+            let remoteConnection = await storage.lastUsedRemoteConnection
       else {
         return .failure(ServerLocatorError.noDetection)
       }
 
       let connection = try await selectHost(
         server: server,
-        localUrl: localConnection.connection,
-        remoteUrl: remoteConnection.connection,
+        localUrl: localConnection.value.connection,
+        remoteUrl: remoteConnection.value.connection,
         timeout: timeout
       )
 
       if let connection {
         await MainActor.run {
-          self.connection = connection
+          var new = self.connection
+          new[server.id] = connection
+          self.connection = new
         }
         return .success(connection)
       } else {
@@ -101,64 +109,17 @@ public final class ServerLocator: Sendable {
     }
   }
 
-  private func ping(
-    server: ServerWithConnection,
-    timeout: Duration
-  ) async -> PingResult {
-    do {
-      let uuid = UUID()
-      let metricsTask = Task {
-        await self.networkManager.getMetrics(for: uuid, withTimeout: timeout)
-      }
-
-      let result = try await requestor.request(
-        url: server.connection.uri,
-        Root<Capabilities>.self,
-        requestUUID: uuid,
-        timeout: timeout,
-        invalidateAfterError: false,
-        useCache: false
-      )
-
-      guard let metrics = await (metricsTask.value),
-        let responseStartDate = metrics.requestStartDate,
-        let responseEndDate = metrics.responseEndDate
-      else {
-        assertionFailure()
-        return .failure(serverWithConnection: server, error: .noMetric)
-      }
-
-      let interval = responseEndDate.timeIntervalSince(responseStartDate)
-
-      return .success(
-        serverWithConnection: server,
-        details: PingResultDetails(
-          result: result,
-          interval: interval
-        )
-      )
-    } catch let error as URLError {
-      //      logger.error("ping URL error: \(error)")
-      logger.error("ping URL error: \(server.server.name) \(server.connection.address)")
-      return .failure(serverWithConnection: server, error: .urlError(error))
-    } catch {
-      //      logger.error("ping error: \(error)")
-      logger.error("ping error: \(server.server.name) \(server.connection.address)")
-      return .failure(serverWithConnection: server, error: .otherError(error))
-    }
-  }
-
   private func selectHost(
     server: Server,
     localUrl: Connection,
     remoteUrl: Connection,
     timeout: Duration
   ) async throws -> ServerWithCurrentConnection? {
-    async let local = ping(
+    async let local = resources.ping(
       server: ServerWithConnection(server: server, connection: localUrl),
       timeout: timeout
     )
-    async let remote = ping(
+    async let remote = resources.ping(
       server: ServerWithConnection(server: server, connection: remoteUrl),
       timeout: timeout
     )
@@ -167,7 +128,7 @@ public final class ServerLocator: Sendable {
     do {
       _ = try await local.get()
       await MainActor.run {
-        storage.lastUsedConnection = localConnection
+        storage.lastUsedConnection = CodableWrapper(value: localConnection)
       }
 
       return localConnection
@@ -180,79 +141,13 @@ public final class ServerLocator: Sendable {
       _ = try await remote.get()
 
       await MainActor.run {
-        storage.lastUsedConnection = remoteConnection
+        storage.lastUsedConnection = CodableWrapper(value: remoteConnection)
       }
 
       return remoteConnection
     } catch {
       logger.error("remote not succeeded \(error)")
       throw error
-    }
-  }
-
-  nonisolated func servers() async throws -> ServersResponse {
-    try await EnsureOnce.once(cacheDuration: .seconds(60 * 5)) {
-      let servers: [Server] = try await self.requestor.request(
-        url: URL(string: "https://plex.tv/api/v2/resources")!,
-        [Server].self,
-        queryItems: [
-          URLQueryItem(name: "includeHttps", value: "1"),
-          URLQueryItem(name: "includeRelay", value: "1"),
-        ],
-        useCache: false
-      )
-      .filter {
-        $0.provides.contains("server")
-      }
-
-      let response: ServersResponse = try await withThrowingTaskGroup(
-        of: ServerAndCapabilities.self,
-        returning: ServersResponse.self
-      ) { group in
-        for server in servers {
-          group.addTask {
-            do {
-              guard
-                let ping = try await self.pingsFirstResult(
-                  server: server,
-                  connections: server.connections
-                )
-              else {
-                throw NSError(domain: "null error", code: 69)
-              }
-
-              let caps: Result<Root<Capabilities>, any Error> =
-                if let result = ping.details.result {
-                  .success(result)
-                } else {
-                  .failure(NSError(domain: "null error", code: 69))
-                }
-              return ServerAndCapabilities(
-                server: ping.serverWithConnection,
-                capabilities: caps
-              )
-            } catch {
-              throw error
-              //              return
-              //                ServerAndCapabilities(
-              //                  server: server,
-              //                  capabilities: .failure(error)
-              //                )
-            }
-          }
-        }
-
-        return try await group.reduce(into: .init()) { prev, curr in
-          prev.append(curr)
-        }
-      }
-
-      Task { @MainActor in
-        self.devicesLastFetch = .now
-        self.servers = response
-      }
-
-      return response
     }
   }
 
@@ -269,7 +164,7 @@ public final class ServerLocator: Sendable {
         ) { group in
           for connection in connections {
             group.addTask {
-              let pingResult = await self.ping(
+              let pingResult = await self.resources.ping(
                 server: ServerWithConnection(server: server, connection: connection),
                 timeout: timeout
               )
@@ -290,17 +185,29 @@ public final class ServerLocator: Sendable {
 
   public nonisolated func pingsStream(
     timeout: Duration = .seconds(1)
-  ) async throws -> AsyncStream<PingResult> {
-    let servers = try await servers()
-    guard let server = servers.first?.server else {
-      assertionFailure("no devices")
-      throw NSError(domain: "NO DEVICES", code: 69)
+  ) async throws -> AsyncJoinedSequence<AsyncSyncSequence<[AsyncStream<PingResult>]>> {
+    let servers = try await getServers()
+
+    let streams = await withTaskGroup(
+      of: AsyncStream<PingResult>.self,
+      returning: [AsyncStream<PingResult>].self
+    ) { group in
+      for server in servers {
+        group.addTask {
+          await self.pingsStream(
+            server: server.server,
+            connections: server.server.connections,
+            timeout: timeout
+          )
+        }
+      }
+
+      return await group.reduce(into: .init()) { prev, curr in
+        prev.append(curr)
+      }
     }
-    return await pingsStream(
-      server: server.server,
-      connections: server.server.connections,
-      timeout: timeout
-    )
+    let joined = streams.async.joined()
+    return joined
   }
 
   private nonisolated func pingsFirstResult(
@@ -328,13 +235,10 @@ public final class ServerLocator: Sendable {
     }
   }
 
-  private nonisolated func chooseServer() async throws -> ServerWithCurrentConnection? {
-    let servers = try await servers()
-    guard let server = servers.first else {
-      assertionFailure("no devices")
-      throw NSError(domain: "NO DEVICES", code: 69)
-    }
-    let connections = server.server.server.connections.filter {
+  private nonisolated func chooseServer(
+    server: Server
+  ) async throws -> ServerWithCurrentConnection? {
+    let connections = server.connections.filter {
       $0.protocol == "https"
     }
 
@@ -346,41 +250,45 @@ public final class ServerLocator: Sendable {
     )
 
     async let localPings = pingsFirstResult(
-      server: server.server.server,
+      server: server,
       connections: serversGroupedByLocal[true] ?? []
     )
     async let remotePings = pingsFirstResult(
-      server: server.server.server,
+      server: server,
       connections: serversGroupedByLocal[false] ?? []
     )
 
     let choice: ServerWithCurrentConnection? =
-      if let local = try? await localPings {
-        ServerWithCurrentConnection(
-          server: local.serverWithConnection.server,
-          connection: local.serverWithConnection.connection
-        )
-      } else if let remote = try await remotePings {
-        ServerWithCurrentConnection(
-          server: remote.serverWithConnection.server,
-          connection: remote.serverWithConnection.connection
-        )
-      } else {
-        nil
-      }
-
-    await MainActor.run {
-      self.connection = choice
-      storage.lastUsedConnection = choice
+      if let local = try? await localPings
+    {
+      ServerWithCurrentConnection(
+        server: local.serverWithConnection.server,
+        connection: local.serverWithConnection.connection
+      )
+    } else if let remote = try await remotePings {
+      ServerWithCurrentConnection(
+        server: remote.serverWithConnection.server,
+        connection: remote.serverWithConnection.connection
+      )
+    } else {
+      nil
     }
 
-    let local = (try? await localPings).map {
+    await MainActor.run {
+      var new = self.connection
+      new[server.id] = choice
+      self.connection = new
+
+      storage.lastUsedConnection = choice.map { CodableWrapper(value: $0) }
+    }
+
+    let local = await (try? localPings).map {
       ServerWithCurrentConnection(
         server: $0.serverWithConnection.server,
         connection: $0.serverWithConnection.connection
       )
     }
-    let remote = (try? await remotePings).map {
+    let remote = await (try? remotePings).map {
       ServerWithCurrentConnection(
         server: $0.serverWithConnection.server,
         connection: $0.serverWithConnection.connection
@@ -388,15 +296,19 @@ public final class ServerLocator: Sendable {
     }
 
     await MainActor.run {
-      storage.lastUsedLocalConnection = local
-      storage.lastUsedRemoteConnection = remote
+      storage.lastUsedLocalConnection = local.map { CodableWrapper(value: $0) }
+      storage.lastUsedRemoteConnection = remote.map { CodableWrapper(value: $0) }
     }
 
     return choice
   }
 
-  @MainActor
   func invalidate() async {
+    assertionFailure()
+  }
+
+  @MainActor
+  func invalidate(server: Server) async {
     if isInvalidating {
       return
     }
@@ -407,10 +319,10 @@ public final class ServerLocator: Sendable {
     }
 
     storage.lastUsedConnection = nil
-    connection = nil
+    connection.removeValue(forKey: server.id)
 
     do {
-      _ = try await root(force: true)
+      _ = try await root(server: server, force: true)
     } catch {
       logger.error("invalidate error: \(error)")
     }
@@ -418,9 +330,25 @@ public final class ServerLocator: Sendable {
 }
 
 extension ServerLocator {
-  private func rootForced() async throws -> ServerWithCurrentConnection {
+  private func rootForcedForAll() async throws {
+    let servers = try await getServers()
+
+    await withDiscardingTaskGroup { group in
+      for server in servers {
+        group.addTask {
+          do {
+            try await self.rootForced(server: server.server)
+          } catch {
+            self.logger.error("rootForcedForAll error: \(error)")
+          }
+        }
+      }
+    }
+  }
+
+  private func rootForced(server: Server) async throws -> ServerWithCurrentConnection {
     try await EnsureOnce.once {
-      guard let connection = try await self.chooseServer() else {
+      guard let connection = try await self.chooseServer(server: server) else {
         throw ServerLocatorError.noUrl
       }
       await MainActor.run {
@@ -430,20 +358,67 @@ extension ServerLocator {
     }
   }
 
+  private func rootForAll() async throws {
+    let servers = try await getServers()
+
+    await withDiscardingTaskGroup { group in
+      for server in servers {
+        group.addTask {
+          do {
+            try await self.root(server: server.server)
+          } catch {
+            self.logger.error("rootForAll error: \(error)")
+          }
+        }
+      }
+    }
+  }
+
+  public func getServers() async throws -> ServersResponse {
+    let localServers = await servers
+    let storedServers = await storage.servers?.value
+
+    if localServers == nil, let storedServers {
+      await MainActor.run {
+        self.servers = storedServers.map {
+          ServerAndCapabilities(server: $0, capabilities: .failure(NullError()))
+        }
+      }
+    }
+
+    if let servers = await servers {
+      return servers
+    }
+
+    return try await getServersForced()
+  }
+
+  private func getServersForced() async throws -> [ServerAndCapabilities] {
+    try await EnsureOnce.once {
+      let servers = try await self.resources.servers()
+      Task { @MainActor in
+        self.servers = servers
+        self.storage.servers = CodableWrapper(value: servers.map(\.server))
+      }
+      return servers
+    }
+  }
+
   public func root(
+    server: Server,
     force: Bool = false
   ) async throws -> ServerWithCurrentConnection {
     if force {
-      await rootEnsureOnce.cancel()
-      return try await rootForced()
+      await rootEnsureOnce.cancel(id: server.id)
+      return try await rootForced(server: server)
     }
 
-    if let connection = await connection {
+    if let connection = await connection[server.id] {
       return connection
     }
 
-    return try await rootEnsureOnce.once {
-      let servers = try await self.servers()
+    return try await rootEnsureOnce.once(id: server.id) {
+      let servers = try await self.getServers()
 
       guard let server = servers.first else {
         throw NSError(domain: "derp", code: 69)
@@ -453,10 +428,10 @@ extension ServerLocator {
       do {
         if let lastUsedConnection = await self.storage.lastUsedConnection {
           if await self.lastTriedRootDate == nil {
-            let pingResult = try await self.ping(
+            let pingResult = try await self.resources.ping(
               server: ServerWithConnection(
-                server: lastUsedConnection.server,
-                connection: lastUsedConnection.connection
+                server: lastUsedConnection.value.server,
+                connection: lastUsedConnection.value.connection
               ),
               timeout: .seconds(1)
             ).get()
@@ -466,9 +441,11 @@ extension ServerLocator {
             }
           }
           await MainActor.run {
-            self.connection = lastUsedConnection
+            var new = self.connection
+            new[server.id] = lastUsedConnection.value
+            self.connection = new
           }
-          return lastUsedConnection
+          return lastUsedConnection.value
         }
       } catch {
         await MainActor.run {
@@ -479,7 +456,7 @@ extension ServerLocator {
 
       do {
         let res = try await self.checkLocalAndRemoteIp(
-          server: server.server.server,
+          server: server.server,
           timeout: .seconds(5)
         )
         .get()
@@ -489,7 +466,7 @@ extension ServerLocator {
       }
 
       // phase 3: refetch potential servers to connect to
-      guard let url = try await self.chooseServer() else {
+      guard let url = try await self.chooseServer(server: server.server) else {
         throw ServerLocatorError.noUrl
       }
       return url
@@ -499,13 +476,14 @@ extension ServerLocator {
 
 @MainActor
 public protocol ServerLocatorStorageProviding: AnyObject {
-  var lastUsedConnection: ServerWithCurrentConnection? { get set }
-  var lastUsedLocalConnection: ServerWithCurrentConnection? { get set }
-  var lastUsedRemoteConnection: ServerWithCurrentConnection? { get set }
+  var lastUsedConnection: CodableWrapper<ServerWithCurrentConnection>? { get set }
+  var lastUsedLocalConnection: CodableWrapper<ServerWithCurrentConnection>? { get set }
+  var lastUsedRemoteConnection: CodableWrapper<ServerWithCurrentConnection>? { get set }
+  var servers: CodableWrapper<[Server]>? { get set }
 }
 
-extension InjectedValues {
-  public var serverLocatorStorageProviding: any ServerLocatorStorageProviding {
+public extension InjectedValues {
+  var serverLocatorStorageProviding: any ServerLocatorStorageProviding {
     get { Self[ServerLocatorStorageProvidingKey.self] }
     set { Self[ServerLocatorStorageProvidingKey.self] = newValue }
   }
@@ -515,8 +493,8 @@ public struct ServerLocatorStorageProvidingKey: InjectionKey {
   public static var currentValue: (any ServerLocatorStorageProviding)?
 }
 
-extension InjectedValues {
-  public var serverLocator: ServerLocator {
+public extension InjectedValues {
+  var serverLocator: ServerLocator {
     get { Self[ServerLocatorKey.self] }
     set { Self[ServerLocatorKey.self] = newValue }
   }

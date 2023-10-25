@@ -86,7 +86,7 @@ final class VideoDataService {
         Task { () -> [(VideoKey, PlexShared.Progress)] in
           let progress =
             try await video
-            .getProgress(storage: self.progress(for: video))
+              .getProgress(storage: self.progress(for: video))
 
           if !progress.isZero, continueWatching[video.key] == nil {
             return [(video.key, progress)]

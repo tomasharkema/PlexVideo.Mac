@@ -19,32 +19,22 @@ public struct Connection: Equatable, Sendable, Hashable {
   public let IPv6: Bool
 }
 
+//extension Connection: Identifiable {
+//  public var id: String {
+//    uri.absoluteString
+//  }
+//}
+
 extension Connection: Identifiable {
-  public var id: String {
-    uri.absoluteString
+  public struct ID: RawRepresentable, Codable, Hashable {
+    public let rawValue: String
+
+    public init(rawValue: String) {
+      self.rawValue = rawValue
+    }
   }
-}
 
-extension Connection {
-  //  public static let preview1 = Connection(
-  //    protocol: "https",
-  //    address: "1.2.3.4",
-  //    port: 8080,
-  //    uri: URL(string: "https://1.2.3.4")!,
-  //    local: true,
-  //    relay: false,
-  //    IPv6: false
-  //  )
-  //
-  //  public static let preview2 = Connection(
-  //    protocol: "https",
-  //    address: "5.6.7.8",
-  //    port: 8080,
-  //    uri: URL(string: "https://5.6.7.8")!,
-  //    local: false,
-  //    relay: false,
-  //    IPv6: false
-  //  )
-
-  //  public static let preview3 = Server.preview1.connections[0]
+  public var id: ID {
+    ID(rawValue: uri.absoluteString)
+  }
 }

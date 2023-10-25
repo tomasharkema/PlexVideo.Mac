@@ -1,0 +1,97 @@
+{
+  "ratingKey": "55351",
+  "key": "/library/metadata/55351",
+  "guid": "plex://movie/5d77683f54c0f0001f304aee",
+  "studio": "Fu Works",
+  "type": "movie",
+  "title": "Oorlogswinter",
+  "contentRating": "nl/12",
+  "summary": "Het is de ijskoude winter van 1945. De Tweede Wereldoorlog is nog in volle gang. In het westen van Nederland heerst grote honger, waardoor veel mensen naar het oosten trekken om daar voedsel te vinden voor hun gezinnen. In een dorpje in de buurt van Zwolle woont de veertienjarige Michiel die niet kan wachten tot hij iets kan betekenen in het verzet. Dit tot ergernis van zijn vader, die als burgemeester vooral bezig is om escalaties in het dorp te voorkomen. Wanneer Michiel onverwacht een opdracht krijgt, is hij vastbesloten te bewijzen dat hij deze kan volbrengen. Hierdoor raakt hij betrokken bij de gevaren van de oorlog.",
+  "rating": 7.6,
+  "audienceRating": 7.7,
+  "viewCount": 3,
+  "lastViewedAt": 1685739957,
+  "year": 2008,
+  "tagline": "A country occupied, a child's innocence lost.",
+  "thumb": "/library/metadata/55351/thumb/1694834280",
+  "art": "/library/metadata/55351/art/1694834280",
+  "viewOffset": 7496000,
+  "duration": 6207197,
+  "originallyAvailableAt": "2008-11-27",
+  "addedAt": 1643555851,
+  "updatedAt": 1694834280,
+  "audienceRatingImage": "rottentomatoes://image.rating.upright",
+  "primaryExtraKey": "/library/metadata/109093",
+  "ratingImage": "rottentomatoes://image.rating.ripe",
+  "Media": [
+    {
+      "id": 53616,
+      "duration": 6207197,
+      "bitrate": 6045,
+      "width": 1280,
+      "height": 544,
+      "aspectRatio": 2.35,
+      "audioChannels": 6,
+      "audioCodec": "dca",
+      "videoCodec": "h264",
+      "videoResolution": "720",
+      "container": "mkv",
+      "videoFrameRate": "24p",
+      "audioProfile": "dts",
+      "videoProfile": "high",
+      "Part": [
+        {
+          "id": 301622,
+          "key": "/library/parts/301622/1501426328/file.mkv",
+          "duration": 6207197,
+          "file": "/downloads/film/Winter.in.Wartime.2008.AKA.Oorlogswinter.720p.BluRay.x264-HD4U [PublicHD].mkv",
+          "size": 4689826568,
+          "audioProfile": "dts",
+          "container": "mkv",
+          "indexes": "sd",
+          "videoProfile": "high"
+        }
+      ]
+    }
+  ],
+  "Genre": [
+    {
+      "tag": "Drama"
+    },
+    {
+      "tag": "Historisch"
+    }
+  ],
+  "Country": [
+    {
+      "tag": "Netherlands"
+    },
+    {
+      "tag": "Belgium"
+    }
+  ],
+  "Director": [
+    {
+      "tag": "Martin Koolhoven"
+    }
+  ],
+  "Writer": [
+    {
+      "tag": "Martin Koolhoven"
+    },
+    {
+      "tag": "Jan Terlouw"
+    }
+  ],
+  "Role": [
+    {
+      "tag": "Martijn Lakemeier"
+    },
+    {
+      "tag": "Melody Klaver"
+    },
+    {
+      "tag": "Yorick van Wageningen"
+    }
+  ]
+  }

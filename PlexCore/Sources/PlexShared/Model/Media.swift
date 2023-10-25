@@ -8,10 +8,11 @@
 import Foundation
 import InitMacro
 import MetaCodable
+import RawJson
 
 @Init(public: true)
 @Codable
-public struct Media: Equatable, Sendable {
+public struct Media: Equatable, Sendable, Selecting {
   public let id: NumberLike
   public let duration: NumberLike
   public let bitrate: NumberLike
@@ -29,7 +30,8 @@ public struct Media: Equatable, Sendable {
   public let `protocol`: String?
   public let indirect: String?
   public let selected: Bool?
+  public let `default`: Bool?
 
   @CodedAt("Part")
-  public let part: [Part]
+  public let part: [PartialCodable<Part>]?
 }

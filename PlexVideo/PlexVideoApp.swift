@@ -12,6 +12,7 @@ import PlexCore
 import PlexShared
 import PlexUIKit
 import SwiftUI
+import FirebaseCore
 
 @MainActor
 @main
@@ -19,6 +20,11 @@ struct PlexVideoApp: App {
   #if os(iOS)
     @UIApplicationDelegateAdaptor(AppDelegate.self)
     private var appDelegate
+  #endif
+
+  #if os(macOS)
+  @NSApplicationDelegateAdaptor(AppDelegate.self) 
+  private var appDelegate
   #endif
 
   @Environment(\.scenePhase)
@@ -41,6 +47,8 @@ struct PlexVideoApp: App {
       .environment(videosViewModel)
       .environment(currentVideoViewModel)
       .environmentObject(dependencyInjector)
+      .windowInjector()
+
     //      .environment(\.font, .plex)
   }
 
@@ -48,9 +56,10 @@ struct PlexVideoApp: App {
     #if os(macOS)
 
       Window("Videos", id: "videos") {
-        rootView
+        rootView.frame(minWidth: 700)
       }
-      .windowStyle(.hiddenTitleBar)
+      .windowResizability(.contentMinSize)
+//      .windowStyle(.hiddenTitleBar)
 
     #else
       WindowGroup {
@@ -89,8 +98,13 @@ extension Font {
 }
 
 #if os(iOS)
-  class AppDelegate: NSObject, UIApplicationDelegate {
+  final class AppDelegate: NSObject, UIApplicationDelegate {
     static var orientationLock = UIInterfaceOrientationMask.all
+    
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+      FirebaseApp.configure()
+      return true
+    }
 
     func application(
       _: UIApplication,
@@ -99,4 +113,12 @@ extension Font {
       AppDelegate.orientationLock
     }
   }
+#endif
+
+#if os(macOS)
+final class AppDelegate: NSObject, NSApplicationDelegate {
+  func applicationDidFinishLaunching(_ notification: Notification) {
+    FirebaseApp.configure()
+  }
+}
 #endif
