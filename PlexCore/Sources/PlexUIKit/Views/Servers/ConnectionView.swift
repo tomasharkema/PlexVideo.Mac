@@ -11,8 +11,8 @@ import PlexShared
 import SwiftUI
 
 struct ConnectionsView: View {
-  @Environment(ServersViewModel.self)
-  private var viewModel
+//  @Environment(ServersViewModel.self)
+//  private var viewModel
 
   private let connections: ServerAndPings
 
@@ -21,33 +21,12 @@ struct ConnectionsView: View {
   }
 
   var body: some View {
-    let _ = print("pings:", connections.pings)
     ForEach(connections.pings) { server in
       ConnectionView(
         server: server.serverWithConnection,
         ping: server
       )
     }
-//    switch viewModel.pings {
-//    case let .loaded(pings):
-//      VStack(alignment: .leading) {
-//        ForEach(connections) { server in
-//          ConnectionView(
-//            server: server,
-//            ping: pings.results[server.id]
-//          )
-//        }
-//      }
-//
-//    case .absent, .loading:
-//      ProgressView()
-//
-//    case let .error(error):
-//      Text(error.localizedDescription)
-//    }
-    //    .padding()
-    //    .background(.black.opacity(0.6))
-    //    .cornerRadius(10)
   }
 }
 

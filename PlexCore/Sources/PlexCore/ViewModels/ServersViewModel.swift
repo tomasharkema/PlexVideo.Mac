@@ -76,11 +76,20 @@ public final class ServersViewModel: LoadableSupport {
     })
   }
 
-  private nonisolated func pings(data: PingerState?,
-                                 server: ServerAndCapabilities) -> ServerAndPings
-  {
+  private func pings(
+    data: PingerState?,
+    server: ServerAndCapabilities
+  ) -> ServerAndPings {
     let pings: [PingResult] = server.connections
-      .compactMap { data?.results[$0.id] }
+      .map {
+        data?.results[$0.id] ?? PingResult(
+          serverWithConnection: $0,
+          details: .failure(PingResultError(
+            serverWithConnection: $0,
+            details: .noMetric
+          ))
+        )
+      }
       .sorted { lhs, rhs in
         guard let lResult = try? lhs.get() else {
           return false
@@ -98,14 +107,13 @@ public final class ServersViewModel: LoadableSupport {
     return ServerAndPings(server: server.server, pings: pings)
   }
 
-  private nonisolated func updateServerResult() async {
-    guard let servers = await serverLocator.servers else {
+  private func updateServerResult() async {
+    guard let servers = serverLocator.servers else {
       return
     }
-    let data = await pinger.state.data
-    let oldValue = await self.servers
-    let results: [ServerAndPings] = servers.map { server -> ServerAndPings in
-      self.pings(data: data, server: server)
+    let data = pinger.state.data
+    let results: [ServerAndPings] = servers.map {
+      self.pings(data: data, server: $0)
     }
 
     await MainActor.run {

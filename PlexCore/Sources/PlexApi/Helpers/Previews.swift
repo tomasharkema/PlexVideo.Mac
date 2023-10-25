@@ -8,7 +8,9 @@
 import Foundation
 import PlexShared
 
-public struct NullError: Error {}
+public struct NullError: Error {
+  public init() { }
+}
 
 #if DEBUG
 

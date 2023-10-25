@@ -7,7 +7,9 @@
 
 import Foundation
 import PlexShared
+import InitMacro
 
+@Init(public: true)
 public struct PingResult: Sendable, Equatable {
   public let serverWithConnection: ServerWithConnection
   public let details: Result<PingResultDetails, PingResultError>
@@ -83,6 +85,7 @@ public struct PingResultDetails: Sendable, Hashable, Equatable {
   }
 }
 
+@Init(public: true)
 public struct PingResultError: Sendable, Equatable, LocalizedError {
   public let serverWithConnection: ServerWithConnection
   public let details: PingResultErrorDetails
