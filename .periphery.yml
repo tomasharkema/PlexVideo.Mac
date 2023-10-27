@@ -1,0 +1,5 @@
+project: PlexVideo.xcodeproj
+schemes:
+- PlexVideo
+targets:
+- PlexVideo

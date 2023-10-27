@@ -7,8 +7,8 @@
 
 import AsyncAlgorithms
 import AsyncHelpers
+import Dependencies
 import Foundation
-import Inject
 import OSLog
 import PlexShared
 
@@ -21,18 +21,22 @@ enum ServerLocatorError: LocalizedError {
 public final class ServerLocator: Sendable {
   private let logger = Logger(subsystem: "PlexVideo", category: "ServerLocator")
 
-  private let resources = ResourcesService()
+//  private let resources = ResourcesService()
 
   @ObservationIgnored
-  @Injected(\.requestor)
+  @Dependency(\.resourcesService)
+  private var resources
+
+  @ObservationIgnored
+  @Dependency(\.requestor)
   private var requestor
 
   @ObservationIgnored
-  @Injected(\.serverLocatorStorageProviding)
+  @Dependency(\.serverLocatorStorageProviding)
   private var storage
 
   @ObservationIgnored
-  @Injected(\.networkManager)
+  @Dependency(\.networkManager)
   private var networkManager
 
   @MainActor
@@ -482,24 +486,25 @@ public protocol ServerLocatorStorageProviding: AnyObject {
   var servers: CodableWrapper<[Server]>? { get set }
 }
 
-public extension InjectedValues {
+public extension DependencyValues {
   var serverLocatorStorageProviding: any ServerLocatorStorageProviding {
-    get { Self[ServerLocatorStorageProvidingKey.self] }
-    set { Self[ServerLocatorStorageProvidingKey.self] = newValue }
+    get { self[ServerLocatorStorageProvidingKey.self] }
+    set { self[ServerLocatorStorageProvidingKey.self] = newValue }
   }
 }
 
-public struct ServerLocatorStorageProvidingKey: InjectionKey {
-  public static var currentValue: (any ServerLocatorStorageProviding)?
+public struct ServerLocatorStorageProvidingKey: TestDependencyKey {
+  public static var testValue: (any ServerLocatorStorageProviding) =
+    unimplemented() //: (any ServerLocatorStorageProviding)?
 }
 
-public extension InjectedValues {
+public extension DependencyValues {
   var serverLocator: ServerLocator {
-    get { Self[ServerLocatorKey.self] }
-    set { Self[ServerLocatorKey.self] = newValue }
+    get { self[ServerLocatorKey.self] }
+    set { self[ServerLocatorKey.self] = newValue }
   }
 }
 
-private struct ServerLocatorKey: InjectionKey {
-  static var currentValue: ServerLocator? = .init()
+private struct ServerLocatorKey: DependencyKey {
+  static var liveValue: ServerLocator = .init()
 }

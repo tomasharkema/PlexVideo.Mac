@@ -7,6 +7,7 @@
 
 import Combine
 import SwiftUI
+import SwiftUIMacros
 
 #if canImport(UIKit)
   public typealias Window = UIWindow
@@ -28,35 +29,41 @@ public class WeakAccessor<ValueType: AnyObject & Equatable>: Equatable {
   }
 }
 
-public struct HostingWindowKey: EnvironmentKey {
-  public typealias Value = WeakAccessor<Window>? // needed for weak link
-  public static let defaultValue: Self.Value = nil
+// public struct HostingWindowKey: EnvironmentKey {
+//  public typealias Value = WeakAccessor<Window>? // needed for weak link
+//  public static let defaultValue: Self.Value = nil
+// }
+//
+// public struct HostingWindowSizeKey: EnvironmentKey {
+//  public typealias Value = CGSize // needed for weak link
+//  public static let defaultValue: Self.Value = .zero
+// }
+
+@EnvironmentStorage
+extension EnvironmentValues {
+  var hostingWindow: WeakAccessor<Window>?
+  var hostingWindowSize: CGSize = .zero
 }
 
-public struct HostingWindowSizeKey: EnvironmentKey {
-  public typealias Value = CGSize // needed for weak link
-  public static let defaultValue: Self.Value = .zero
-}
-
-public extension EnvironmentValues {
-  var hostingWindow: HostingWindowKey.Value {
-    get {
-      self[HostingWindowKey.self]
-    }
-    set {
-      self[HostingWindowKey.self] = newValue
-    }
-  }
-
-  var hostingWindowSize: HostingWindowSizeKey.Value {
-    get {
-      self[HostingWindowSizeKey.self]
-    }
-    set {
-      self[HostingWindowSizeKey.self] = newValue
-    }
-  }
-}
+// public extension EnvironmentValues {
+//  var hostingWindow: HostingWindowKey.Value {
+//    get {
+//      self[HostingWindowKey.self]
+//    }
+//    set {
+//      self[HostingWindowKey.self] = newValue
+//    }
+//  }
+//
+//  var hostingWindowSize: HostingWindowSizeKey.Value {
+//    get {
+//      self[HostingWindowSizeKey.self]
+//    }
+//    set {
+//      self[HostingWindowSizeKey.self] = newValue
+//    }
+//  }
+// }
 
 public struct WindowInjector: ViewModifier {
   @State

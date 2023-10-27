@@ -5,10 +5,11 @@
 //  Created by Tomas Harkema on 09/06/2021.
 //
 
+import Dependencies
 import Foundation
-import Inject
 import OSLog
 import PlexShared
+import SwiftMacros
 
 enum AuthError: LocalizedError {
   case limitReached
@@ -19,10 +20,10 @@ enum AuthError: LocalizedError {
 public final class Auth {
   private let logger = Logger(subsystem: "PlexVideo", category: "Auth")
 
-  @Injected(\.authStorageProviding)
+  @Dependency(\.authStorageProviding)
   private var storage
 
-  @Injected(\.requestor)
+  @Dependency(\.requestor)
   private var requestor
 
   public nonisolated init() {}
@@ -42,8 +43,8 @@ public final class Auth {
     try await Task.sleep(for: .seconds(requestDelay))
 
     let deviceUuid = storage.uuid
-
-    let urlRoot = URL(string: "https://plex.tv/api/v2/pins/")!.appendingPathComponent("\(pinId)")
+    let urlRoot = #buildURL("https://plex.tv/api/v2/pins/").appendingPathComponent("\(pinId)")
+//    let urlRoot = #buildURL("https://plex.tv/api/v2/pins/").appendingPathComponent("\(pinId)")
     var urlComponents = URLComponents(url: urlRoot, resolvingAgainstBaseURL: true)!
     urlComponents.queryItems =
       (urlComponents.queryItems ?? []) + [
@@ -115,7 +116,8 @@ public final class Auth {
       useCache: false
     )
 
-    let urlWebRoot = URL(string: "https://app.plex.tv/auth/#!?")!
+    let urlWebRoot =
+      #buildURL("https://app.plex.tv/auth/#!?") // URL(string: "https://app.plex.tv/auth/#!?")!
     var urlComponentsWeb = URLComponents(url: urlWebRoot, resolvingAgainstBaseURL: true)!
     urlComponentsWeb.queryItems =
       (urlComponents.queryItems ?? []) + [
@@ -144,15 +146,15 @@ public final class Auth {
   }
 }
 
-public extension InjectedValues {
+public extension DependencyValues {
   var auth: Auth {
-    get { Self[AuthKey.self] }
-    set { Self[AuthKey.self] = newValue }
+    get { self[AuthKey.self] }
+    set { self[AuthKey.self] = newValue }
   }
 }
 
-private struct AuthKey: InjectionKey {
-  static var currentValue: Auth? = .init()
+private struct AuthKey: DependencyKey {
+  static var liveValue: Auth = .init()
 }
 
 public protocol AuthStorageProviding: AnyObject {
@@ -160,13 +162,13 @@ public protocol AuthStorageProviding: AnyObject {
   var plexToken: String? { get set }
 }
 
-public extension InjectedValues {
+public extension DependencyValues {
   var authStorageProviding: any AuthStorageProviding {
-    get { Self[AuthStorageProvidingKey.self] }
-    set { Self[AuthStorageProvidingKey.self] = newValue }
+    get { self[AuthStorageProvidingKey.self] }
+    set { self[AuthStorageProvidingKey.self] = newValue }
   }
 }
 
-public struct AuthStorageProvidingKey: InjectionKey {
-  public static var currentValue: (any AuthStorageProviding)?
+public struct AuthStorageProvidingKey: TestDependencyKey {
+  public static var testValue: (any AuthStorageProviding) = unimplemented()
 }

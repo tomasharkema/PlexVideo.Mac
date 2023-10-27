@@ -6,8 +6,8 @@
 //
 
 import CryptoKit
+import Dependencies
 import Foundation
-import Inject
 import OSLog
 import PlexApi
 import PlexShared
@@ -28,7 +28,7 @@ final class ImageStore: Sendable {
   private let localAssets: FileBasedCache
   private let fileManager: FileManager
 
-  @Injected(\.networkManager)
+  @Dependency(\.networkManager)
   private var networkManager
 
   init(fileManager: FileManager = .default) {

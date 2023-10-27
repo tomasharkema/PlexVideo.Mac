@@ -6,15 +6,18 @@
 //
 
 import Foundation
-import InitMacro
 import MetaCodable
 
 public typealias ServersResponse = [ServerAndCapabilities]
 
-@Init(public: true)
 public struct ServerAndCapabilities: Sendable {
   public let server: Server
   public let capabilities: Result<Root<Capabilities>, any Error>
+
+  package init(server: Server, capabilities: Result<Root<Capabilities>, any Error>) {
+    self.server = server
+    self.capabilities = capabilities
+  }
 
   public var connections: [ServerWithConnection] {
     server.connections.map {

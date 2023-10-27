@@ -5,8 +5,8 @@
 //  Created by Tomas Harkema on 09/06/2021.
 //
 
+import Dependencies
 import Foundation
-import Inject
 import PlexApi
 import PlexShared
 
@@ -16,14 +16,16 @@ struct ListResult {
 }
 
 public final class VideoDataService: Sendable {
-  @Injected(\.api)
+  @Dependency(\.api)
   private var api
 
-  @Injected(\.storage)
+  @Dependency(\.storage)
   private var storage
 
-  @Injected(\.serverLocator)
+  @Dependency(\.serverLocator)
   private var serverLocator
+
+  public nonisolated init() {}
 
   nonisolated func progress(for video: VideoFromServer) async throws -> PlexShared.Progress {
     try await video.video.getProgress(storage: storage.getSavedOffset(video: video.video))
@@ -53,11 +55,12 @@ public final class VideoDataService: Sendable {
     server: ServerWithCurrentConnection,
     sections: [Directory]
   ) async throws -> [(VideoFromServer.ID, PlexShared.Progress)] {
-    try await withThrowingTaskGroup(
+    let videos = try await getContinueWatching(server: server, sections: sections)
+
+    return try await withThrowingTaskGroup(
       of: (VideoFromServer.ID, PlexShared.Progress).self,
       returning: [(VideoFromServer.ID, PlexShared.Progress)].self
     ) { group in
-      let videos = try await getContinueWatching(server: server, sections: sections)
 
       for watchingVideo in videos {
         group.addTask {
@@ -198,13 +201,13 @@ public final class VideoDataService: Sendable {
   }
 }
 
-public extension InjectedValues {
+public extension DependencyValues {
   var videoDataService: VideoDataService {
-    get { Self[VideoDataServiceKey.self] }
-    set { Self[VideoDataServiceKey.self] = newValue }
+    get { self[VideoDataServiceKey.self] }
+    set { self[VideoDataServiceKey.self] = newValue }
   }
 }
 
-private struct VideoDataServiceKey: InjectionKey {
-  static var currentValue: VideoDataService? = .init()
+private struct VideoDataServiceKey: DependencyKey {
+  static var liveValue: VideoDataService = .init()
 }

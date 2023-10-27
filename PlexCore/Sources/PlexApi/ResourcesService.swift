@@ -6,21 +6,26 @@
 //
 
 import AsyncHelpers
+import Dependencies
 import Foundation
-import Inject
 import OSLog
 import PlexShared
+import SwiftMacros
 
-final class ResourcesService: Sendable {
+public final class ResourcesService: Sendable {
   private let logger = Logger(subsystem: "PlexVideo", category: "ResourcesService")
 
-  @Injected(\.requestor)
+  @Dependency(\.requestor)
   private var requestor
 
-  @Injected(\.serverLocatorStorageProviding)
+  @Dependency(\.serverLocatorStorageProviding)
   private var storage
 
-  @Injected(\.networkManager)
+  init() {
+//    self.storage = storage
+  }
+
+  @Dependency(\.networkManager)
   private var networkManager
 
   func ping(
@@ -73,7 +78,7 @@ final class ResourcesService: Sendable {
   nonisolated func devices() async throws -> [Server] {
     try await EnsureOnce.once(cacheDuration: .seconds(60 * 5)) {
       let devices = try await self.requestor.request(
-        url: URL(string: "https://plex.tv/api/v2/resources")!,
+        url: #buildURL("https://plex.tv/api/v2/resources"),
         [Server].self,
         queryItems: [
           URLQueryItem(name: "includeHttps", value: "1"),
@@ -153,4 +158,15 @@ final class ResourcesService: Sendable {
       return response
     }
   }
+}
+
+public extension DependencyValues {
+  var resourcesService: ResourcesService {
+    get { self[ResourcesServiceKey.self] }
+    set { self[ResourcesServiceKey.self] = newValue }
+  }
+}
+
+private struct ResourcesServiceKey: DependencyKey {
+  static var liveValue: ResourcesService = .init()
 }

@@ -6,9 +6,9 @@
 //
 
 import Foundation
-import SwiftMacros
+// import SwiftMacros
 
-@AddAssociatedValueVariable
+// @AddAssociatedValueVariable
 public enum Either<LeftType, RightType> {
   case left(LeftType)
   case right(RightType)

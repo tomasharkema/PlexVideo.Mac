@@ -1,25 +1,26 @@
 //
 //  VideosGridScreen.swift
-//  PlexVideo
+//
 //
 //  Created by Tomas Harkema on 10/06/2021.
 //
 
+import Dependencies
 import Foundation
-import Inject
 import PlexApi
 import PlexCore
 import PlexShared
-import PlexUIKit
 import SwiftUI
 
 @MainActor
-struct VideosGridScreen: View {
-  @Environment(VideosViewModel.self)
+public struct VideosGridScreen: View {
+  @Environment(\.videosViewModel)
   private var videosViewModel: VideosViewModel
 
   @State
   private var searchText: String = ""
+
+  public init() {}
 
   @ToolbarContentBuilder
   private var navigationBarElements: some ToolbarContent {
@@ -50,7 +51,7 @@ struct VideosGridScreen: View {
     }
   }
 
-  var body: some View {
+  public var body: some View {
     ScrollView {
       innerScrollview
         .padding()

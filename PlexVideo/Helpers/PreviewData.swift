@@ -8,7 +8,7 @@
 import Foundation
 import PlexShared
 
-//extension Video {
+// extension Video {
 //  static func preview(id: String = UUID().uuidString) -> Video {
 //    Video(
 //      key: VideoKey(rawValue: id),
@@ -34,9 +34,9 @@ import PlexShared
 //      grandparentThumb: nil
 //    )
 //  }
-//}
+// }
 
-//extension Media {
+// extension Media {
 //  static func preview() -> Media {
 //    Media(
 //      id: NumberLike(value: 0),
@@ -60,4 +60,4 @@ import PlexShared
 //      part: []
 //    )
 //  }
-//}
+// }

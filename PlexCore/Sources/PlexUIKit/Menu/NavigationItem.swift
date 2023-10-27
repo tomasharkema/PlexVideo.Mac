@@ -5,7 +5,7 @@
 //  Created by Tomas Harkema on 20/10/2023.
 //
 
-// import Foundation
+import Foundation
 
 public struct NavigationItem: Equatable, Hashable, Identifiable, Codable {
   public let name: String

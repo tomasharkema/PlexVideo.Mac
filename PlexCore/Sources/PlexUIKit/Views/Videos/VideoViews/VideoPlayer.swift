@@ -1,6 +1,6 @@
 //
 //  VideoPlayer.swift
-//  PlexVideo
+//
 //
 //  Created by Tomas Harkema on 07/06/2021.
 //
@@ -14,7 +14,7 @@ import SwiftUI
 
 #if os(iOS)
   struct VideoPlayer: UIViewControllerRepresentable {
-    @Environment(CurrentVideoViewModel.self)
+    @Environment(\.currentVideoViewModel)
     private var viewModel
 
     init() {}

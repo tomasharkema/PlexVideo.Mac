@@ -1,6 +1,6 @@
 //
 //  VideoDetail.swift
-//  PlexVideo
+//
 //
 //  Created by Tomas Harkema on 05/06/2021.
 //
@@ -15,11 +15,11 @@ import SwiftUI
   import UIKit
 #endif
 
-@MainActor
+// @MainActor
 struct VideoDetail: View {
   private var video: VideoFromServer
 
-  @Environment(CurrentVideoViewModel.self)
+  @Environment(\.currentVideoViewModel)
   private var viewModel
 
   init(video: VideoFromServer) {

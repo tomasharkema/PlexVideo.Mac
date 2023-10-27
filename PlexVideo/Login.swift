@@ -6,8 +6,8 @@
 //
 
 import AuthenticationServices
+import Dependencies
 import Foundation
-import Inject
 import PlexApi
 import PlexCore
 import PlexShared

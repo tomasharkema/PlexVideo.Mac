@@ -5,14 +5,14 @@
 //  Created by Tomas Harkema on 20/10/2023.
 //
 
+@_exported import Inject
 import PlexApi
 import PlexCore
 import PlexShared
 import SwiftUI
 
 struct ConnectionsView: View {
-//  @Environment(ServersViewModel.self)
-//  private var viewModel
+  @ObserveInjection private var inject
 
   private let connections: ServerAndPings
 
@@ -27,12 +27,15 @@ struct ConnectionsView: View {
         ping: server
       )
     }
+    .enableInjection()
   }
 }
 
 @MainActor
 struct ConnectionView: View {
-  @Environment(ServersViewModel.self)
+  @ObserveInjection private var inject
+
+  @Environment(\.serversViewModel) // ServersViewModel.self)
   private var viewModel
 
   private let server: ServerWithConnection
@@ -72,7 +75,7 @@ struct ConnectionView: View {
   var body: some View {
     HStack {
       if !server.connection.local {
-        Image(systemName: "cloud")
+        SFSymbol.cloud.image()
       }
 
       Text(server.connection.address)
@@ -86,12 +89,13 @@ struct ConnectionView: View {
     .padding(5)
     .background {
       if isCurrentDevice {
-        Color(.plexTint).opacity(0.6).cornerRadius(3)
+        PublicColor.plexTint.opacity(0.6).cornerRadius(3)
         //        Color.green.opacity(0.6).cornerRadius(3)
       } else {
         Color.black.opacity(0.2).cornerRadius(3)
       }
     }
     .disabled(ping == nil)
+    .enableInjection()
   }
 }

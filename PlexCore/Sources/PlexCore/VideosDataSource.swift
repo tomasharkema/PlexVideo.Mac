@@ -5,8 +5,8 @@
 //  Created by Tomas Harkema on 24/10/2023.
 //
 
+import Dependencies
 import Foundation
-import Inject
 import OSLog
 import PlexApi
 import PlexShared
@@ -18,19 +18,19 @@ public final class VideosDataSource: LoadableSupport {
   private let logger = Logger(subsystem: "PlexVideo", category: "VideosDataSource")
 
   @ObservationIgnored
-  @Injected(\.videoDataService)
+  @Dependency(\.videoDataService)
   private var service
 
   @ObservationIgnored
-  @Injected(\.storage)
+  @Dependency(\.storage)
   private var storage
 
   @ObservationIgnored
-  @Injected(\.api)
+  @Dependency(\.api)
   private var api
 
   @ObservationIgnored
-  @Injected(\.serverLocator)
+  @Dependency(\.serverLocator)
   private var serverLocator
 
   private var loadingTask: Task<Void, Never>?
@@ -39,7 +39,7 @@ public final class VideosDataSource: LoadableSupport {
 
   public private(set) var savedLastPlayed: Video?
 
-  init() {
+  nonisolated init() {
     Task { @MainActor in
       track()
     }
@@ -148,14 +148,13 @@ public extension VideosDataSource {
   }
 }
 
-public extension InjectedValues {
+public extension DependencyValues {
   var videosDataSource: VideosDataSource {
-    get { Self[VideosDataSourceKey.self] }
-    set { Self[VideosDataSourceKey.self] = newValue }
+    get { self[VideosDataSourceKey.self] }
+    set { self[VideosDataSourceKey.self] = newValue }
   }
 }
 
-private struct VideosDataSourceKey: InjectionKey {
-  @MainActor
-  static var currentValue: VideosDataSource? = .init()
+private struct VideosDataSourceKey: DependencyKey {
+  static var liveValue: VideosDataSource = .init()
 }

@@ -6,6 +6,7 @@
 //
 
 import Combine
+import ConcurrencyExtras
 import Foundation
 import os
 import UniformTypeIdentifiers
@@ -27,8 +28,9 @@ final class MemoryLimitedCache: Cache, Sendable {
   let memoryLimit: Measurement<UnitInformationStorage>
   private(set) var currentMemoryUsage = Measurement<UnitInformationStorage>.zero
 
-  private let accessLock = UnfairLock()
-  private var assets: [Asset.ID: Asset] = [:] // GuardedBy(accessLock)
+  // private let accessLock = UnfairLock()
+  private var assets =
+    LockIsolated([Asset.ID: Asset]()) //: [Asset.ID: Asset] = [:] // GuardedBy(accessLock)
   private var protectedAssetIDs: [Asset.ID: Int] = [:] // GuardedBy(accessLock)
   private var cancellation = [AnyCancellable]()
 
@@ -59,8 +61,8 @@ final class MemoryLimitedCache: Cache, Sendable {
   }
 
   func fetchByID(_ id: Asset.ID) -> Asset? {
-    accessLock.withLock {
-      self.assets[id]
+    assets.withValue { assets in
+      assets[id]
     }
   }
 
@@ -97,7 +99,7 @@ final class MemoryLimitedCache: Cache, Sendable {
 
     let estimatedMemory = estimatedMemory(of: asset)
     signposter.emitEvent("AddAsset", "assetID=\(asset.id) memoryUsage=\(estimatedMemory)")
-    accessLock.withLock {
+    assets.withValue { assets in
       // Remove the current asset if it exists.
       if let currentAsset = assets.removeValue(forKey: asset.id) {
         currentMemoryUsage = currentMemoryUsage - self.estimatedMemory(of: currentAsset)
@@ -112,7 +114,7 @@ final class MemoryLimitedCache: Cache, Sendable {
   }
 
   func purge(atLeast amount: Measurement<UnitInformationStorage>? = nil) {
-    accessLock.withLock {
+    assets.withValue { _ in
       _locked_purge(atLeast: amount)
     }
   }
@@ -136,7 +138,9 @@ final class MemoryLimitedCache: Cache, Sendable {
     defer { signposter.endInterval("Purge", interval, "newCount=\(self.assets.count)") }
 
     guard var amountToGo = amount, amountToGo < currentMemoryUsage else {
-      assets.removeAll()
+      assets.withValue { assets in
+        assets.removeAll()
+      }
       currentMemoryUsage = .zero
       return
     }
@@ -151,14 +155,15 @@ final class MemoryLimitedCache: Cache, Sendable {
 
     for id in weightedKeys {
       guard amountToGo > .zero else { break }
+      assets.withValue { assets in
+        let asset = assets.removeValue(forKey: id)!
 
-      let asset = assets.removeValue(forKey: id)!
+        let estimatedMemory = estimatedMemory(of: asset)
+        logger.trace("Removed \(id) saving \(estimatedMemory)")
 
-      let estimatedMemory = estimatedMemory(of: asset)
-      logger.trace("Removed \(id) saving \(estimatedMemory)")
-
-      amountToGo = amountToGo - estimatedMemory
-      currentMemoryUsage = currentMemoryUsage - estimatedMemory
+        amountToGo = amountToGo - estimatedMemory
+        currentMemoryUsage = currentMemoryUsage - estimatedMemory
+      }
     }
   }
 }

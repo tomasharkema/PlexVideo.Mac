@@ -6,21 +6,31 @@
 //
 
 import CoreMedia
+import Dependencies
 import Foundation
-import Inject
+// import Injected
 import PlexShared
+import SwiftMacros
+
+// import Papyrus
+
+// @API
+// protocol PlexEndpoint {
+//  @GET("/library/sections")
+//  func sections() async throws -> Root<DirectoryContainer>
+// }
 
 public final class Api: Sendable {
-  //  @Injected(\.serverLocator)
-  //  private var serverLocator
-
-  @Injected(\.requestor)
+  @Dependency(\.requestor)
   private var requestor
 
   public func sections(
     server: ServerWithCurrentConnection,
     onlyCached: Bool
   ) async throws -> Root<DirectoryContainer> {
+//    let provider = Provider(baseURL: server.uri.absoluteString)
+//    let plexEndpoint = PlexEndpointAPI(provider: provider)
+//    return try await plexEndpoint.sections()
     try await requestor.request(
       url: server.uri
         .appendingPathComponent("/library/sections"),
@@ -244,13 +254,13 @@ public extension JSONDecoder {
   }()
 }
 
-public extension InjectedValues {
+public extension DependencyValues {
   var api: Api {
-    get { Self[ApiKey.self] }
-    set { Self[ApiKey.self] = newValue }
+    get { self[ApiKey.self] }
+    set { self[ApiKey.self] = newValue }
   }
 }
 
-private struct ApiKey: InjectionKey {
-  static var currentValue: Api? = .init()
+private struct ApiKey: DependencyKey {
+  static var liveValue: Api = .init()
 }

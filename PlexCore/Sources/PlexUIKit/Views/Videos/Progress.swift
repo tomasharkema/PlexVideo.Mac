@@ -1,11 +1,12 @@
 //
 //  Progress.swift
-//  PlexVideo
+//
 //
 //  Created by Tomas Harkema on 07/06/2021.
 //
 
 import Foundation
+import PlexShared
 
 struct Progress: Codable {
   let seconds: Double

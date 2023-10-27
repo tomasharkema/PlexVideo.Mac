@@ -10,6 +10,15 @@
       }
     },
     {
+      "identity" : "alamofire",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Alamofire/Alamofire.git",
+      "state" : {
+        "revision" : "3dc6a42c7727c49bf26508e29b0a0b35f9c7e1ad",
+        "version" : "5.8.1"
+      }
+    },
+    {
       "identity" : "asynchrone",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/reddavis/Asynchrone",
@@ -25,6 +34,15 @@
       "state" : {
         "revision" : "b4f23e24b5a1bff301efc5e70871083ca029ff95",
         "version" : "0.2.0"
+      }
+    },
+    {
+      "identity" : "combine-schedulers",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/combine-schedulers",
+      "state" : {
+        "revision" : "9dc9cbe4bc45c65164fa653a563d8d8db61b09bb",
+        "version" : "1.0.0"
       }
     },
     {
@@ -91,12 +109,12 @@
       }
     },
     {
-      "identity" : "initmacro",
+      "identity" : "inject",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/LeonardoCardoso/InitMacro",
+      "location" : "https://github.com/krzysztofzablocki/Inject.git",
       "state" : {
-        "branch" : "main",
-        "revision" : "873caf7bbdbb63cd2851a0efc4bbf4bdbea9d863"
+        "revision" : "2057eb9819813b89fd2107e99608d2d20890d9c5",
+        "version" : "1.2.4"
       }
     },
     {
@@ -118,12 +136,21 @@
       }
     },
     {
+      "identity" : "macrokit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/IanKeen/MacroKit",
+      "state" : {
+        "branch" : "main",
+        "revision" : "8a063935d61671690e5ea311b0335d16e0d961e3"
+      }
+    },
+    {
       "identity" : "metacodable",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tomasharkema/MetaCodable",
       "state" : {
-        "revision" : "aea01e0aee8f1b3d11f1998e0d15f2454162b887",
-        "version" : "0.0.1"
+        "branch" : "main",
+        "revision" : "baf505a7531190ba1f51fe14639b268c8d4b0da9"
       }
     },
     {
@@ -133,6 +160,15 @@
       "state" : {
         "revision" : "819d0a2173aff699fb8c364b6fb906f7cdb1a692",
         "version" : "2.30909.0"
+      }
+    },
+    {
+      "identity" : "papyrus",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/joshuawright11/papyrus",
+      "state" : {
+        "revision" : "d2f632ce335571130c98dbec5953d981f5a8f009",
+        "version" : "0.5.3"
       }
     },
     {
@@ -151,6 +187,15 @@
       "state" : {
         "revision" : "e70e889c0196c76d22759eb50d6a0270ca9f1d9e",
         "version" : "2.3.1"
+      }
+    },
+    {
+      "identity" : "sf-symbols-generator",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/zijievv/sf-symbols-generator",
+      "state" : {
+        "revision" : "693048e69a8e638cf2288c51be5423f726330a4a",
+        "version" : "1.0.0"
       }
     },
     {
@@ -181,12 +226,12 @@
       }
     },
     {
-      "identity" : "swift-cmark",
+      "identity" : "swift-clocks",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-cmark.git",
+      "location" : "https://github.com/pointfreeco/swift-clocks",
       "state" : {
-        "revision" : "29d9c97e6310b87c4799268eaa2fc76164b2dbd8",
-        "version" : "0.2.0"
+        "revision" : "d1fd837326aa719bee979bdde1f53cd5797443eb",
+        "version" : "1.0.0"
       }
     },
     {
@@ -199,21 +244,30 @@
       }
     },
     {
-      "identity" : "swift-format",
+      "identity" : "swift-concurrency-extras",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-format",
+      "location" : "https://github.com/pointfreeco/swift-concurrency-extras",
       "state" : {
-        "revision" : "83248b4fa37919f78ffbd4650946759bcc54c2b5",
-        "version" : "509.0.0"
+        "revision" : "6155400cb15b0d99b2c257d57603d61d03a817a8",
+        "version" : "1.0.1"
       }
     },
     {
-      "identity" : "swift-markdown",
+      "identity" : "swift-dependencies",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-markdown.git",
+      "location" : "https://github.com/pointfreeco/swift-dependencies",
       "state" : {
-        "revision" : "68b2fed9fb12fb71ac81e537f08bed430b189e35",
-        "version" : "0.2.0"
+        "revision" : "4e1eb6e28afe723286d8cc60611237ffbddba7c5",
+        "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "swift-dependencies-additions",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tgrapperon/swift-dependencies-additions",
+      "state" : {
+        "revision" : "3223855b5ad1e049bc89330496a09ff7a69c5a48",
+        "version" : "1.0.0"
       }
     },
     {
@@ -255,10 +309,10 @@
     {
       "identity" : "swiftmacros",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/tomasharkema/SwiftMacros",
+      "location" : "https://github.com/tomasharkema/SwiftMacros.git",
       "state" : {
         "branch" : "main",
-        "revision" : "5083b5392f29b74753e4c53001b36c77a13f9275"
+        "revision" : "67877b7d076849e8704a89c48260c95543be4d70"
       }
     },
     {
@@ -268,6 +322,15 @@
       "state" : {
         "revision" : "3ced72fccb284235c266c1e8a32f1bf93129fc74",
         "version" : "1.1.0"
+      }
+    },
+    {
+      "identity" : "swiftui-macros",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Wouter01/SwiftUI-Macros",
+      "state" : {
+        "revision" : "5ab0ff5d49497b9b78a217621ea3ee0e1f905ee9",
+        "version" : "1.0.2"
       }
     },
     {
@@ -286,6 +349,15 @@
       "state" : {
         "revision" : "a853604c9e9a83ad9954c7e3d2a565273982471f",
         "version" : "7.0.2"
+      }
+    },
+    {
+      "identity" : "xctest-dynamic-overlay",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/xctest-dynamic-overlay",
+      "state" : {
+        "revision" : "23cbf2294e350076ea4dbd7d5d047c1e76b03631",
+        "version" : "1.0.2"
       }
     },
     {

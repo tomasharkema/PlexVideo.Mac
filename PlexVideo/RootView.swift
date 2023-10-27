@@ -5,14 +5,14 @@
 //  Created by Tomas Harkema on 27/05/2021.
 //
 
-import Inject
+import Dependencies
 import PlexCore
 import PlexShared
 import SwiftUI
 
 struct RootView: View {
-  @InjectedState(\.storage)
-  private var storage: Storage
+  @Dependency(\.storage)
+  private var storage
 
   init() {}
 

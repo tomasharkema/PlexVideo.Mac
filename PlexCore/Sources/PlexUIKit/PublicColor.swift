@@ -8,5 +8,5 @@
 import SwiftUI
 
 public enum PublicColor {
-  public static let plexTint = Color(.plexTint)
+  public static let plexTint = Color("plexTint") // (.plexTint)
 }

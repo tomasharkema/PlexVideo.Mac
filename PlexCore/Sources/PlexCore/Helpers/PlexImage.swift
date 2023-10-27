@@ -37,10 +37,6 @@
   }
 
   extension PlexImage {
-    public convenience init?(systemName name: String) {
-      self.init(systemSymbolName: name, accessibilityDescription: nil)
-    }
-
     func preparingForDisplay() -> NSImage? {
       self
     }

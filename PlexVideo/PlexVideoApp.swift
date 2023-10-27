@@ -5,6 +5,7 @@
 //  Created by Tomas Harkema on 27/05/2021.
 //
 
+import Dependencies
 import Foundation
 import Inject
 import PlexApi
@@ -12,7 +13,9 @@ import PlexCore
 import PlexShared
 import PlexUIKit
 import SwiftUI
-import FirebaseCore
+#if canImport(FirebaseCore)
+  import FirebaseCore
+#endif
 
 @MainActor
 @main
@@ -23,32 +26,35 @@ struct PlexVideoApp: App {
   #endif
 
   #if os(macOS)
-  @NSApplicationDelegateAdaptor(AppDelegate.self) 
-  private var appDelegate
+    @NSApplicationDelegateAdaptor(AppDelegate.self)
+    private var appDelegate
   #endif
 
   @Environment(\.scenePhase)
   private var scenePhase
 
-  @State
-  private var dependencyInjector = DependencyInjector()
+  @Environment(\.videosViewModel)
+  private var videosViewModel
 
-  @State
-  private var videosViewModel = VideosViewModel()
+  @Dependency(\.storage)
+  private var storage
 
-  @State
-  private var currentVideoViewModel = CurrentVideoViewModel()
+  @Dependency(\.requestorStorageProviding)
+  private var requestorStorageProviding
+
+  @Environment(\.currentVideoViewModel)
+  private var currentVideoViewModel
+
+  @ObserveInjection
+  private var inject
 
   @ViewBuilder
   private var rootView: some View {
     RootView()
       .tint(PublicColor.plexTint)
       .accentColor(PublicColor.plexTint)
-      .environment(videosViewModel)
-      .environment(currentVideoViewModel)
-      .environmentObject(dependencyInjector)
       .windowInjector()
-
+      .enableInjection()
     //      .environment(\.font, .plex)
   }
 
@@ -100,9 +106,14 @@ extension Font {
 #if os(iOS)
   final class AppDelegate: NSObject, UIApplicationDelegate {
     static var orientationLock = UIInterfaceOrientationMask.all
-    
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-      FirebaseApp.configure()
+
+    func application(
+      _: UIApplication,
+      didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil
+    ) -> Bool {
+      #if canImport(FirebaseCore)
+        FirebaseApp.configure()
+      #endif
       return true
     }
 
@@ -116,9 +127,11 @@ extension Font {
 #endif
 
 #if os(macOS)
-final class AppDelegate: NSObject, NSApplicationDelegate {
-  func applicationDidFinishLaunching(_ notification: Notification) {
-    FirebaseApp.configure()
+  final class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationDidFinishLaunching(_: Notification) {
+      #if canImport(FirebaseCore)
+        FirebaseApp.configure()
+      #endif
+    }
   }
-}
 #endif

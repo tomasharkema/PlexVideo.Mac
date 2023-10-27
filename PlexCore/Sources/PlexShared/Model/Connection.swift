@@ -19,12 +19,6 @@ public struct Connection: Equatable, Sendable, Hashable {
   public let IPv6: Bool
 }
 
-// extension Connection: Identifiable {
-//  public var id: String {
-//    uri.absoluteString
-//  }
-// }
-
 extension Connection: Identifiable {
   public struct ID: RawRepresentable, Codable, Hashable {
     public let rawValue: String

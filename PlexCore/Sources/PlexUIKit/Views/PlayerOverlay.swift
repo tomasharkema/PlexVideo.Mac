@@ -1,6 +1,6 @@
 //
 //  PlayerOverlay.swift
-//  PlexVideo
+//
 //
 //  Created by Tomas Harkema on 07/06/2021.
 //
@@ -11,12 +11,14 @@ import PlexShared
 import SwiftUI
 
 @MainActor
-struct PlayerOverlay: View {
+public struct PlayerOverlay: View {
   //  @Environment(\.font)
   //  private var font
 
-  @Environment(CurrentVideoViewModel.self)
+  @Environment(\.currentVideoViewModel)
   private var viewModel
+
+  public init() {}
 
   @ViewBuilder
   private func videoView() -> some View {
@@ -36,7 +38,7 @@ struct PlayerOverlay: View {
             viewModel.stopPlaying()
           },
           label: {
-            Image(systemName: "xmark")
+            SFSymbol.xmark.image()
               .foregroundColor(.white)
               //            .font(font)
               .padding(10)
@@ -58,7 +60,7 @@ struct PlayerOverlay: View {
     .background(Color.black.opacity(0.6))
   }
 
-  var body: some View {
+  public var body: some View {
     ZStack(alignment: Alignment(horizontal: .trailing, vertical: .bottom)) {
       ZStack(alignment: Alignment(horizontal: .center, vertical: .top)) {
         videoView()

@@ -5,7 +5,7 @@
 //  Created by Tomas Harkema on 20/10/2023.
 //
 
-import Inject
+import Dependencies
 import OSLog
 import PlexShared
 import Processed
@@ -23,7 +23,7 @@ public final class ServerPinger: Sendable, LoadableSupport {
   private let logger = Logger(subsystem: "PlexVideo", category: "ServerPinger")
 
   @ObservationIgnored
-  @Injected(\.serverLocator)
+  @Dependency(\.serverLocator)
   private var serverLocator
 
   public private(set) var state: LoadableState<PingerState> = .absent
@@ -80,14 +80,14 @@ public final class ServerPinger: Sendable, LoadableSupport {
 //  }
 }
 
-public extension InjectedValues {
+public extension DependencyValues {
   var serverPinger: ServerPinger {
-    get { Self[ServerPingerKey.self] }
-    set { Self[ServerPingerKey.self] = newValue }
+    get { self[ServerPingerKey.self] }
+    set { self[ServerPingerKey.self] = newValue }
   }
 }
 
-private struct ServerPingerKey: InjectionKey {
+private struct ServerPingerKey: DependencyKey {
   @MainActor
-  static var currentValue: ServerPinger? = .init()
+  static var liveValue: ServerPinger = .init()
 }

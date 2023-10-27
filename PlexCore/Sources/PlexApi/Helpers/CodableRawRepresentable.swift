@@ -5,7 +5,10 @@
 //  Created by Tomas Harkema on 24/10/2023.
 //
 
-import FirebaseCrashlytics
+#if canImport(FirebaseCrashlytics)
+  public import FirebaseCrashlytics
+#endif
+
 import Foundation
 import OSLog
 
@@ -20,12 +23,15 @@ extension CodableWrapper: RawRepresentable {
 
   public init?(rawValue: RawValue) {
     do {
-      guard let data = rawValue.data(using: .utf8) else {
-        throw NullError()
-      }
-      value = try JSONDecoder().decode(Value.self, from: data)
+//      guard let data = rawValue.data(using: .utf8) else {
+//        throw NullError()
+//      }
+      let data = Data(rawValue.utf8)
+      value = try JSONDecoder.default.decode(Value.self, from: data)
     } catch {
-      Crashlytics.crashlytics().record(error: error)
+      #if canImport(FirebaseCrashlytics)
+        Crashlytics.crashlytics().record(error: error)
+      #endif
       logger.error("CodableWrapper \(String(describing: Self.self)) error: \(error)")
       return nil
     }
@@ -39,7 +45,9 @@ extension CodableWrapper: RawRepresentable {
       }
       return string
     } catch {
-      Crashlytics.crashlytics().record(error: error)
+      #if canImport(FirebaseCrashlytics)
+        Crashlytics.crashlytics().record(error: error)
+      #endif
       logger.error("CodableWrapper \(String(describing: Self.self)) error \(error)")
       return ""
     }

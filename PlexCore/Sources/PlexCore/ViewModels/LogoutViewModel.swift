@@ -5,13 +5,13 @@
 //  Created by Tomas Harkema on 17/10/2023.
 //
 
-import Inject
+import Dependencies
 import SwiftUI
 
 @MainActor @Observable
 public final class LogoutViewModel {
   @ObservationIgnored
-  @Injected(\.storage)
+  @Dependency(\.storage)
   private var storage
 
   public init() {}

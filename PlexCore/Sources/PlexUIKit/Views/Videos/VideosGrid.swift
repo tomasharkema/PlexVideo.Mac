@@ -1,6 +1,6 @@
 //
 //  VideosGrid.swift
-//  PlexVideo
+//
 //
 //  Created by Tomas Harkema on 07/06/2021.
 //
@@ -16,10 +16,10 @@ struct VideosGrid: View {
   //  @Environment(\.font)
   //  private var font
 
-  @Environment(VideosViewModel.self)
+  @Environment(\.videosViewModel)
   private var viewModel
 
-  @Environment(CurrentVideoViewModel.self)
+  @Environment(\.currentVideoViewModel)
   private var currentVideoViewModel
 
   init() {}

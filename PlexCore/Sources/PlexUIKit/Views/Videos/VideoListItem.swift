@@ -1,6 +1,6 @@
 //
 //  VideoListItem.swift
-//  PlexVideo
+//
 //
 //  Created by Tomas Harkema on 06/06/2021.
 //
@@ -8,12 +8,11 @@
 import Foundation
 import PlexCore
 import PlexShared
-import PlexUIKit
 import SwiftUI
 
 @MainActor
 struct VideoListItem: View {
-  @Environment(CurrentVideoViewModel.self)
+  @Environment(\.currentVideoViewModel)
   private var currentVideoViewModel
 
   private let video: VideoFromServer

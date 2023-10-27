@@ -6,8 +6,8 @@
 //
 
 import AuthenticationServices
+import Dependencies
 import Foundation
-import Inject
 import OSLog
 import PlexApi
 import PlexShared
@@ -20,10 +20,10 @@ public final class LoginViewModel: NSObject, ObservableObject, LoadableSupport,
 {
   private var logger = Logger(subsystem: "PlexVideo", category: "LoginViewModel")
 
-  @Injected(\.auth)
+  @Dependency(\.auth)
   private var auth
 
-  @Injected(\.storage)
+  @Dependency(\.storage)
   private var storage
 
   @Published

@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct StoredTask<IdentifierType, ResultType> {
+struct StoredTask<IdentifierType: Sendable, ResultType: Sendable>: Sendable {
   let identifier: IdentifierType
   let task: TaskState<ResultType>
   let storeDate: Date

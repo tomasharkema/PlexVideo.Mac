@@ -5,22 +5,25 @@
 //  Created by Tomas Harkema on 09/06/2021.
 //
 
-import FirebaseCrashlytics
+#if canImport(FirebaseCrashlytics)
+  public import FirebaseCrashlytics
+#endif
+
+import Dependencies
 import Foundation
-import Inject
 import OSLog
 import PlexShared
 
 public final class Requestor: Sendable {
   private let logger = Logger(subsystem: "PlexVideo", category: "Requestor")
 
-  @Injected(\.serverLocator)
+  @Dependency(\.serverLocator)
   private var serverLocator
 
-  @Injected(\.requestorStorageProviding)
-  private var storage: any RequestorStorageProviding
+  @Dependency(\.requestorStorageProviding)
+  private var storage
 
-  @Injected(\.networkManager)
+  @Dependency(\.networkManager)
   private var networkManager
 
   func requestUrl(
@@ -171,38 +174,40 @@ public final class Requestor: Sendable {
 
       throw error
     } catch {
-      Crashlytics.crashlytics().record(error: error)
+      #if canImport(FirebaseCrashlytics)
+        Crashlytics.crashlytics().record(error: error)
+      #endif
       throw error
     }
   }
 }
 
 @MainActor
-public protocol RequestorStorageProviding {
+public protocol RequestorStorageProviding: Sendable {
   func getToken() -> String?
   var uuid: String { get }
 }
 
-public extension InjectedValues {
-  var requestorStorageProviding: any RequestorStorageProviding {
-    get { Self[RequestorStorageProvidingKey.self] }
-    set { Self[RequestorStorageProvidingKey.self] = newValue }
-  }
-}
-
-public struct RequestorStorageProvidingKey: InjectionKey {
-  public static var currentValue: (any RequestorStorageProviding)?
-}
-
-public extension InjectedValues {
+public extension DependencyValues {
   var requestor: Requestor {
-    get { Self[RequestorKey.self] }
-    set { Self[RequestorKey.self] = newValue }
+    get { self[RequestorKey.self] }
+    set { self[RequestorKey.self] = newValue }
   }
 }
 
-private struct RequestorKey: InjectionKey {
-  static var currentValue: Requestor? = .init()
+private struct RequestorKey: DependencyKey {
+  static var liveValue: Requestor = .init()
+}
+
+public extension DependencyValues {
+  var requestorStorageProviding: any RequestorStorageProviding {
+    get { self[RequestorStorageProvidingKey.self] }
+    set { self[RequestorStorageProvidingKey.self] = newValue }
+  }
+}
+
+public struct RequestorStorageProvidingKey: TestDependencyKey {
+  public static var testValue: (any RequestorStorageProviding) = unimplemented()
 }
 
 // swiftlint:disable:next line_length

@@ -6,11 +6,9 @@
 //
 
 import Foundation
-import InitMacro
 import MetaCodable
 import RawJson
 
-@Init(public: true)
 @Codable
 public struct Media: Equatable, Sendable, Selecting {
   public let id: NumberLike

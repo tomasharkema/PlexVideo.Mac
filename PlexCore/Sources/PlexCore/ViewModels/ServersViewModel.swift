@@ -5,13 +5,15 @@
 //  Created by Tomas Harkema on 23/10/2023.
 //
 
+import Dependencies
 import Foundation
-import Inject
 import Observation
 import OSLog
 import PlexApi
 import PlexShared
 import Processed
+import SwiftUI
+import SwiftUIMacros
 
 public struct KeyValue: Hashable, Identifiable {
   public let key: String
@@ -22,35 +24,48 @@ public struct KeyValue: Hashable, Identifiable {
   }
 }
 
+@EnvironmentStorage
+public extension EnvironmentValues {
+  var serversViewModel: ServersViewModel = .init()
+}
+
 @MainActor
 @Observable
 public final class ServersViewModel: LoadableSupport {
   private let logger = Logger(subsystem: "PlexVideo", category: "ServersViewModel")
 
   @ObservationIgnored
-  @Injected(\.api)
+  @Dependency(\.api)
   private var api
 
-//  @ObservationIgnored
-//  @Injected(\.videosDataSource)
-  private var videosDataSource = InjectedValues.get(\.videosDataSource)
+  @ObservationIgnored
+  @Dependency(\.videosDataSource)
+  private var videosDataSource // = InjectedValues.get(\.videosDataSource)
 
-//  @ObservationIgnored
-//  @Injected(\.serverPinger)
-  private var pinger = InjectedValues.get(\.serverPinger)
+  @ObservationIgnored
+  @Dependency(\.serverPinger)
+  private var pinger // = InjectedValues.get(\.serverPinger)
 
-  private var serverLocator: ServerLocator = InjectedValues.get(\.serverLocator)
+  @ObservationIgnored
+  @Dependency(\.serverLocator)
+  private var serverLocator: ServerLocator // = InjectedValues.get(\.serverLocator)
 
   public private(set) var keyValueInfo = [Server.ID: [KeyValue]]()
-
   public private(set) var rawResults = [Server.ID: (String, String)]()
-
   public private(set) var sessions: LoadableState<[Server.ID: [SessionVideo]]> = .absent
-
   public private(set) var servers = [ServerAndPings]()
 
-  public init() {
-    observe()
+  public nonisolated init() {
+//    serverLocator = withDependencies {
+//      $0.serverLocatorStorageProviding = StorageKey.liveValue
+//      $0.authStorageProviding = StorageKey.liveValue
+//      $0.requestorStorageProviding = StorageKey.liveValue
+//    } operation: {
+//      ServerLocator()
+//    }
+    Task {
+      await observe()
+    }
   }
 
   public var pingerDate: Date? {

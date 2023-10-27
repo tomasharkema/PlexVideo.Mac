@@ -6,8 +6,8 @@
 //
 
 import Combine
+import Dependencies
 import Foundation
-import Inject
 import OSLog
 import PlexApi
 import PlexShared
@@ -27,15 +27,15 @@ public final class ThumbViewModel: LoadableSupport {
   private let imageStore = ImageStore.shared
 
   @ObservationIgnored
-  @Injected(\.api)
+  @Dependency(\.api)
   private var api
 
   @ObservationIgnored
-  @Injected(\.serverLocator)
+  @Dependency(\.serverLocator)
   private var serverLocator
 
   @ObservationIgnored
-  @Injected(\.storage)
+  @Dependency(\.storage)
   private var storage
 
   private let video: VideoFromServer

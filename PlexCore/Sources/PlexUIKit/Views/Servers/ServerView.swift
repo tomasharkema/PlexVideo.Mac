@@ -12,7 +12,7 @@ import SwiftUI
 
 @MainActor
 struct ServerView: View {
-  @Environment(ServersViewModel.self)
+  @Environment(\.serversViewModel)
   private var viewModel: ServersViewModel
 
   private let server: ServerAndPings
@@ -30,12 +30,8 @@ struct ServerView: View {
           .font(.title)
           .bold()
 
-        if server.server.home {
-          Image(systemName: "house")
-        }
-
-        if server.server.publicAddressMatches {
-          Image(systemName: "house")
+        if server.server.publicAddressMatches || server.server.home {
+          SFSymbol.house.image()
         }
 
         if server.server.owned {

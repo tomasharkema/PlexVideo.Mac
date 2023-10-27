@@ -1,0 +1,24 @@
+{
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "sourceLanguages": ["swift"],
+      "args": [],
+      "cwd": "${workspaceFolder:PlexCore}",
+      "name": "Debug Tester",
+      "program": "${workspaceFolder:PlexCore}/.build/debug/Tester",
+      "preLaunchTask": "swift: Build Debug Tester"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "sourceLanguages": ["swift"],
+      "args": [],
+      "cwd": "${workspaceFolder:PlexCore}",
+      "name": "Release Tester",
+      "program": "${workspaceFolder:PlexCore}/.build/release/Tester",
+      "preLaunchTask": "swift: Build Release Tester"
+    }
+  ]
+}

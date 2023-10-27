@@ -5,8 +5,8 @@
 //  Created by Tomas Harkema on 16/10/2023.
 //
 
+import Dependencies
 import Foundation
-import Inject
 import OSLog
 import PlexApi
 import PlexShared
@@ -81,15 +81,27 @@ public final class Storage: ObservableObject, ServerLocatorStorageProviding,
   }
 }
 
-public extension InjectedValues {
+public extension DependencyValues {
   var storage: Storage {
-    get { Self[StorageKey.self] }
-    set { Self[StorageKey.self] = newValue }
+    get { self[StorageKey.self] }
+    set { self[StorageKey.self] = newValue }
   }
 }
 
-private struct StorageKey: InjectionKey {
-  static var currentValue: Storage? = .init()
+public struct StorageKey: DependencyKey {
+  public static let liveValue: Storage = .init()
+}
+
+extension ServerLocatorStorageProvidingKey: DependencyKey {
+  public static let liveValue: (any ServerLocatorStorageProviding) = StorageKey.liveValue
+}
+
+extension AuthStorageProvidingKey: DependencyKey {
+  public static let liveValue: (any AuthStorageProviding) = StorageKey.liveValue
+}
+
+extension RequestorStorageProvidingKey: DependencyKey {
+  public static let liveValue: (any RequestorStorageProviding) = StorageKey.liveValue
 }
 
 // extension ServerWithCurrentConnection: RawRepresentable {

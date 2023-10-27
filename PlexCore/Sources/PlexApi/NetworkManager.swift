@@ -6,8 +6,8 @@
 //
 
 import Asynchrone
+import Dependencies
 import Foundation
-import Inject
 import OSLog
 
 public final class NetworkManager: NSObject, Sendable {
@@ -91,13 +91,13 @@ class NetworkManagerDelegate: NSObject, URLSessionDataDelegate {
   }
 }
 
-public extension InjectedValues {
+public extension DependencyValues {
   var networkManager: NetworkManager {
-    get { Self[NetworkManagerKey.self] }
-    set { Self[NetworkManagerKey.self] = newValue }
+    get { self[NetworkManagerKey.self] }
+    set { self[NetworkManagerKey.self] = newValue }
   }
 }
 
-public struct NetworkManagerKey: InjectionKey {
-  public static var currentValue: NetworkManager? = .init()
+public struct NetworkManagerKey: DependencyKey {
+  public static var liveValue: NetworkManager = .init()
 }

@@ -10,9 +10,9 @@ import PlexCore
 import PlexShared
 import SwiftUI
 
-@MainActor
+// @MainActor
 public struct ServersScreen: View {
-  @Environment(ServersViewModel.self)
+  @Environment(\.serversViewModel)
   private var viewModel
 
   public init() {}

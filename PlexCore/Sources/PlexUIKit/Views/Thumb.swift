@@ -1,11 +1,11 @@
 //
 //  Thumb.swift
-//  PlexVideo
+//
 //
 //  Created by Tomas Harkema on 07/06/2021.
 //
 
-import Inject
+import Dependencies
 import PlexApi
 import PlexCore
 import PlexShared

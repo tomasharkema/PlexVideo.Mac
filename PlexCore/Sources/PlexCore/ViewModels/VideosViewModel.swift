@@ -5,36 +5,43 @@
 //  Created by Tomas Harkema on 07/06/2021.
 //
 
+import Dependencies
 import Foundation
-import Inject
 import OSLog
 import PlexApi
 import PlexShared
 import Processed
+import SwiftUI
+import SwiftUIMacros
+
+@EnvironmentStorage
+public extension EnvironmentValues {
+  var videosViewModel = VideosViewModel()
+}
 
 @MainActor @Observable
 public final class VideosViewModel: LoadableSupport {
   private let logger = Logger(subsystem: "PlexVideo", category: "VideosViewModel")
 
   @ObservationIgnored
-  @Injected(\.videoDataService)
+  @Dependency(\.videoDataService)
   private var service
 
-//  @ObservationIgnored
-//  @Injected(\.videosDataSource)
-  private var videosDataSource = InjectedValues.get(\.videosDataSource)
+  @ObservationIgnored
+  @Dependency(\.videosDataSource)
+  private var videosDataSource // = InjectedValues.get(\.videosDataSource)
 
   @ObservationIgnored
-  @Injected(\.storage)
+  @Dependency(\.storage)
   private var storage
 
   @ObservationIgnored
-  @Injected(\.api)
+  @Dependency(\.api)
   private var api
 
   public private(set) var searchResults: LoadableState<[VideoFromServer]> = .absent
 
-  public init() {}
+  public nonisolated init() {}
 
   public var data: LoadableState<VideosDataSource.Data> {
     videosDataSource.data

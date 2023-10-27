@@ -1,6 +1,6 @@
 //
 //  BackupVideoPlayer.swift
-//  PlexVideo
+//
 //
 //  Created by Tomas Harkema on 17/10/2023.
 //
@@ -14,7 +14,7 @@
 
   @MainActor
   struct BackupVideoPlayer: View {
-    @Environment(CurrentVideoViewModel.self)
+    @Environment(\.currentVideoViewModel)
     private var viewModel
 
     var body: some View {

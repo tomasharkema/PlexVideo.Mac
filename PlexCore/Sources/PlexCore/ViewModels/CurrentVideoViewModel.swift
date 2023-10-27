@@ -7,13 +7,19 @@
 
 import AVKit
 import Combine
+import Dependencies
 import Foundation
-import Inject
 import OSLog
 import PlexApi
 import PlexShared
 import Processed
 import SwiftUI
+import SwiftUIMacros
+
+@EnvironmentStorage
+public extension EnvironmentValues {
+  var currentVideoViewModel: CurrentVideoViewModel = .init()
+}
 
 @MainActor
 @Observable
@@ -21,15 +27,15 @@ public final class CurrentVideoViewModel: LoadableSupport {
   private let logger = Logger(subsystem: "PlexVideo", category: "CurrentVideoViewModel")
 
   @ObservationIgnored
-  @Injected(\.storage)
+  @Dependency(\.storage)
   private var storage
 
   @ObservationIgnored
-  @Injected(\.api)
+  @Dependency(\.api)
   private var api
 
   @ObservationIgnored
-  @Injected(\.videosDataSource)
+  @Dependency(\.videosDataSource)
   private var videosDataSource
 
   @ObservationIgnored
@@ -71,7 +77,7 @@ public final class CurrentVideoViewModel: LoadableSupport {
     }
   }
 
-  public init() {}
+  public nonisolated init() {}
 
   private func onceReadyToPlay(time: Double) {
     guard let player = player.data else {

@@ -5,12 +5,16 @@
 //  Created by Tomas Harkema on 24/10/2023.
 //
 
+import Inject
 import PlexApi
 import PlexCore
 import PlexShared
 import SwiftUI
 
 struct NowPlayingView: View {
+  @ObserveInjection
+  private var inject
+
   @Environment(\.hostingWindowSize)
   private var hostingWindowSize
 
@@ -84,7 +88,7 @@ struct NowPlayingView: View {
 
         VStack(alignment: .leading, spacing: 5) {
           Text("\(session.videoSourceString)")
-          Text("\(Image(systemName: "arrow.turn.down.right")) \(session.videoString)")
+          Text("\(SFSymbol.arrowTurnDownRight.image()) \(session.videoString)")
         }
       }
       GridRow {
@@ -177,8 +181,9 @@ struct NowPlayingView: View {
           .background(Color(.black).opacity(0.4))
       }
     }
-    .background(Color(.plexTint).opacity(0.3))
+    .background(PublicColor.plexTint.opacity(0.3))
     .cornerRadius(10)
+    .enableInjection()
   }
 }
 

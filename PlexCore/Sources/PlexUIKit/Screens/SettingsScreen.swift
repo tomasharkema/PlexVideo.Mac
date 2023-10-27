@@ -1,13 +1,13 @@
 //
 //  SettingsScreen.swift
-//  PlexVideo
+//
 //
 //  Created by Tomas Harkema on 19/10/2023.
 //
 
 import SwiftUI
 
-@MainActor
+// @MainActor
 public struct SettingsScreen: View {
   @State
   private var logoutMenuShowing = false

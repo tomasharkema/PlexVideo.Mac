@@ -5,21 +5,24 @@
 //  Created by Tomas Harkema on 19/10/2023.
 //
 
-import Inject
+import Dependencies
 import PlexApi
 import PlexCore
 import PlexShared
 import PlexUIKit
 import SwiftUI
-import SwiftUIIntrospect
+#if canImport(SwiftUIIntrospect)
+  import SwiftUIIntrospect
+#endif
+import PlexUIKit
 
 @MainActor
 struct MainView: View {
-  @Environment(VideosViewModel.self)
+  @Environment(\.videosViewModel)
   private var viewModel
 
-  @InjectedObserving(\.serverLocator)
-  private var serverLocator: ServerLocator
+  @Dependency(\.serverLocator)
+  private var serverLocator
 
   @State
   private var menuSelection: NavigationItem? = NavigationItem.home
@@ -69,7 +72,7 @@ struct MainView: View {
         }
       }
       .navigationSplitViewStyle(.balanced)
-      #if os(macOS)
+      #if os(macOS) && canImport(SwiftUIIntrospect)
         .introspect(.navigationSplitView, on: .macOS(.v14, .v13)) { controller in
           guard let splitViewController = (controller.delegate as? NSSplitViewController) else {
             return
@@ -114,18 +117,4 @@ struct MainView: View {
 //  MainView()
 //    .environment(VideosViewModel())
 //    .environment(CurrentVideoViewModel())
-// }
-
-// extension View {
-//  public func introspectSplitView(customize: @escaping (NSSplitView) -> ()) -> some View {
-//    return inject(AppKitIntrospectionView(
-//      selector: { introspectionView in
-//        guard let viewHost = Introspect.findViewHost(from: introspectionView) else {
-//          return nil
-//        }
-//        return Introspect.findAncestorOrAncestorChild(ofType: NSSplitView.self, from: viewHost)
-//      },
-//      customize: customize
-//    ))
-//  }
 // }

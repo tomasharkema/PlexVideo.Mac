@@ -6,10 +6,9 @@
 //
 
 import Foundation
-import InitMacro
 import MetaCodable
 
-@Init(public: true) @Codable
+@Codable
 public struct Video: Equatable, Sendable {
   public let key: VideoKey
   public let guid: String?

@@ -9,7 +9,7 @@ import Foundation
 import PlexShared
 
 public struct NullError: Error {
-  public init() { }
+  public init() {}
 }
 
 #if DEBUG

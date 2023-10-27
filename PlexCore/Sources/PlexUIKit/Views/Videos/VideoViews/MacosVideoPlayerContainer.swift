@@ -1,6 +1,6 @@
 //
 //  MacosVideoPlayerContainer.swift
-//  PlexVideo
+//
 //
 //  Created by Tomas Harkema on 18/10/2023.
 //
@@ -13,11 +13,11 @@
   import SwiftUI
 
   @MainActor
-  struct MacosVideoPlayerContainer: View {
-    @Environment(CurrentVideoViewModel.self)
+  public struct MacosVideoPlayerContainer: View {
+    @Environment(\.currentVideoViewModel)
     private var viewModel
 
-    var body: some View {
+    public var body: some View {
       if let player = viewModel.player.data {
         MacosVideoPlayer(player: player)
       } else {
@@ -27,7 +27,7 @@
   }
 
   private struct MacosVideoPlayer: NSViewRepresentable {
-    @Environment(CurrentVideoViewModel.self)
+    @Environment(\.currentVideoViewModel)
     private var viewModel
 
     private var player: AVPlayer
