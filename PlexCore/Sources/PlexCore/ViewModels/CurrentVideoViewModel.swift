@@ -14,10 +14,10 @@ import PlexApi
 import PlexShared
 import Processed
 import SwiftUI
-import SwiftUIMacros
+//import SwiftUIMacros
 
-@EnvironmentValues
 public extension EnvironmentValues {
+  @Entry
   var currentVideoViewModel: CurrentVideoViewModel = .init()
 }
 
@@ -73,6 +73,8 @@ public final class CurrentVideoViewModel: LoadableSupport {
 
       case .unknown:
         logger.info("playerStatus unknown")
+      @unknown default:
+        fatalError()
       }
     }
   }

@@ -18,7 +18,6 @@
 		C391F3CF2ADE03C3000452B5 /* PreviewData.swift in Sources */ = {isa = PBXBuildFile; fileRef = C391F3CE2ADE03C3000452B5 /* PreviewData.swift */; };
 		C3A706622F86785400098104 /* PlexCore in Frameworks */ = {isa = PBXBuildFile; productRef = C3A706612F86785400098104 /* PlexCore */; };
 		C3A706642F86785800098104 /* PlexUIKit in Frameworks */ = {isa = PBXBuildFile; productRef = C3A706632F86785800098104 /* PlexUIKit */; };
-		C3FB90D92AE858E100167891 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C3FB90D82AE858E100167891 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -48,7 +47,7 @@
 		C36279EE265FE5DC00DEF2B6 /* Login.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Login.swift; path = PlexVideo/Login.swift; sourceTree = SOURCE_ROOT; };
 		C378F6BE2AE1C8D9000B980F /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		C391F3CE2ADE03C3000452B5 /* PreviewData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewData.swift; sourceTree = "<group>"; };
-		C3FB90D82AE858E100167891 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		C3C73E942F8705C9001B9197 /* libswiftDemangle.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftDemangle.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.4.sdk/usr/lib/swift/libswiftDemangle.tbd; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -136,7 +135,6 @@
 				C36279DC265FE44400DEF2B6 /* PlexVideoApp.swift */,
 				C36279DE265FE44400DEF2B6 /* RootView.swift */,
 				C378F6BE2AE1C8D9000B980F /* MainView.swift */,
-				C3FB90D82AE858E100167891 /* GoogleService-Info.plist */,
 			);
 			path = PlexVideo;
 			sourceTree = "<group>";
@@ -144,6 +142,7 @@
 		C3CCF76F273D378700C3CF46 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				C3C73E942F8705C9001B9197 /* libswiftDemangle.tbd */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -214,7 +213,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				C36279E1265FE44500DEF2B6 /* Assets.xcassets in Resources */,
-				C3FB90D92AE858E100167891 /* GoogleService-Info.plist in Resources */,
 				C33F74182AE49ED600F46659 /* Colors.xcassets in Resources */,
 				C33F74132AE498D000F46659 /* PlexeinaRegular.ttf in Resources */,
 				C33F74142AE498D000F46659 /* PlexeinaBold.ttf in Resources */,
@@ -439,6 +437,7 @@
 				CLANG_TIDY_BUGPRONE_REDUNDANT_BRANCH_CONDITION = YES;
 				CLANG_TIDY_MISC_REDUNDANT_EXPRESSION = YES;
 				CODE_SIGN_ENTITLEMENTS = PlexVideo/PlexVideo.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 101;
 				DEAD_CODE_STRIPPING = YES;

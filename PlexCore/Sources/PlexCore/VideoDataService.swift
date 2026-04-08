@@ -15,7 +15,7 @@ struct ListResult {
   var progress: [(VideoFromServer.ID, PlexShared.Progress)]
 }
 
-public final class VideoDataService: Sendable {
+public final class VideoDataService: @unchecked Sendable {
   @Dependency(\.api)
   private var api
 
@@ -210,5 +210,5 @@ public extension DependencyValues {
 }
 
 private struct VideoDataServiceKey: DependencyKey {
-  static var liveValue: VideoDataService = .init()
+  static let liveValue: VideoDataService = .init()
 }

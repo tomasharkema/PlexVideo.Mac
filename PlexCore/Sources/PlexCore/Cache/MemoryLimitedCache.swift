@@ -24,8 +24,9 @@ extension Measurement where UnitType: Dimension {
 }
 
 // Cache that tries to stay under a fixed memory limit.
-final class MemoryLimitedCache: Cache, Sendable {
+final class MemoryLimitedCache: Cache, @unchecked Sendable {
   let memoryLimit: Measurement<UnitInformationStorage>
+
   private(set) var currentMemoryUsage = Measurement<UnitInformationStorage>.zero
 
   // private let accessLock = UnfairLock()
@@ -137,34 +138,36 @@ final class MemoryLimitedCache: Cache, Sendable {
     )
     defer { signposter.endInterval("Purge", interval, "newCount=\(self.assets.count)") }
 
-    guard var amountToGo = amount, amountToGo < currentMemoryUsag else {
-      assets.withValue { assets in
-        assets.removeAll()
-      }
-      currentMemoryUsage = .zero
-      return
-    }
+    fatalError("TODO: NOOP!")
 
-    // Delete non-protected IDs first and then go through the others.
-    let weightedKeys = assets.keys
-      .map {
-        ($0, self.protectedAssetIDs[$0, default: 0])
-      }
-      .sorted(by: { $0.1 < $1.1 })
-      .map(\.0)
+    // guard var amountToGo = amount, amountToGo < currentMemoryUsage else {
+    //   assets.withValue { assets in
+    //     assets.removeAll()
+    //   }
+    //   currentMemoryUsage = .zero
+    //   return
+    // }
 
-    for id in weightedKeys {
-      guard amountToGo > .zero else { break }
-      assets.withValue { assets in
-        let asset = assets.removeValue(forKey: id)!
+    // // Delete non-protected IDs first and then go through the others.
+    // let weightedKeys = assets.keys
+    //   .map {
+    //     ($0, self.protectedAssetIDs[$0, default: 0])
+    //   }
+    //   .sorted(by: { $0.1 < $1.1 })
+    //   .map(\.0)
 
-        let estimatedMemory = estimatedMemory(of: asset)
-        logger.trace("Removed \(id) saving \(estimatedMemory)")
+    // for id in weightedKeys {
+    //   guard amountToGo > .zero else { break }
+    //   assets.withValue { assets in
+    //     let asset = assets.removeValue(forKey: id)!
 
-        amountToGo = amountToGo - estimatedMemory
-        currentMemoryUsage = currentMemoryUsage - estimatedMemory
-      }
-    }
+    //     let estimatedMemory = estimatedMemory(of: asset)
+    //     logger.trace("Removed \(id) saving \(estimatedMemory)")
+
+    //     amountToGo = amountToGo - estimatedMemory
+    //     currentMemoryUsage = currentMemoryUsage - estimatedMemory
+    //   }
+    // }
   }
 }
 

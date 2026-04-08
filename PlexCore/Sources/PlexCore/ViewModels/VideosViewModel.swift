@@ -12,15 +12,15 @@ import PlexApi
 import PlexShared
 import Processed
 import SwiftUI
-import SwiftUIMacros
+//import SwiftUIMacros
 
-@EnvironmentStorage
 public extension EnvironmentValues {
+  @Entry
   var videosViewModel = VideosViewModel()
 }
 
-@MainActor @Observable
-public final class VideosViewModel: LoadableSupport {
+@Observable
+public final class VideosViewModel: @unchecked Sendable, LoadableSupport {
   private let logger = Logger(subsystem: "PlexVideo", category: "VideosViewModel")
 
   @ObservationIgnored
@@ -41,8 +41,9 @@ public final class VideosViewModel: LoadableSupport {
 
   public private(set) var searchResults: LoadableState<[VideoFromServer]> = .absent
 
-  public nonisolated init() {}
+  public init() {}
 
+  @MainActor
   public var data: LoadableState<VideosDataSource.Data> {
     videosDataSource.data
   }
@@ -55,7 +56,8 @@ public final class VideosViewModel: LoadableSupport {
     await videosDataSource.load(silently: silently, reload: reload)
   }
 
-  public nonisolated func searchText(_ searchText: String) async {
+  @MainActor
+  public func searchText(_ searchText: String) async {
     let query = searchText.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
 
     guard !query.isEmpty else {
@@ -88,8 +90,8 @@ public final class VideosViewModel: LoadableSupport {
   //  }
 
   public func resetLastPlayed() {
-    Task(priority: .background) {
-      try await self.storage.setLastPlayed(lastPlayed: nil)
+    Task(priority: .background) { [weak storage] in
+      try await storage?.setLastPlayed(lastPlayed: nil)
     }
   }
 }

@@ -35,7 +35,7 @@ public final class ServerLocatorState {
 public struct ServerLocator: Sendable {
   private let logger = Logger(subsystem: "PlexVideo", category: "ServerLocator")
 
-  private let state = ServerLocatorState()
+  public let state = ServerLocatorState()
 
   //  private let resources = ResourcesService()
 

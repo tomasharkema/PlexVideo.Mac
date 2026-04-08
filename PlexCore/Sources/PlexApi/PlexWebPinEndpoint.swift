@@ -12,7 +12,7 @@ import PlexShared
 
 @API
 @JSON(decoder: .default)
-package protocol PlexWebPinEndpoint {
+public protocol PlexWebPinEndpoint {
   @GET("/pins/:pin")
   func pins(pin: Path<String>) async throws -> PinToken
 }
@@ -24,7 +24,7 @@ extension DependencyValues {
   }
 }
 
-package protocol PlexWebPinEndpointProviderProtocol: Sendable {
+public protocol PlexWebPinEndpointProviderProtocol: Sendable {
   func provider() async -> PlexWebPinEndpointAPI
 }
 
@@ -32,12 +32,10 @@ struct TestPlexWebPinEndpointProviderProtocol: PlexWebPinEndpointProviderProtoco
   func provider() async -> PlexWebPinEndpointAPI { fatalError() }
 }
 
-struct PlexWebPinEndpointAPIKey: TestDependencyKey {
-  static let testValue: any PlexWebPinEndpointProviderProtocol =
-    TestPlexWebPinEndpointProviderProtocol()
+public struct PlexWebPinEndpointAPIKey {
 }
 
-extension PlexWebPinEndpointAPIKey: DependencyKey {
-  package static let liveValue: any PlexWebPinEndpointProviderProtocol =
-    PlexWebPinEndpointProvider()
+extension PlexWebPinEndpointAPIKey: TestDependencyKey {
+  public static let testValue: any PlexWebPinEndpointProviderProtocol =
+    TestPlexWebPinEndpointProviderProtocol()
 }

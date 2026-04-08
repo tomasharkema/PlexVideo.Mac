@@ -38,5 +38,6 @@ final class TestPlexWebEndpointProvider: PlexWebEndpointProviderProtocol {
 }
 
 package struct PlexWebEndpointAPIKey: TestDependencyKey {
-  package static let testValue: any PlexWebEndpointProviderProtocol = TestPlexWebEndpointProvider()
+  package static let testValue: any PlexWebEndpointProviderProtocol =
+    TestPlexWebEndpointProvider()
 }

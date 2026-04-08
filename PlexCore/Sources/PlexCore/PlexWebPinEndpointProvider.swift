@@ -57,3 +57,8 @@ package struct PlexWebPinEndpointProvider: PlexWebPinEndpointProviderProtocol {
     return PlexWebPinEndpointAPI(provider: provider)
   }
 }
+
+extension PlexWebPinEndpointAPIKey: DependencyKey {
+  public static let liveValue: any PlexWebPinEndpointProviderProtocol =
+    PlexWebPinEndpointProvider()
+}

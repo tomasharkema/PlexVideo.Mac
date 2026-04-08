@@ -7,7 +7,7 @@
 
 import Combine
 import SwiftUI
-import SwiftUIMacros
+//import SwiftUIMacros
 
 #if canImport(UIKit)
 public typealias Window = UIWindow
@@ -39,9 +39,12 @@ public class WeakAccessor<ValueType: AnyObject & Equatable>: Equatable {
 //  public static let defaultValue: Self.Value = .zero
 // }
 
-@EnvironmentStorage
+
 extension EnvironmentValues {
+  @Entry
   var hostingWindow: WeakAccessor<Window>?
+
+  @Entry
   var hostingWindowSize: CGSize = .zero
 }
 

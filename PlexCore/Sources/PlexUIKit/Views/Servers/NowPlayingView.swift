@@ -5,7 +5,7 @@
 //  Created by Tomas Harkema on 24/10/2023.
 //
 
-import Inject
+//import Inject
 import PlexApi
 import PlexCore
 import PlexShared
@@ -88,7 +88,9 @@ struct NowPlayingView: View {
 
         VStack(alignment: .leading, spacing: 5) {
           Text("\(session.videoSourceString)")
-          Text("\(SFSymbol.arrowTurnDownRight.image()) \(session.videoString)")
+//          Text("\(SFSymbol.arrowTurnDownRight.image()) \(session.videoString)")
+
+          Text("> \(session.videoString)")
         }
       }
       GridRow {

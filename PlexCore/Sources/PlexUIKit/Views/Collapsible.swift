@@ -31,7 +31,8 @@ public struct Collapsible<TitleViewType: View, ContentViewType: View>: View {
       HStack {
         title()
         Spacer()
-        Text("\(SFSymbol.chevronDown.image())")
+        Text("v")
+//        Text("\(SFSymbol.chevronDown.image())")
           .font(.title2)
           .rotationEffect(.degrees(collapsed ? -90 : 0))
       }.onTapGesture {

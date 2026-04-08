@@ -13,7 +13,7 @@ let swiftUiPlugins: [Target.PluginUsage] = [
 
 let package = Package(
   name: "PlexCore",
-  platforms: [.iOS(.v26), .macOS(.v26)],
+  platforms: [.iOS(.v26), .macOS(.v26), .macCatalyst(.v26)],
   products: [
     .library(
       name: "PlexCore",
@@ -28,11 +28,10 @@ let package = Package(
     //    .package(url: "https://github.com/shibapm/PackageConfig.git", from: "1.1.3"),
 
     .package(url: "https://github.com/tomasharkema/swift-rawjson", from: "0.0.27"),
-    .package(url: "https://github.com/tomasharkema/swift-tracing", from: "0.0.41"),
+    .package(url: "https://github.com/tomasharkema/swift-tracing", from: "0.0.43"),
     // .package(url: "https://github.com/tomasharkema/StringBuilder", branch: "main"),
     // .package(url: "https://github.com/IanKeen/MacroKit", branch: "main"),
     //    .package(url: "https://github.com/zijievv/sf-symbols-generator", from: "1.0.0"),
-    .package(url: "https://github.com/tomasharkema/SwiftUI-Macros", branch: "main"),
     //    .package(url: "https://github.com/ShenghaiWang/SwiftMacros", from: "2.0.1"),
     .package(url: "https://github.com/SwiftedMind/Processed", from: "1.0.0"),
     .package(url: "https://github.com/SwiftyLab/MetaCodable", from: "1.6.0"),
@@ -43,6 +42,7 @@ let package = Package(
     .package(url: "https://github.com/pointfreeco/swift-concurrency-extras", from: "1.0.1"),
     .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.12.0"),
     .package(url: "https://github.com/pointfreeco/swift-nonempty", branch: "main"),
+    .package(url: "https://github.com/krzysztofzablocki/Inject", from: "1.5.2"),
 
   ] + swiftUiDependencies,
   targets: [
@@ -82,7 +82,6 @@ let package = Package(
         "PlexApi",
         "PlexShared",
         // "Processed",
-        .product(name: "SwiftUIMacros", package: "SwiftUI-Macros"),
         .product(
           name: "SwiftUIIntrospect",
           package: "swiftui-introspect",
@@ -98,10 +97,10 @@ let package = Package(
     .target(
       name: "PlexUIKit",
       dependencies: [
+        "Inject",
         "PlexShared",
         "PlexApi",
         "PlexCore",
-        .product(name: "SwiftUIMacros", package: "SwiftUI-Macros"),
         //        .product(name: "SFSymbolsGenerator", package: "sf-symbols-generator"),
       ],
       resources: [

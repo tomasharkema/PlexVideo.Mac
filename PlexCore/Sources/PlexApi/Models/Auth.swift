@@ -29,6 +29,8 @@ public struct Auth: Sendable {
   @Dependency(\.plexWebPinEndpoint)
   private var plexWebPinEndpoint
 
+  public init() {}
+
   @MainActor
   public func pollForPin(
     deviceInfo: DeviceInfo,

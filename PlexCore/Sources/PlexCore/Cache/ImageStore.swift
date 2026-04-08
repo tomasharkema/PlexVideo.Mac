@@ -71,8 +71,7 @@ struct ImageStore: Sendable {
     }
   }
 
-  @RequestCacheActor
-  private var requestsCache: [Asset.ID: Task<(asset: Asset, remote: Bool), any Error>] = [:]
+  private var requestsCache = LockIsolated([Asset.ID: Task<(asset: Asset, remote: Bool), any Error>]())
 
   private func prepareAssetIfNeeded(
     id: Asset.ID,
@@ -92,13 +91,10 @@ struct ImageStore: Sendable {
       }
     }
 
-    Task(priority: .low) { @RequestCacheActor in
-      requestsCache[id] = task
-    }
+    requestsCache.withValue { $0[id] = task }
+
     defer {
-      Task(priority: .low) { @RequestCacheActor in
-        requestsCache.removeValue(forKey: id)
-      }
+      requestsCache.withValue { $0.removeValue(forKey: id) }
     }
 
     return try await task.value
@@ -183,7 +179,7 @@ extension Video {
   }
 }
 
-@globalActor
-public actor RequestCacheActor {
-  public static let shared = RequestCacheActor()
-}
+//@globalActor
+//public actor RequestCacheActor {
+//  public static let shared = RequestCacheActor()
+//}

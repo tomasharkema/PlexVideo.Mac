@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct NavigationItem: Equatable, Hashable, Identifiable, Codable {
+public struct NavigationItem: Equatable, Hashable, Identifiable, Codable, Sendable {
   public let name: String
   public let image: String
 

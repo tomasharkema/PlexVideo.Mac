@@ -38,7 +38,7 @@ public struct ConnectionOverlay: View {
       .padding(5)
       .background(connection.local == true ? Color.green : PublicColor.plexTint)
       .cornerRadius(10)
-      .task(id: serverLocator.connection) {
+      .task(id: serverLocator.state.connection) {
         do {
           showOverlay[server.server.id] = true
           try await Task.sleep(for: .seconds(5))
@@ -57,14 +57,14 @@ public struct ConnectionOverlay: View {
   public var body: some View {
     HStack {
       VStack {
-        ForEach(Array(serverLocator.connection.values)) { server in
+        ForEach(Array(serverLocator.state.connection.values)) { server in
           connectionOverlay(server: server)
         }
       }
     }
     .offset(y: overlayShouldShow ? 10 : -100)
     .opacity(overlayShouldShow ? 1 : 0)
-    .animation(.easeInOut, value: serverLocator.connection)
+    .animation(.easeInOut, value: serverLocator.state.connection)
     .animation(.easeInOut, value: showOverlay)
   }
 }

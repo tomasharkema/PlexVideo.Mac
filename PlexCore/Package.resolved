@@ -1,5 +1,5 @@
 {
-  "originHash" : "fb262b07b34dd7f56029a905850360fb277eee6ff030c017d3fc91bcef005b9a",
+  "originHash" : "388f1a01c781aa2eef85393e4a7ddb9f46f0ec1dc8c2182c15b58ffcdcabb9e2",
   "pins" : [
     {
       "identity" : "asynchrone",
@@ -17,6 +17,15 @@
       "state" : {
         "revision" : "fd16d76fd8b9a976d88bfb6cacc05ca8d19c91b6",
         "version" : "1.1.0"
+      }
+    },
+    {
+      "identity" : "inject",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/krzysztofzablocki/Inject",
+      "state" : {
+        "revision" : "728c56639ecb3df441d51d5bc6747329afabcfc9",
+        "version" : "1.5.2"
       }
     },
     {
@@ -150,26 +159,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tomasharkema/swift-tracing",
       "state" : {
-        "revision" : "1420aa6bc8916ed5bac8125742b839f8abd20beb",
-        "version" : "0.0.41"
-      }
-    },
-    {
-      "identity" : "swiftdemangle",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/oozoofrog/SwiftDemangle",
-      "state" : {
-        "revision" : "41ad01ac001f2ee57545b0de4f2e6c4a3ea5f400",
-        "version" : "6.2.3"
-      }
-    },
-    {
-      "identity" : "swiftlintplugins",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/SimplyDanny/SwiftLintPlugins",
-      "state" : {
-        "revision" : "8a4640d14777685ba8f14e832373160498fbab92",
-        "version" : "0.63.2"
+        "revision" : "76c871392f4451de2659d8c5d63b3f358b9d60c7",
+        "version" : "0.0.43"
       }
     },
     {
@@ -179,15 +170,6 @@
       "state" : {
         "revision" : "26986a57e31c813f98262ddb62d4b07d40008535",
         "version" : "26.0.1"
-      }
-    },
-    {
-      "identity" : "swiftui-macros",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/tomasharkema/SwiftUI-Macros",
-      "state" : {
-        "branch" : "main",
-        "revision" : "41b9217548e10bce8b684d2d7ab59ed18ece6e2a"
       }
     },
     {

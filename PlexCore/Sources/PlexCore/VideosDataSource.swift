@@ -11,8 +11,7 @@ import OSLog
 import PlexApi
 import PlexShared
 import Processed
-
-// import SwiftStacktrace
+import SwiftStacktrace
 
 @MainActor
 @Observable
@@ -51,7 +50,7 @@ public final class VideosDataSource: LoadableSupport {
   private func track() {
     withObservationTracking(
       {
-        _ = serverLocator.servers
+        _ = serverLocator.state.servers
       },
       onChange: {
         Task { @MainActor in
@@ -164,5 +163,5 @@ extension DependencyValues {
 }
 
 private struct VideosDataSourceKey: DependencyKey {
-  static var liveValue: VideosDataSource = .init()
+  static let liveValue: VideosDataSource = .init()
 }
