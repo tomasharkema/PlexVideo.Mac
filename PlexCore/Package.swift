@@ -3,12 +3,12 @@
 import PackageDescription
 
 let swiftUiDependencies: [Package.Dependency] = [
-  //  .package(url: "https://github.com/nicklockwood/SwiftFormat.git", from: "0.60.1"),
-   .package(url: "https://github.com/realm/SwiftLint", from: "0.62.0")
+  //  .package(url: "https://github.com/nicklockwood/SwiftFormat", from: "0.60.1"),
+  // .package(url: "https://github.com/SimplyDanny/SwiftLintPlugins", from: "0.63.2")
 ]
 
 let swiftUiPlugins: [Target.PluginUsage] = [
-   .plugin(name: "SwiftLintPlugin", package: "SwiftLint")
+  // .plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLintPlugins")
 ]
 
 let package = Package(
@@ -28,11 +28,11 @@ let package = Package(
     //    .package(url: "https://github.com/shibapm/PackageConfig.git", from: "1.1.3"),
 
     .package(url: "https://github.com/tomasharkema/swift-rawjson", from: "0.0.27"),
-    .package(url: "https://github.com/tomasharkema/swift-tracing", from: "0.0.40"),
+    .package(url: "https://github.com/tomasharkema/swift-tracing", from: "0.0.41"),
     // .package(url: "https://github.com/tomasharkema/StringBuilder", branch: "main"),
     // .package(url: "https://github.com/IanKeen/MacroKit", branch: "main"),
     //    .package(url: "https://github.com/zijievv/sf-symbols-generator", from: "1.0.0"),
-        .package(url: "https://github.com/Wouter01/SwiftUI-Macros", from: "1.2.0"),
+    .package(url: "https://github.com/tomasharkema/SwiftUI-Macros", branch: "main"),
     //    .package(url: "https://github.com/ShenghaiWang/SwiftMacros", from: "2.0.1"),
     .package(url: "https://github.com/SwiftedMind/Processed", from: "1.0.0"),
     .package(url: "https://github.com/SwiftyLab/MetaCodable", from: "1.6.0"),
@@ -80,7 +80,7 @@ let package = Package(
       dependencies: [
         "PlexApi",
         "PlexShared",
-        "Processed",
+        // "Processed",
         .product(name: "SwiftUIMacros", package: "SwiftUI-Macros"),
         .product(
           name: "SwiftUIIntrospect",
@@ -100,7 +100,7 @@ let package = Package(
         "PlexShared",
         "PlexApi",
         "PlexCore",
-                .product(name: "SwiftUIMacros", package: "SwiftUI-Macros"),
+        .product(name: "SwiftUIMacros", package: "SwiftUI-Macros"),
         //        .product(name: "SFSymbolsGenerator", package: "sf-symbols-generator"),
       ],
       resources: [

@@ -1,5 +1,5 @@
 {
-  "originHash" : "c4586e2718480dd04af8923ed62901c2419ab53ab0d70697877df35b5f3614eb",
+  "originHash" : "fb262b07b34dd7f56029a905850360fb277eee6ff030c017d3fc91bcef005b9a",
   "pins" : [
     {
       "identity" : "asynchrone",
@@ -26,6 +26,15 @@
       "state" : {
         "revision" : "c2a6cc907e2f95463ba8f2b55432bd2aee8a4bfd",
         "version" : "1.6.0"
+      }
+    },
+    {
+      "identity" : "opencombine",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/OpenCombine/OpenCombine.git",
+      "state" : {
+        "revision" : "8576f0d579b27020beccbccc3ea6844f3ddfc2c2",
+        "version" : "0.14.0"
       }
     },
     {
@@ -150,17 +159,17 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tomasharkema/swift-tracing",
       "state" : {
-        "revision" : "5653eab9956f95d9f3d14c734c28c86d7342a356",
-        "version" : "0.0.40"
+        "revision" : "1420aa6bc8916ed5bac8125742b839f8abd20beb",
+        "version" : "0.0.41"
       }
     },
     {
-      "identity" : "swiftlintplugins",
+      "identity" : "swiftdemangle",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/SimplyDanny/SwiftLintPlugins",
+      "location" : "https://github.com/oozoofrog/SwiftDemangle",
       "state" : {
-        "revision" : "8a4640d14777685ba8f14e832373160498fbab92",
-        "version" : "0.63.2"
+        "revision" : "41ad01ac001f2ee57545b0de4f2e6c4a3ea5f400",
+        "version" : "6.2.3"
       }
     },
     {
@@ -170,6 +179,15 @@
       "state" : {
         "revision" : "26986a57e31c813f98262ddb62d4b07d40008535",
         "version" : "26.0.1"
+      }
+    },
+    {
+      "identity" : "swiftui-macros",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tomasharkema/SwiftUI-Macros",
+      "state" : {
+        "branch" : "main",
+        "revision" : "41b9217548e10bce8b684d2d7ab59ed18ece6e2a"
       }
     },
     {
