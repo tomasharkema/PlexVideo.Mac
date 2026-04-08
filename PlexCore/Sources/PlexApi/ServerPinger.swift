@@ -18,7 +18,7 @@ public struct PingerState {
 
 @MainActor
 @Observable
-public final class ServerPinger: Sendable, LoadableSupport {
+public final class ServerPinger: LoadableSupport {
   @ObservationIgnored
   private let logger = Logger(subsystem: "PlexVideo", category: "ServerPinger")
 
@@ -73,21 +73,22 @@ public final class ServerPinger: Sendable, LoadableSupport {
     }
   }
 
-//  public func stopPinging() {
-//    cancel(\.state)
+  //  public func stopPinging() {
+  //    cancel(\.state)
   //    pingerTask?.cancel()
   //    pingerTask = nil
-//  }
+  //  }
 }
 
-public extension DependencyValues {
-  var serverPinger: ServerPinger {
+@MainActor
+extension DependencyValues {
+  public var serverPinger: ServerPinger {
     get { self[ServerPingerKey.self] }
     set { self[ServerPingerKey.self] = newValue }
   }
 }
 
-private struct ServerPingerKey: DependencyKey {
+private struct ServerPingerKey: @MainActor DependencyKey {
   @MainActor
-  static var liveValue: ServerPinger = .init()
+  static let liveValue: ServerPinger = .init()
 }

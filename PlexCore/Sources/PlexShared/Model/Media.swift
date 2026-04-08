@@ -10,7 +10,7 @@ import MetaCodable
 import RawJson
 
 @Codable
-public struct Media: Equatable, Sendable, Selecting {
+public struct Media: Equatable, Sendable, Selecting, Codable {
   public let id: NumberLike
   public let duration: NumberLike
   public let bitrate: NumberLike

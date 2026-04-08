@@ -11,4 +11,5 @@ public struct HandlerLocation: Hashable, Sendable {
   let file: String
   let line: UInt
   let function: String
+  nonisolated(unsafe) let dso: UnsafeRawPointer
 }

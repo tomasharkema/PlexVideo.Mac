@@ -7,11 +7,12 @@
 
 import Dependencies
 import Foundation
-import Observation
 import OSLog
+import Observation
 import PlexApi
 import PlexShared
 import Processed
+// import SwiftStacktrace
 import SwiftUI
 import SwiftUIMacros
 
@@ -25,8 +26,8 @@ public struct KeyValue: Hashable, Identifiable {
 }
 
 @EnvironmentStorage
-public extension EnvironmentValues {
-  var serversViewModel: ServersViewModel = .init()
+extension EnvironmentValues {
+  public var serversViewModel: ServersViewModel = .init()
 }
 
 @MainActor
@@ -40,15 +41,15 @@ public final class ServersViewModel: LoadableSupport {
 
   @ObservationIgnored
   @Dependency(\.videosDataSource)
-  private var videosDataSource // = InjectedValues.get(\.videosDataSource)
+  private var videosDataSource  // = InjectedValues.get(\.videosDataSource)
 
   @ObservationIgnored
   @Dependency(\.serverPinger)
-  private var pinger // = InjectedValues.get(\.serverPinger)
+  private var pinger  // = InjectedValues.get(\.serverPinger)
 
   @ObservationIgnored
   @Dependency(\.serverLocator)
-  private var serverLocator: ServerLocator // = InjectedValues.get(\.serverLocator)
+  private var serverLocator: ServerLocator  // = InjectedValues.get(\.serverLocator)
 
   public private(set) var keyValueInfo = [Server.ID: [KeyValue]]()
   public private(set) var rawResults = [Server.ID: (String, String)]()
@@ -56,13 +57,13 @@ public final class ServersViewModel: LoadableSupport {
   public private(set) var servers = [ServerAndPings]()
 
   public nonisolated init() {
-//    serverLocator = withDependencies {
-//      $0.serverLocatorStorageProviding = StorageKey.liveValue
-//      $0.authStorageProviding = StorageKey.liveValue
-//      $0.requestorStorageProviding = StorageKey.liveValue
-//    } operation: {
-//      ServerLocator()
-//    }
+    //    serverLocator = withDependencies {
+    //      $0.serverLocatorStorageProviding = StorageKey.liveValue
+    //      $0.authStorageProviding = StorageKey.liveValue
+    //      $0.requestorStorageProviding = StorageKey.liveValue
+    //    } operation: {
+    //      ServerLocator()
+    //    }
     Task {
       await observe()
     }
@@ -73,22 +74,25 @@ public final class ServersViewModel: LoadableSupport {
   }
 
   private func observe() {
-    withObservationTracking({
-      _ = (serverLocator.servers, pinger.state)
-    }, onChange: {
-      Task { @MainActor in
-        try? await self.updateInfo()
+    withObservationTracking(
+      {
+        _ = (serverLocator.servers, pinger.state)
+      },
+      onChange: {
+        Task { @MainActor in
+          try? await self.updateInfo()
+        }
+        Task { @MainActor in
+          try? await self.updateRawInfo()
+        }
+        Task {
+          await self.updateServerResult()
+        }
+        Task { @MainActor in
+          self.observe()
+        }
       }
-      Task { @MainActor in
-        try? await self.updateRawInfo()
-      }
-      Task {
-        await self.updateServerResult()
-      }
-      Task { @MainActor in
-        self.observe()
-      }
-    })
+    )
   }
 
   private func pings(
@@ -97,13 +101,18 @@ public final class ServersViewModel: LoadableSupport {
   ) -> ServerAndPings {
     let pings: [PingResult] = server.connections
       .map {
-        data?.results[$0.id] ?? PingResult(
-          serverWithConnection: $0,
-          details: .failure(PingResultError(
+        let error = PingResultErrorDetails.noMetric
+        return data?.results[$0.id]
+          ?? PingResult(
             serverWithConnection: $0,
-            details: .noMetric
-          ))
-        )
+            details: .failure(
+              PingResultError(
+                serverWithConnection: $0,
+                details: error,
+                stacktraceError: StacktraceError(error)
+              )
+            )
+          )
       }
       .sorted { lhs, rhs in
         guard let lResult = try? lhs.get() else {
@@ -232,9 +241,9 @@ public final class ServersViewModel: LoadableSupport {
     serverLocator.connection
   }
 
-//  public var pings: LoadableState<PingerState> {
-//    pinger.state
-//  }
+  //  public var pings: LoadableState<PingerState> {
+  //    pinger.state
+  //  }
 
   public func start() {
     startSessions()

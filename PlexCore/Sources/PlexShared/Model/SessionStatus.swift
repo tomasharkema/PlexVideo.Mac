@@ -10,7 +10,7 @@ import MetaCodable
 import RawJson
 
 @Codable
-public struct SessionStatus: Sendable, Equatable {
+public struct SessionStatus: Sendable, Equatable, Codable {
   @CodedAt("Player")
   public let player: PartialCodable<Player>?
 
@@ -53,8 +53,8 @@ extension PartialCodable: Hashable where ConcreteType: Hashable {
   }
 }
 
-public extension SessionStatus {
-  var videoID: VideoKey {
+extension SessionStatus {
+  public var videoID: VideoKey {
     VideoKey(rawValue: key)
   }
 }

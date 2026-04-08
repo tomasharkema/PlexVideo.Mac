@@ -69,7 +69,7 @@ extension ServerWithConnection: Identifiable {
 }
 
 @Codable
-public struct ServerWithCurrentConnection: Sendable, Equatable {
+public struct ServerWithCurrentConnection: Sendable, Equatable, Codable {
   public let server: Server
   public let connection: Connection
 

@@ -212,14 +212,14 @@ extension NowPlayingView {
 }
 
 #if DEBUG
-  #Preview {
-    NowPlayingView(
-      session: SessionVideo(
-        video: .preview,
-        session: .preview
-      )
+#Preview {
+  NowPlayingView(
+    session: SessionVideo(
+      video: .preview,
+      session: .preview
     )
-    .padding()
-    .preferredColorScheme(.dark)
-  }
+  )
+  .padding()
+  .preferredColorScheme(.dark)
+}
 #endif

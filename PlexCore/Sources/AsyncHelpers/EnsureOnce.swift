@@ -7,19 +7,21 @@
 
 import Foundation
 import OSLog
+import SwiftStacktrace
 
 private let logger = Logger(subsystem: "PlexVideo", category: "EnsureOnce")
 
-public actor EnsureOnce<IdentifierType: Hashable & Sendable, ResultType: Sendable>: Sendable {
+public actor EnsureOnce<IdentifierType: Hashable & Sendable, ResultType: Sendable> {
   private let initLocation: HandlerLocation
   private var handlers = [IdentifierType: StoredTask<IdentifierType, ResultType>]()
 
   public init(
     file: String = #file,
     line: UInt = #line,
-    function: String = #function
+    function: String = #function,
+    dso: UnsafeRawPointer = #dsohandle
   ) {
-    self.init(location: HandlerLocation(file: file, line: line, function: function))
+    self.init(location: HandlerLocation(file: file, line: line, function: function, dso: dso))
   }
 
   init(
@@ -34,7 +36,8 @@ public actor EnsureOnce<IdentifierType: Hashable & Sendable, ResultType: Sendabl
     _ handler: @Sendable @escaping () async throws -> ResultType,
     file: String = #file,
     line: UInt = #line,
-    function: String = #function
+    function: String = #function,
+    dso: UnsafeRawPointer = #dsohandle
   ) async throws -> ResultType {
     try await once(
       id: id,
@@ -43,7 +46,8 @@ public actor EnsureOnce<IdentifierType: Hashable & Sendable, ResultType: Sendabl
       location: HandlerLocation(
         file: file,
         line: line,
-        function: function
+        function: function,
+        dso: dso
       )
     )
   }
@@ -68,9 +72,10 @@ public actor EnsureOnce<IdentifierType: Hashable & Sendable, ResultType: Sendabl
     _ handler: @Sendable @escaping () async throws -> ResultType,
     file: String = #file,
     line: UInt = #line,
-    function: String = #function
+    function: String = #function,
+    dso: UnsafeRawPointer = #dsohandle
   ) async throws -> ResultType where IdentifierType == HandlerLocation {
-    let location = HandlerLocation(file: file, line: line, function: function)
+    let location = HandlerLocation(file: file, line: line, function: function, dso: dso)
     return try await once(id: location, cacheDuration: cacheDuration, handler, location: location)
   }
 
@@ -119,7 +124,7 @@ public actor EnsureOnce<IdentifierType: Hashable & Sendable, ResultType: Sendabl
         logger.info("EXCUTE FOR: handlerLocation \(String(describing: location))")
         return try await handler()
       } catch {
-        throw error
+        throw StacktraceError(error)
       }
     }
 
@@ -135,7 +140,7 @@ public actor EnsureOnce<IdentifierType: Hashable & Sendable, ResultType: Sendabl
       let result = try await task.value
       return result
     } catch {
-      throw error
+      throw StacktraceError(error)
     }
   }
 
@@ -145,13 +150,14 @@ public actor EnsureOnce<IdentifierType: Hashable & Sendable, ResultType: Sendabl
     _ handler: @Sendable @escaping () async throws -> ResultType,
     file: String = #file,
     line: UInt = #line,
-    function: String = #function
+    function: String = #function,
+    dso: UnsafeRawPointer = #dsohandle
   ) async throws -> ResultType {
     try await once(
       id: id,
       cacheDuration: cacheDuration,
       handler,
-      location: HandlerLocation(file: file, line: line, function: function)
+      location: HandlerLocation(file: file, line: line, function: function, dso: dso)
     )
   }
 
@@ -186,7 +192,7 @@ extension EnsureOnce {
     cacheDuration: Duration?
   ) -> HandleExistingResult {
     switch (cacheDuration, state) {
-    case let (.some(duration), .result(result, date)):
+    case (.some(let duration), .result(let result, let date)):
       let timeInterval = abs(date.timeIntervalSinceNow)
       if timeInterval < Double(duration.components.seconds) {
         return .returnCached

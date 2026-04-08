@@ -10,11 +10,11 @@ import SwiftUI
 import SwiftUIMacros
 
 #if canImport(UIKit)
-  public typealias Window = UIWindow
+public typealias Window = UIWindow
 #elseif canImport(AppKit)
-  public typealias Window = NSWindow
+public typealias Window = NSWindow
 #else
-  #error("Unsupported platform")
+#error("Unsupported platform")
 #endif
 
 public class WeakAccessor<ValueType: AnyObject & Equatable>: Equatable {
@@ -116,106 +116,106 @@ public extension View {
 
 #if canImport(AppKit)
 
-  public final class ContainerView: NSView {
-    var cancellable: AnyCancellable?
+public final class ContainerView: NSView {
+  var cancellable: AnyCancellable?
+}
+
+public struct WindowAccessor: NSViewRepresentable {
+  @Binding
+  private var window: WeakAccessor<NSWindow>?
+
+  @Binding
+  private var size: CGSize
+
+  init(window: Binding<WeakAccessor<NSWindow>?>, size: Binding<CGSize>) {
+    _window = window
+    _size = size
   }
 
-  public struct WindowAccessor: NSViewRepresentable {
-    @Binding
-    private var window: WeakAccessor<NSWindow>?
-
-    @Binding
-    private var size: CGSize
-
-    init(window: Binding<WeakAccessor<NSWindow>?>, size: Binding<CGSize>) {
-      _window = window
-      _size = size
-    }
-
-    private func update(size: CGSize?) {
-      if let size, self.size != size {
-        self.size = size
-      }
-    }
-
-    public func makeNSView(context _: Context) -> ContainerView {
-      let view = ContainerView()
-      update(size: view.window?.frame.size)
-      Task { @MainActor in
-        window = WeakAccessor(value: view.window)
-      }
-
-      view.cancellable = NotificationCenter.default.publisher(for: NSWindow.didResizeNotification)
-        .receive(on: DispatchQueue.main)
-        .map { _ in window?.value?.frame.size ?? .zero }
-        .filter { $0 != .zero }
-        .removeDuplicates()
-        .sink { size in
-          update(size: size)
-        }
-
-      return view
-    }
-
-    public func updateNSView(_: ContainerView, context _: Context) {}
-
-    public static func dismantleNSView(_ nsView: ContainerView, coordinator _: ()) {
-      nsView.cancellable?.cancel()
+  private func update(size: CGSize?) {
+    if let size, self.size != size {
+      self.size = size
     }
   }
+
+  public func makeNSView(context _: Context) -> ContainerView {
+    let view = ContainerView()
+    update(size: view.window?.frame.size)
+    Task { @MainActor in
+      window = WeakAccessor(value: view.window)
+    }
+
+    view.cancellable = NotificationCenter.default.publisher(for: NSWindow.didResizeNotification)
+      .receive(on: DispatchQueue.main)
+      .map { _ in window?.value?.frame.size ?? .zero }
+      .filter { $0 != .zero }
+      .removeDuplicates()
+      .sink { size in
+        update(size: size)
+      }
+
+    return view
+  }
+
+  public func updateNSView(_: ContainerView, context _: Context) {}
+
+  public static func dismantleNSView(_ nsView: ContainerView, coordinator _: ()) {
+    nsView.cancellable?.cancel()
+  }
+}
 
 #elseif canImport(UIKit)
 
-  public final class ContainerView: UIView {
-    var cancellable: AnyCancellable?
+public final class ContainerView: UIView {
+  var cancellable: AnyCancellable?
+}
+
+public struct WindowAccessor: UIViewRepresentable {
+  @Binding
+  private var window: WeakAccessor<UIWindow>?
+
+  @Binding
+  private var size: CGSize
+
+  init(window: Binding<WeakAccessor<UIWindow>?>, size: Binding<CGSize>) {
+    _window = window
+    _size = size
   }
 
-  public struct WindowAccessor: UIViewRepresentable {
-    @Binding
-    private var window: WeakAccessor<UIWindow>?
-
-    @Binding
-    private var size: CGSize
-
-    init(window: Binding<WeakAccessor<UIWindow>?>, size: Binding<CGSize>) {
-      _window = window
-      _size = size
+  private func update(size: CGSize?) {
+    if let size, self.size != size {
+      self.size = size
     }
+  }
 
-    private func update(size: CGSize?) {
-      if let size, self.size != size {
-        self.size = size
-      }
-    }
+  public func makeUIView(context _: Context) -> ContainerView {
+    let view = ContainerView()
 
-    public func makeUIView(context _: Context) -> ContainerView {
-      let view = ContainerView()
-
+    update(size: view.window?.bounds.size)
+    Task { @MainActor in
       update(size: view.window?.bounds.size)
-      Task { @MainActor in
+      window = WeakAccessor(value: view.window)
+    }
+
+    view.cancellable = NotificationCenter.default
+      .publisher(for: UIDevice.orientationDidChangeNotification)
+      .receive(on: DispatchQueue.main)
+      .map { _ in window?.value?.bounds.size ?? .zero }
+      .filter { $0 != .zero }
+      .removeDuplicates()
+      .sink { _ in
         update(size: view.window?.bounds.size)
-        window = WeakAccessor(value: view.window)
       }
 
-      view.cancellable = NotificationCenter.default
-        .publisher(for: UIDevice.orientationDidChangeNotification)
-        .receive(on: DispatchQueue.main)
-        .map { _ in window?.value?.bounds.size ?? .zero }
-        .filter { $0 != .zero }
-        .removeDuplicates()
-        .sink { _ in
-          update(size: view.window?.bounds.size)
-        }
-
-      return view
-    }
-
-    public func updateUIView(_: ContainerView, context _: Context) {}
-
-    public static func dismantleUIView(_ uiView: ContainerView, coordinator _: ()) {
-      uiView.cancellable?.cancel()
-    }
+    return view
   }
+
+  public func updateUIView(_: ContainerView, context _: Context) {}
+
+  public static func dismantleUIView(_ uiView: ContainerView, coordinator _: ()) {
+    uiView.cancellable?.cancel()
+  }
+}
 #else
-  #error("Unsupported platform")
+#error("Unsupported platform")
 #endif

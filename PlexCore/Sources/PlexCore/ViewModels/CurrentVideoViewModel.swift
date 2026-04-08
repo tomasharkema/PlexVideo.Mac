@@ -293,12 +293,12 @@ public final class CurrentVideoViewModel: LoadableSupport {
   }
 
   public var screenWidth: CGFloat {
-    #if os(iOS)
-      return UIScreen.main.bounds.width
-    #endif
-    #if os(macOS)
-      return NSScreen.main?.frame.width ?? 1920
-    #endif
+#if os(iOS)
+    return UIScreen.main.bounds.width
+#endif
+#if os(macOS)
+    return NSScreen.main?.frame.width ?? 1920
+#endif
   }
 
   public var minHeight: CGFloat {

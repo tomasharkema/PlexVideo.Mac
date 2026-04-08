@@ -12,3 +12,4 @@ struct StoredTask<IdentifierType: Sendable, ResultType: Sendable>: Sendable {
   let task: TaskState<ResultType>
   let storeDate: Date
 }
+

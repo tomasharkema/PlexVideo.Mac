@@ -7,9 +7,10 @@
 
 import Foundation
 
-typealias StaticStorageOnce = EnsureOnce<Int, Any>
+final actor StaticStorage {
 
-actor StaticStorage {
+  typealias StaticStorageOnce = EnsureOnce<Int, any Sendable>
+
   static let shared = StaticStorage()
 
   private var handlers = [HandlerLocation: StaticStorageOnce]()

@@ -12,6 +12,8 @@ import PlexApi
 import PlexShared
 import Processed
 
+// import SwiftStacktrace
+
 @MainActor
 @Observable
 public final class VideosDataSource: LoadableSupport {
@@ -47,14 +49,17 @@ public final class VideosDataSource: LoadableSupport {
 
   @MainActor
   private func track() {
-    withObservationTracking({
-      _ = serverLocator.servers
-    }, onChange: {
-      Task { @MainActor in
-        self.serversChanged()
-        self.track()
+    withObservationTracking(
+      {
+        _ = serverLocator.servers
+      },
+      onChange: {
+        Task { @MainActor in
+          self.serversChanged()
+          self.track()
+        }
       }
-    })
+    )
   }
 
   private func serversChanged() {
@@ -104,9 +109,12 @@ public final class VideosDataSource: LoadableSupport {
 
     try Task.checkCancellation()
 
-    let videosById = Dictionary(all.map {
-      ($0.video.id, $0)
-    }, uniquingKeysWith: { one, _ in one })
+    let videosById = Dictionary(
+      all.map {
+        ($0.video.id, $0)
+      },
+      uniquingKeysWith: { one, _ in one }
+    )
 
     return Data(continueWatching: onDeck, videos: all, videosById: videosById)
   }
@@ -128,7 +136,7 @@ public final class VideosDataSource: LoadableSupport {
         // NO-OP
       } catch {
         self.logger.error("Error: \(error)")
-        throw error
+        throw StacktraceError(error)
       }
     }
     loadingTask = task
@@ -140,16 +148,16 @@ public final class VideosDataSource: LoadableSupport {
   }
 }
 
-public extension VideosDataSource {
-  struct Data: Equatable, Sendable {
+extension VideosDataSource {
+  public struct Data: Equatable, Sendable {
     public let continueWatching: [VideoFromServer]
     public let videos: [VideoFromServer]
     public let videosById: [Video.ID: VideoFromServer]
   }
 }
 
-public extension DependencyValues {
-  var videosDataSource: VideosDataSource {
+extension DependencyValues {
+  public var videosDataSource: VideosDataSource {
     get { self[VideosDataSourceKey.self] }
     set { self[VideosDataSourceKey.self] = newValue }
   }

@@ -31,9 +31,10 @@ public final class VideoDataService: Sendable {
     try await video.video.getProgress(storage: storage.getSavedOffset(video: video.video))
   }
 
-  private func getSections(server: ServerWithCurrentConnection,
-                           onlyCached: Bool) async throws -> [Directory]
-  {
+  private func getSections(
+    server: ServerWithCurrentConnection,
+    onlyCached: Bool
+  ) async throws -> [Directory] {
     try await api.sections(server: server, onlyCached: onlyCached).mediaContainer.directory.filter {
       $0.type == "movie" || $0.type == "show"
     }

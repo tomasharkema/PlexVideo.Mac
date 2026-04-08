@@ -12,7 +12,7 @@ import os
 import UniformTypeIdentifiers
 
 #if os(iOS)
-  import UIKit
+import UIKit
 #endif
 
 // swiftlint:disable shorthand_operator
@@ -49,15 +49,15 @@ final class MemoryLimitedCache: Cache, Sendable {
     self.logger = logger
     self.signposter = signposter ?? OSSignposter(logger: logger)
 
-    // Purge everything when app is under memory pressure.
-    #if os(iOS)
-      Task { @MainActor in
-        NotificationCenter.default
-          .publisher(for: UIApplication.didReceiveMemoryWarningNotification)
-          .sink { [weak self] _ in self?.purge() }
-          .store(in: &cancellation)
-      }
-    #endif
+// Purge everything when app is under memory pressure.
+#if os(iOS)
+    Task { @MainActor in
+      NotificationCenter.default
+        .publisher(for: UIApplication.didReceiveMemoryWarningNotification)
+        .sink { [weak self] _ in self?.purge() }
+        .store(in: &cancellation)
+    }
+#endif
   }
 
   func fetchByID(_ id: Asset.ID) -> Asset? {

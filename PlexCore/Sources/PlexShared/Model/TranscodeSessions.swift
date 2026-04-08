@@ -9,7 +9,7 @@ import Foundation
 import MetaCodable
 
 @Codable
-public struct TranscodeSessions: Sendable, Equatable, Hashable {
+public struct TranscodeSessions: Sendable, Equatable, Hashable, Codable {
   @CodedAt("TranscodeSession")
   public let transcodeSession: [TranscodeSession]
 }

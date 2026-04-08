@@ -8,77 +8,44 @@
 import CoreMedia
 import Dependencies
 import Foundation
-// import Injected
 import PlexShared
-import SwiftMacros
 
-// import Papyrus
+//import SwiftMacros
 
-// @API
-// protocol PlexEndpoint {
-//  @GET("/library/sections")
-//  func sections() async throws -> Root<DirectoryContainer>
-// }
-
-public final class Api: Sendable {
+public struct Api: Sendable {
   @Dependency(\.requestor)
   private var requestor
 
+  @Dependency(\.plexServerEndpoint)
+  private var plexEndpoint
+
   public func sections(
     server: ServerWithCurrentConnection,
-    onlyCached: Bool
+    onlyCached _: Bool
   ) async throws -> Root<DirectoryContainer> {
-//    let provider = Provider(baseURL: server.uri.absoluteString)
-//    let plexEndpoint = PlexEndpointAPI(provider: provider)
-//    return try await plexEndpoint.sections()
-    try await requestor.request(
-      url: server.uri
-        .appendingPathComponent("/library/sections"),
-      Root<DirectoryContainer>.self,
-      onlyCached: onlyCached
-    )
+    try await plexEndpoint.provider(server: server).sections()
   }
 
   public func all(
     server: ServerWithCurrentConnection,
     key: SectionKey,
-    reload: Bool,
-    onlyCached: Bool
-  ) async throws
-    -> Root<Metadata<Video>>
-  {
-    try await requestor.request(
-      url: server.uri
-        .appendingPathComponent("/library/sections/\(key.rawValue)/all"),
-      Root<Metadata<Video>>.self,
-      useCache: !reload,
-      onlyCached: onlyCached
-    )
+    reload _: Bool,
+    onlyCached _: Bool
+  ) async throws -> Root<Metadata<Video>> {
+    try await plexEndpoint.provider(server: server).section(key: key.rawValue)
   }
 
   public func onDeck(
-    server: ServerWithCurrentConnection, ratingKey: RatingKey
-  ) async throws
-    -> Root<Metadata<Video>>
-  {
-    try await requestor.request(
-      url: server.uri
-        .appendingPathComponent("/library/metadata/\(ratingKey.rawValue)"),
-      Root<Metadata<Video>>.self,
-      queryItems: [URLQueryItem(name: "includeOnDeck", value: "1")]
-    )
+    server: ServerWithCurrentConnection,
+    ratingKey: RatingKey
+  ) async throws -> Root<Metadata<Video>> {
+    try await plexEndpoint.provider(server: server).metadata(ratingKey: ratingKey.rawValue)
   }
 
   public func sessions(
     server: ServerWithCurrentConnection
-  ) async throws -> Root<
-    Metadata<SessionStatus>
-  > {
-    try await requestor.request(
-      url: server.uri
-        .appendingPathComponent("/status/sessions"),
-      Root<Metadata<SessionStatus>>.self
-    )
+  ) async throws -> Root<Metadata<SessionStatus>> {
+    try await plexEndpoint.provider(server: server).sessions()
   }
 
   func videoQueryItems(
@@ -159,12 +126,12 @@ public final class Api: Sendable {
       url: server.uri
         .appendingPathComponent("/video/:/transcode/universal/start.m3u8"),
       queryItems:
-      videoQueryItems(
-        videoKey: video.key,
-        videoUuid: videoUuid,
-        offset: offset,
-        subtitles: "auto"
-      )
+        videoQueryItems(
+          videoKey: video.key,
+          videoUuid: videoUuid,
+          offset: offset,
+          subtitles: "auto"
+        )
     )
   }
 
@@ -195,39 +162,25 @@ public final class Api: Sendable {
     time: CMTime,
     state: PlayingState
   ) async throws -> Root<TranscodeSessions> {
-    try await requestor.request(
-      url: server.uri
-        .appendingPathComponent("/:/timeline"),
-      Root<TranscodeSessions>.self,
-      queryItems: [
-        URLQueryItem(name: "time", value: "\(Int(time.seconds * 1000))"),
-        URLQueryItem(name: "ratingKey", value: video.ratingKey.rawValue),
-        URLQueryItem(
-          name: "duration",
-          value: "\(Int(video.media?.first?.duration.value ?? 0))"
-        ),
-        URLQueryItem(name: "state", value: state.rawValue),
-        URLQueryItem(name: "key", value: video.key.rawValue),
-        URLQueryItem(name: "context", value: "library%3Acontent.library"),
-      ]
-    )
+    try await plexEndpoint.provider(server: server)
+      .timeline(
+        time: Int(time.seconds * 1000),
+        ratingKey: video.ratingKey.rawValue,
+        duration: Int(video.media?.first?.duration.value ?? 0),
+        state: state.rawValue,
+        key: video.key.rawValue
+      )
   }
 
   public func continueWatching(
     server: ServerWithCurrentConnection,
     contentDirectoryIDs: [SectionKey]
   ) async throws -> Root<Hub<Video>> {
-    try await requestor.request(
-      url: server.uri.appendingPathComponent("/hubs/continueWatching"),
-      Root<Hub<Video>>.self,
-      queryItems: [
-        URLQueryItem(
-          name: "contentDirectoryID",
-          value: contentDirectoryIDs.map(\.rawValue).joined(separator: ",")
-        ),
-        URLQueryItem(name: "includeMeta", value: "1"),
-      ]
-    )
+    try await plexEndpoint.provider(server: server)
+      .continueWatching(
+        contentDirectoryID: contentDirectoryIDs.map(\.rawValue)
+          .joined(separator: ",")
+      )
   }
 }
 
@@ -235,32 +188,29 @@ enum PlexError: Error {
   case noMedia
 }
 
-public extension DateFormatter {
-  static let iso8601Full: DateFormatter = {
+extension DateFormatter {
+  public static let iso8601Full: DateFormatter = {
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
-    //    formatter.calendar = Calendar(identifier: .iso8601)
-    //    formatter.timeZone = TimeZone(secondsFromGMT: 0)
-    //    formatter.locale = Locale(identifier: "en_US_POSIX")
     return formatter
   }()
 }
 
-public extension JSONDecoder {
-  static let `default`: JSONDecoder = {
+extension JSONDecoder {
+  public static let `default`: JSONDecoder = {
     let decoder = JSONDecoder()
     decoder.dateDecodingStrategy = .formatted(.iso8601Full)
     return decoder
   }()
 }
 
-public extension DependencyValues {
-  var api: Api {
+extension DependencyValues {
+  public var api: Api {
     get { self[ApiKey.self] }
     set { self[ApiKey.self] = newValue }
   }
 }
 
 private struct ApiKey: DependencyKey {
-  static var liveValue: Api = .init()
+  static let liveValue: Api = .init()
 }

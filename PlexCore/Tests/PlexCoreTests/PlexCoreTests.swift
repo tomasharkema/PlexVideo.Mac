@@ -1,8 +1,9 @@
-import XCTest
+import Testing
 
 @testable import PlexCore
 
-final class PlexCoreTests: XCTestCase {
+struct PlexCoreTests {
+  @Test
   func testExample() throws {
     // XCTest Documentation
     // https://developer.apple.com/documentation/xctest

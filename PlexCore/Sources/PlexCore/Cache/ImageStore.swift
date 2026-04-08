@@ -13,6 +13,8 @@ import PlexApi
 import PlexShared
 import Processed
 
+// import SwiftStacktrace
+
 #if os(iOS)
   import UIKit
 #endif
@@ -87,7 +89,7 @@ final class ImageStore: Sendable {
         return try await prepareAsset(id: id, url: url, size: size)
       } catch {
         logger.error("prepareAssetIfNeeded error: \(error)")
-        throw error
+        throw StacktraceError(error)
       }
     }
 
@@ -144,16 +146,16 @@ final class ImageStore: Sendable {
     #elseif os(macOS)
       let image =
         ImageIO
-          .resizedImageWithHintingAndSubsampling(
-            at: asset,
-            for: size
-          ) // .preloadImage(at: asset, for: size)//.resizedImageWithHintingAndSubsampling(at: asset, for: size)
+        .resizedImageWithHintingAndSubsampling(
+          at: asset,
+          for: size
+        )  // .preloadImage(at: asset, for: size)//.resizedImageWithHintingAndSubsampling(at: asset, for: size)
     #else
       #error("unsupported platform")
     #endif
 
     guard
-      let image // = asset.//ImageIO.resizedImageWithHintingAndSubsampling(at: asset, for:
+      let image  // = asset.//ImageIO.resizedImageWithHintingAndSubsampling(at: asset, for:
     // size)?.preparingForDisplay()
     else {
       throw AssetError.assetNotFound

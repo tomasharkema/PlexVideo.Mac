@@ -6,44 +6,44 @@
 //
 
 #if os(iOS)
-  import SwiftUI
-  import UIKit
+import SwiftUI
+import UIKit
 
-  public typealias PlexImage = UIImage
+public typealias PlexImage = UIImage
 
-  public extension Image {
-    init(plexImage: PlexImage) {
-      self.init(uiImage: plexImage)
-    }
+public extension Image {
+  init(plexImage: PlexImage) {
+    self.init(uiImage: plexImage)
   }
+}
 
-  public extension PlexImage {
-    convenience init(cgImage: CGImage, size _: CGSize) {
-      self.init(cgImage: cgImage)
-    }
+public extension PlexImage {
+  convenience init(cgImage: CGImage, size _: CGSize) {
+    self.init(cgImage: cgImage)
   }
+}
 #endif
 
 #if os(macOS)
-  import AppKit
-  import SwiftUI
+import AppKit
+import SwiftUI
 
-  public typealias PlexImage = NSImage
+public typealias PlexImage = NSImage
 
-  public extension Image {
-    init(plexImage: PlexImage) {
-      self.init(nsImage: plexImage)
-    }
+public extension Image {
+  init(plexImage: PlexImage) {
+    self.init(nsImage: plexImage)
+  }
+}
+
+extension PlexImage {
+  func preparingForDisplay() -> NSImage? {
+    self
   }
 
-  extension PlexImage {
-    func preparingForDisplay() -> NSImage? {
-      self
-    }
-
-    func preparingThumbnail(of _: CGSize) -> NSImage? {
-      self // ImageIO.resizedImageWithHintingAndSubsampling(at: asset, for: size)
-    }
+  func preparingThumbnail(of _: CGSize) -> NSImage? {
+    self // ImageIO.resizedImageWithHintingAndSubsampling(at: asset, for: size)
   }
+}
 
 #endif

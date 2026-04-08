@@ -10,11 +10,11 @@ import ImageIO
 import UniformTypeIdentifiers
 
 #if canImport(MobileCoreServices)
-  import MobileCoreServices
+import MobileCoreServices
 #endif
 
 #if os(macOS)
-  import AppKit
+import AppKit
 #endif
 
 enum ImageIO {

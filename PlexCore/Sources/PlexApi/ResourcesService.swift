@@ -10,9 +10,10 @@ import Dependencies
 import Foundation
 import OSLog
 import PlexShared
-import SwiftMacros
+//import SwiftMacros
+import SwiftStacktrace
 
-public final class ResourcesService: Sendable {
+public struct ResourcesService: Sendable {
   private let logger = Logger(subsystem: "PlexVideo", category: "ResourcesService")
 
   @Dependency(\.requestor)
@@ -21,9 +22,10 @@ public final class ResourcesService: Sendable {
   @Dependency(\.serverLocatorStorageProviding)
   private var storage
 
-  init() {
-//    self.storage = storage
-  }
+  @Dependency(\.plexWebEndpoint)
+  private var plexWebEndpoint
+
+  package init() {}
 
   @Dependency(\.networkManager)
   private var networkManager
@@ -48,11 +50,16 @@ public final class ResourcesService: Sendable {
       )
 
       guard let metrics = await (metricsTask.value),
-            let responseStartDate = metrics.requestStartDate,
-            let responseEndDate = metrics.responseEndDate
+        let responseStartDate = metrics.requestStartDate,
+        let responseEndDate = metrics.responseEndDate
       else {
         assertionFailure()
-        return .failure(serverWithConnection: server, error: .noMetric)
+        let error = PingResultErrorDetails.noMetric
+        return .failure(
+          serverWithConnection: server,
+          error: error,
+          stacktraceError: StacktraceError(error)
+        )
       }
 
       let interval = responseEndDate.timeIntervalSince(responseStartDate)
@@ -67,31 +74,31 @@ public final class ResourcesService: Sendable {
     } catch let error as URLError {
       //      logger.error("ping URL error: \(error)")
       logger.error("ping URL error: \(server.server.name) \(server.connection.address)")
-      return .failure(serverWithConnection: server, error: .urlError(error))
+      return .failure(
+        serverWithConnection: server,
+        error: .urlError(error),
+        stacktraceError: StacktraceError(error)
+      )
     } catch {
       //      logger.error("ping error: \(error)")
       logger.error("ping error: \(server.server.name) \(server.connection.address)")
-      return .failure(serverWithConnection: server, error: .otherError(error))
+      return .failure(
+        serverWithConnection: server,
+        error: .otherError(error),
+        stacktraceError: StacktraceError(error)
+      )
     }
   }
 
   nonisolated func devices() async throws -> [Server] {
-    try await EnsureOnce.once(cacheDuration: .seconds(60 * 5)) {
-      let devices = try await self.requestor.request(
-        url: #buildURL("https://plex.tv/api/v2/resources"),
-        [Server].self,
-        queryItems: [
-          URLQueryItem(name: "includeHttps", value: "1"),
-          URLQueryItem(name: "includeRelay", value: "1"),
-        ],
-        useCache: false
-      )
-      return devices
+    let plexWebEndpoint = self.plexWebEndpoint
+    return try await EnsureOnce.once(cacheDuration: .seconds(60 * 5)) {
+      try await plexWebEndpoint.provider().resources()
     }
   }
 
-  nonisolated func capabilities(server: Server) async throws -> Root<Capabilities> {
-    var errors = [any Error]()
+  package nonisolated func capabilities(server: Server) async throws -> Root<Capabilities> {
+    var multipleError: MultipleError? = nil
     for connection in server.connections {
       do {
         let pingResult = try await ping(
@@ -104,10 +111,14 @@ public final class ResourcesService: Sendable {
         return pingResult
       } catch {
         logger.error("capabilities error: \(error)")
-        errors.append(error)
+        if multipleError != nil {
+          multipleError!.append(StacktraceError(error))
+        } else {
+          multipleError = MultipleError(StacktraceError(error))
+        }
       }
     }
-    throw errors.first ?? NSError(domain: "DERP", code: 69)
+    throw multipleError ?? StacktraceError(NSError(domain: "DERP", code: 69))
   }
 
   nonisolated func servers() async throws -> ServersResponse {
@@ -126,12 +137,12 @@ public final class ResourcesService: Sendable {
             do {
               let capabilities = try await self.capabilities(server: server)
 
-//              let caps: Result<Root<Capabilities>, any Error> =
-//              if let result = capabilities {
-//                .success(result)
-//              } else {
-//                .failure(NSError(domain: "null error", code: 69))
-//              }
+              //              let caps: Result<Root<Capabilities>, any Error> =
+              //              if let result = capabilities {
+              //                .success(result)
+              //              } else {
+              //                .failure(NSError(domain: "null error", code: 69))
+              //              }
               return ServerAndCapabilities(
                 server: server,
                 capabilities: .success(capabilities)
@@ -141,7 +152,7 @@ public final class ResourcesService: Sendable {
                 server: server,
                 capabilities: .failure(error)
               )
-//              throw error
+              //              throw error
               //              return
               //                ServerAndCapabilities(
               //                  server: server,
@@ -160,13 +171,13 @@ public final class ResourcesService: Sendable {
   }
 }
 
-public extension DependencyValues {
-  var resourcesService: ResourcesService {
+extension DependencyValues {
+  public var resourcesService: ResourcesService {
     get { self[ResourcesServiceKey.self] }
     set { self[ResourcesServiceKey.self] = newValue }
   }
 }
 
 private struct ResourcesServiceKey: DependencyKey {
-  static var liveValue: ResourcesService = .init()
+  static let liveValue: ResourcesService = .init()
 }

@@ -8,7 +8,7 @@
 import MetaCodable
 
 @Codable
-public struct Root<MediaContainerType: Codable> {
+public struct Root<MediaContainerType: Codable>: Codable {
   @CodedAt("MediaContainer")
   public let mediaContainer: MediaContainerType
 

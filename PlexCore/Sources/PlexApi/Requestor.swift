@@ -5,20 +5,26 @@
 //  Created by Tomas Harkema on 09/06/2021.
 //
 
-#if canImport(FirebaseCrashlytics)
-  public import FirebaseCrashlytics
-#endif
-
+import AsyncHelpers
 import Dependencies
 import Foundation
 import OSLog
 import PlexShared
+import SwiftStacktrace
 
-public final class Requestor: Sendable {
+#if canImport(FirebaseCrashlytics)
+  public import FirebaseCrashlytics
+#endif
+
+public enum CacheError: Error {
+  case noCachedValue
+}
+
+public struct Requestor: Sendable {
   private let logger = Logger(subsystem: "PlexVideo", category: "Requestor")
 
   @Dependency(\.serverLocator)
-  private var serverLocator
+  private var serverLocator: ServerLocator
 
   @Dependency(\.requestorStorageProviding)
   private var storage
@@ -96,7 +102,7 @@ public final class Requestor: Sendable {
       if let cachedResponse = cache.cachedResponse(for: request) {
         return (cachedResponse.data, cachedResponse.response)
       } else {
-        throw NSError(domain: "NO CACHED RESPONSE", code: 69)
+        throw StacktraceError(CacheError.noCachedValue)
       }
     } else {
       let (data, response) = try await networkManager.session.data(for: request)
@@ -151,20 +157,23 @@ public final class Requestor: Sendable {
         return try JSONDecoder.default.decode(type, from: data)
       } catch {
         #if DEBUG
-          logger.error("""
-          JSON ERROR:
-          url: \(url)
-          error: \(error)
-          json: \(String(data: data, encoding: .utf8) ?? "")
-          """)
+          logger.error(
+            """
+            JSON ERROR:
+            url: \(url)
+            error: \(error)
+            json: \(String(data: data, encoding: .utf8) ?? "")
+            """
+          )
         #endif
-        throw error
+        throw StacktraceError(error)
       }
     } catch let error as URLError {
       if invalidateAfterError,
-         error.code == .cannotConnectToHost || error.code == .cannotFindHost
-         || error
-         .code == .dnsLookupFailed || error.code == .timedOut
+        error.code == .cannotConnectToHost || error.code == .cannotFindHost
+          || error
+            .code == .dnsLookupFailed
+          || error.code == .timedOut
       {
         logger.error("NO HOST FOUND \(error)")
         Task {
@@ -172,12 +181,12 @@ public final class Requestor: Sendable {
         }
       }
 
-      throw error
+      throw StacktraceError(error)
     } catch {
       #if canImport(FirebaseCrashlytics)
         Crashlytics.crashlytics().record(error: error)
       #endif
-      throw error
+      throw StacktraceError(error)
     }
   }
 }
@@ -188,26 +197,32 @@ public protocol RequestorStorageProviding: Sendable {
   var uuid: String { get }
 }
 
-public extension DependencyValues {
-  var requestor: Requestor {
+extension DependencyValues {
+  public var requestor: Requestor {
     get { self[RequestorKey.self] }
     set { self[RequestorKey.self] = newValue }
   }
 }
 
 private struct RequestorKey: DependencyKey {
-  static var liveValue: Requestor = .init()
+  static let liveValue: Requestor = .init()
 }
 
-public extension DependencyValues {
-  var requestorStorageProviding: any RequestorStorageProviding {
+extension DependencyValues {
+  public var requestorStorageProviding: any RequestorStorageProviding {
     get { self[RequestorStorageProvidingKey.self] }
     set { self[RequestorStorageProvidingKey.self] = newValue }
   }
 }
 
+final class TestRequestorStorageProviding: RequestorStorageProviding {
+  func getToken() -> String? {
+    nil
+  }
+  var uuid: String = ""
+}
 public struct RequestorStorageProvidingKey: TestDependencyKey {
-  public static var testValue: (any RequestorStorageProviding) = unimplemented()
+  public static let testValue: (any RequestorStorageProviding) = TestRequestorStorageProviding()
 }
 
 // swiftlint:disable:next line_length

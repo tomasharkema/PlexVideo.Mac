@@ -25,15 +25,15 @@ public struct VideosGridScreen: View {
   @ToolbarContentBuilder
   private var navigationBarElements: some ToolbarContent {
     ToolbarItemGroup {
-      #if os(macOS) || targetEnvironment(macCatalyst)
-        LoadingButton(
-          text: { Image(systemName: "arrow.clockwise") },
-          loadingText: { ProgressView().controlSize(.small) }
-        ) {
-          await videosViewModel.reload(silently: true)
-        }
-        .keyboardShortcut("r", modifiers: .command)
-      #endif
+#if os(macOS) || targetEnvironment(macCatalyst)
+      LoadingButton(
+        text: { Image(systemName: "arrow.clockwise") },
+        loadingText: { ProgressView().controlSize(.small) }
+      ) {
+        await videosViewModel.reload(silently: true)
+      }
+      .keyboardShortcut("r", modifiers: .command)
+#endif
     }
   }
 
@@ -64,20 +64,20 @@ public struct VideosGridScreen: View {
     .animation(.easeInOut, value: videosViewModel.searchResults)
     .animation(.easeInOut, value: searchText)
     .navigationTitle("Videos")
-    #if !targetEnvironment(macCatalyst)
+#if !targetEnvironment(macCatalyst)
       .refreshable {
         await videosViewModel.reload(silently: true)
       }
-    #endif
-    #if os(iOS)
-    .searchable(text: $searchText, placement: .navigationBarDrawer)
-    #else
-    .searchable(text: $searchText, placement: .toolbar)
-    #endif
-    #if os(macOS)
-    .toolbar {
-      navigationBarElements
-    }
-    #endif
+#endif
+#if os(iOS)
+.searchable(text: $searchText, placement: .navigationBarDrawer)
+#else
+.searchable(text: $searchText, placement: .toolbar)
+#endif
+#if os(macOS)
+.toolbar {
+  navigationBarElements
+}
+#endif
   }
 }
