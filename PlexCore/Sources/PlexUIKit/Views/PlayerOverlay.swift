@@ -38,8 +38,7 @@ public struct PlayerOverlay: View {
             viewModel.stopPlaying()
           },
           label: {
-//            SFSymbol.xmark.image()
-            Text("x")
+            SFSymbol.xmark.image()
               .foregroundColor(.white)
               //            .font(font)
               .padding(10)

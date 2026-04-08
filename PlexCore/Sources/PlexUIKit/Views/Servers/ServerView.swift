@@ -31,8 +31,7 @@ struct ServerView: View {
           .bold()
 
         if server.server.publicAddressMatches || server.server.home {
-//          SFSymbol.house.image()
-          Text("HOUSE!")
+          SFSymbol.house.image()
         }
 
         if server.server.owned {

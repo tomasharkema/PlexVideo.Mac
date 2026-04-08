@@ -1,5 +1,5 @@
 {
-  "originHash" : "388f1a01c781aa2eef85393e4a7ddb9f46f0ec1dc8c2182c15b58ffcdcabb9e2",
+  "originHash" : "979ec19bfcfc3f6a18866d7446c3e1c2c242e09ecd1863adb327b32a3690a8bd",
   "pins" : [
     {
       "identity" : "asynchrone",
@@ -53,6 +53,15 @@
       "state" : {
         "revision" : "044882f9d1b04c5538b48f311aa8d89e5d04a025",
         "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "sf-symbols-generator",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tomasharkema/sf-symbols-generator",
+      "state" : {
+        "branch" : "patch-1",
+        "revision" : "349ef73d17f1481edd5b1141a378cde4c7978cc7"
       }
     },
     {

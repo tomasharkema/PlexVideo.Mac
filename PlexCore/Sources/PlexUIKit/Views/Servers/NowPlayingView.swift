@@ -87,8 +87,7 @@ struct NowPlayingView: View {
           .foregroundColor(.white.opacity(0.6))
 
         VStack(alignment: .leading, spacing: 5) {
-          Text("\(session.videoSourceString)")
-//          Text("\(SFSymbol.arrowTurnDownRight.image()) \(session.videoString)")
+          Text("\(SFSymbol.arrowTurnDownRight.image()) \(session.videoString)")
 
           Text("> \(session.videoString)")
         }

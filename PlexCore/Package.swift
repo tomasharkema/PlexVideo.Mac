@@ -31,7 +31,7 @@ let package = Package(
     .package(url: "https://github.com/tomasharkema/swift-tracing", from: "0.0.43"),
     // .package(url: "https://github.com/tomasharkema/StringBuilder", branch: "main"),
     // .package(url: "https://github.com/IanKeen/MacroKit", branch: "main"),
-    //    .package(url: "https://github.com/zijievv/sf-symbols-generator", from: "1.0.0"),
+        .package(url: "https://github.com/tomasharkema/sf-symbols-generator", branch: "patch-1"),
     //    .package(url: "https://github.com/ShenghaiWang/SwiftMacros", from: "2.0.1"),
     .package(url: "https://github.com/SwiftedMind/Processed", from: "1.0.0"),
     .package(url: "https://github.com/SwiftyLab/MetaCodable", from: "1.6.0"),
@@ -70,7 +70,6 @@ let package = Package(
         // .product(name: "DependenciesMacros", package: "swift-dependencies"),
         .product(name: "Papyrus", package: "papyrus"),
         .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
-        // .product(name: "FirebaseCrashlytics", package: "firebase-ios-sdk"),
       ],
       resources: [
         .process("PreviewResources")
@@ -89,8 +88,6 @@ let package = Package(
         ),
         .product(name: "Dependencies", package: "swift-dependencies"),
         .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
-        //        .product(name: "FirebaseAnalyticsWithoutAdIdSupport", package: "firebase-ios-sdk"),
-        //        .product(name: "FirebaseCrashlytics", package: "firebase-ios-sdk"),
       ],
       plugins: swiftUiPlugins
     ),
@@ -101,7 +98,7 @@ let package = Package(
         "PlexShared",
         "PlexApi",
         "PlexCore",
-        //        .product(name: "SFSymbolsGenerator", package: "sf-symbols-generator"),
+        .product(name: "SFSymbolsGenerator", package: "sf-symbols-generator"),
       ],
       resources: [
         .process("Resources")
