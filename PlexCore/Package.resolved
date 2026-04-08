@@ -29,15 +29,6 @@
       }
     },
     {
-      "identity" : "opencombine",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/OpenCombine/OpenCombine.git",
-      "state" : {
-        "revision" : "8576f0d579b27020beccbccc3ea6844f3ddfc2c2",
-        "version" : "0.14.0"
-      }
-    },
-    {
       "identity" : "papyrus",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/joshuawright11/papyrus",
@@ -170,6 +161,15 @@
       "state" : {
         "revision" : "41ad01ac001f2ee57545b0de4f2e6c4a3ea5f400",
         "version" : "6.2.3"
+      }
+    },
+    {
+      "identity" : "swiftlintplugins",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/SimplyDanny/SwiftLintPlugins",
+      "state" : {
+        "revision" : "8a4640d14777685ba8f14e832373160498fbab92",
+        "version" : "0.63.2"
       }
     },
     {

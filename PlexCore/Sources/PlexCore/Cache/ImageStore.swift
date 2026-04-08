@@ -12,8 +12,7 @@ import OSLog
 import PlexApi
 import PlexShared
 import Processed
-
-// import SwiftStacktrace
+import SwiftStacktrace
 
 #if os(iOS)
   import UIKit
@@ -21,7 +20,7 @@ import Processed
 
 extension FileManager: @unchecked Sendable {}
 
-final class ImageStore: Sendable {
+struct ImageStore: Sendable {
   private let logger = Logger(subsystem: "PlexVideo", category: "ImageStore")
 
   static let shared = ImageStore()

@@ -16,7 +16,7 @@ import Processed
 import SwiftUI
 import SwiftUIMacros
 
-@EnvironmentStorage
+@EnvironmentValues
 public extension EnvironmentValues {
   var currentVideoViewModel: CurrentVideoViewModel = .init()
 }

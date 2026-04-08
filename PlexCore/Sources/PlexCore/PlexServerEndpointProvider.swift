@@ -5,12 +5,13 @@
 //  Created by Tomas Harkema on 27/10/2023.
 //
 
+import Foundation
 import Dependencies
 import Papyrus
 import PlexApi
 import PlexShared
 
-package final class PlexServerEndpointProvider: PlexServerEndpointProviderProtocol {
+package struct PlexServerEndpointProvider: PlexServerEndpointProviderProtocol {
   @Dependency(\.storage)
   private var storage
 

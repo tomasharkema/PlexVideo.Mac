@@ -91,12 +91,12 @@ public extension DependencyValues {
   }
 }
 
-public extension DependencyValues {
-  var authStorageProviding: Storage {
-    get { self[AuthStorageProvidingKey.self] }
-    set { self[AuthStorageProvidingKey.self] = newValue }
-  }
-}
+//public extension DependencyValues {
+//  var authStorageProviding: any ServerLocatorStorageProviding {
+//    get { self[AuthStorageProvidingKey.self] }
+//    set { self[AuthStorageProvidingKey.self] = newValue }
+//  }
+//}
 
 
 public struct StorageKey: DependencyKey {

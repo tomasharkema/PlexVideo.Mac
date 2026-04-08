@@ -91,14 +91,13 @@ final class NetworkManagerDelegate: NSObject, URLSessionDataDelegate {
   }
 }
 
-public extension DependencyValues {
-  var networkManager: NetworkManager {
+extension DependencyValues {
+  public var networkManager: NetworkManager {
     get { self[NetworkManagerKey.self] }
     set { self[NetworkManagerKey.self] = newValue }
   }
 }
 
 public struct NetworkManagerKey: DependencyKey {
-  // TODO: fix concurrency
-  nonisolated(unsafe) public static var liveValue: NetworkManager = .init()
+  public static let liveValue: NetworkManager = .init()
 }

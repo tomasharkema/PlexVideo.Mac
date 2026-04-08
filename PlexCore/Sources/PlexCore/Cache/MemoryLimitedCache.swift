@@ -8,11 +8,11 @@
 import Combine
 import ConcurrencyExtras
 import Foundation
-import os
 import UniformTypeIdentifiers
+import os
 
 #if os(iOS)
-import UIKit
+  import UIKit
 #endif
 
 // swiftlint:disable shorthand_operator
@@ -30,8 +30,8 @@ final class MemoryLimitedCache: Cache, Sendable {
 
   // private let accessLock = UnfairLock()
   private var assets =
-    LockIsolated([Asset.ID: Asset]()) //: [Asset.ID: Asset] = [:] // GuardedBy(accessLock)
-  private var protectedAssetIDs: [Asset.ID: Int] = [:] // GuardedBy(accessLock)
+    LockIsolated([Asset.ID: Asset]())  //: [Asset.ID: Asset] = [:] // GuardedBy(accessLock)
+  private var protectedAssetIDs: [Asset.ID: Int] = [:]  // GuardedBy(accessLock)
   private var cancellation = [AnyCancellable]()
 
   private let logger: Logger
@@ -49,15 +49,15 @@ final class MemoryLimitedCache: Cache, Sendable {
     self.logger = logger
     self.signposter = signposter ?? OSSignposter(logger: logger)
 
-// Purge everything when app is under memory pressure.
-#if os(iOS)
-    Task { @MainActor in
-      NotificationCenter.default
-        .publisher(for: UIApplication.didReceiveMemoryWarningNotification)
-        .sink { [weak self] _ in self?.purge() }
-        .store(in: &cancellation)
-    }
-#endif
+    // Purge everything when app is under memory pressure.
+    #if os(iOS)
+      Task { @MainActor in
+        NotificationCenter.default
+          .publisher(for: UIApplication.didReceiveMemoryWarningNotification)
+          .sink { [weak self] _ in self?.purge() }
+          .store(in: &cancellation)
+      }
+    #endif
   }
 
   func fetchByID(_ id: Asset.ID) -> Asset? {
@@ -137,7 +137,7 @@ final class MemoryLimitedCache: Cache, Sendable {
     )
     defer { signposter.endInterval("Purge", interval, "newCount=\(self.assets.count)") }
 
-    guard var amountToGo = amount, amountToGo < currentMemoryUsage else {
+    guard var amountToGo = amount, amountToGo < currentMemoryUsag else {
       assets.withValue { assets in
         assets.removeAll()
       }

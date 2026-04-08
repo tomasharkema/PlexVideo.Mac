@@ -43,7 +43,7 @@ extension DependencyValues {
   }
 }
 
-package protocol PlexServerEndpointProviderProtocol: AnyObject, Sendable {
+package protocol PlexServerEndpointProviderProtocol: Sendable {
   func provider(server: ServerWithCurrentConnection) async -> PlexServerEndpointAPI
 }
 

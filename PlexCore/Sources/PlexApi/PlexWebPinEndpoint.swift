@@ -36,3 +36,8 @@ struct PlexWebPinEndpointAPIKey: TestDependencyKey {
   static let testValue: any PlexWebPinEndpointProviderProtocol =
     TestPlexWebPinEndpointProviderProtocol()
 }
+
+extension PlexWebPinEndpointAPIKey: DependencyKey {
+  package static let liveValue: any PlexWebPinEndpointProviderProtocol =
+    PlexWebPinEndpointProvider()
+}

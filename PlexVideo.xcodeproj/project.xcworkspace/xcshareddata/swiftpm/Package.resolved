@@ -1,5 +1,5 @@
 {
-  "originHash" : "c4586e2718480dd04af8923ed62901c2419ab53ab0d70697877df35b5f3614eb",
+  "originHash" : "dbcd725b22bbaecb5772e866f2d9b938056ae3161dbce8494c8333baecf11e7f",
   "pins" : [
     {
       "identity" : "asynchrone",
@@ -150,8 +150,17 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tomasharkema/swift-tracing",
       "state" : {
-        "revision" : "5653eab9956f95d9f3d14c734c28c86d7342a356",
-        "version" : "0.0.40"
+        "revision" : "1420aa6bc8916ed5bac8125742b839f8abd20beb",
+        "version" : "0.0.41"
+      }
+    },
+    {
+      "identity" : "swiftdemangle",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/oozoofrog/SwiftDemangle",
+      "state" : {
+        "revision" : "41ad01ac001f2ee57545b0de4f2e6c4a3ea5f400",
+        "version" : "6.2.3"
       }
     },
     {
@@ -170,6 +179,15 @@
       "state" : {
         "revision" : "26986a57e31c813f98262ddb62d4b07d40008535",
         "version" : "26.0.1"
+      }
+    },
+    {
+      "identity" : "swiftui-macros",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tomasharkema/SwiftUI-Macros",
+      "state" : {
+        "branch" : "main",
+        "revision" : "41b9217548e10bce8b684d2d7ab59ed18ece6e2a"
       }
     },
     {

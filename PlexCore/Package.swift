@@ -64,6 +64,7 @@ let package = Package(
         "AsyncHelpers",
         "MetaCodable",
         "Asynchrone",
+        "Processed",
         .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
         .product(name: "Dependencies", package: "swift-dependencies"),
         // .product(name: "DependenciesMacros", package: "swift-dependencies"),
