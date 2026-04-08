@@ -5,16 +5,16 @@
 //  Created by Tomas Harkema on 24/10/2023.
 //
 
+import Foundation
+import OSLog
+
 #if canImport(FirebaseCrashlytics)
   public import FirebaseCrashlytics
 #endif
 
-import Foundation
-import OSLog
-
 private let logger = Logger(subsystem: "PlexVideo", category: "CodableWrapper")
 
-public struct CodableWrapper<Value: Codable> {
+public struct CodableWrapper<Value: Codable>: Codable {
   public let value: Value
 }
 
@@ -23,9 +23,9 @@ extension CodableWrapper: RawRepresentable {
 
   public init?(rawValue: RawValue) {
     do {
-//      guard let data = rawValue.data(using: .utf8) else {
-//        throw NullError()
-//      }
+      //      guard let data = rawValue.data(using: .utf8) else {
+      //        throw NullError()
+      //      }
       let data = Data(rawValue.utf8)
       value = try JSONDecoder.default.decode(Value.self, from: data)
     } catch {
@@ -53,3 +53,5 @@ extension CodableWrapper: RawRepresentable {
     }
   }
 }
+
+extension CodableWrapper: Sendable where Value: Sendable {}

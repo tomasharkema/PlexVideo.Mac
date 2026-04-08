@@ -8,8 +8,7 @@
 import Foundation
 import MetaCodable
 
-@Codable
-public struct Video: Equatable, Sendable {
+public struct Video: Equatable, Sendable, Codable {
   public let key: VideoKey
   public let guid: String?
   public let title: String
@@ -54,26 +53,25 @@ public struct Video: Equatable, Sendable {
     let remoteProgress = Progress(video: self)
 
     let viableStorageProgress: Progress? =
-      if let storageProgress
-    {
-      if abs(storageProgress.date.timeIntervalSinceNow) < 7 * 24 * 60 * 60 {
-        storageProgress
+      if let storageProgress {
+        if abs(storageProgress.date.timeIntervalSinceNow) < 7 * 24 * 60 * 60 {
+          storageProgress
+        } else {
+          nil
+        }
+
       } else {
         nil
       }
 
-    } else {
-      nil
-    }
-
     switch (remoteProgress, viableStorageProgress) {
-    case let (remote?, storage?) where storage.date > remote.date:
+    case (let remote?, let storage?) where storage.date > remote.date:
       return storage
-    case let (remote?, .some(_)):
+    case (let remote?, .some(_)):
       return remote
-    case let (remote?, .none):
+    case (let remote?, .none):
       return remote
-    case let (.none, storage?):
+    case (.none, let storage?):
       return storage
     case (.none, .none):
       return .zero

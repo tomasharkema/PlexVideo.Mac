@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftStacktrace
 
 public enum HTTPError: Error {
   case noHttpResponse
@@ -13,11 +14,11 @@ public enum HTTPError: Error {
 
   public static func throwFor(urlResponse: URLResponse) throws {
     guard let httpRes = (urlResponse as? HTTPURLResponse) else {
-      throw HTTPError.noHttpResponse
+      throw StacktraceError(HTTPError.noHttpResponse)
     }
 
-    guard (200 ..< 400).contains(httpRes.statusCode) else {
-      throw HTTPError.unexpectedStatusCode(code: httpRes.statusCode)
+    guard (200..<400).contains(httpRes.statusCode) else {
+      throw StacktraceError(HTTPError.unexpectedStatusCode(code: httpRes.statusCode))
     }
   }
 }

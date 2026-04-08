@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftStacktrace
 
 public enum TaskStateResult<ResultType: Sendable>: Sendable {
   case idle
@@ -56,10 +57,10 @@ public actor TaskState<ResultType: Sendable>: Sendable {
       return result
     } catch let error as CancellationError {
       self.state = .cancelled
-      throw error
+      throw StacktraceError(error)
     } catch {
       state = .error(error)
-      throw error
+      throw StacktraceError(error)
     }
   }
 

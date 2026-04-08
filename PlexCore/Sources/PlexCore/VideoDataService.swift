@@ -15,7 +15,7 @@ struct ListResult {
   var progress: [(VideoFromServer.ID, PlexShared.Progress)]
 }
 
-public final class VideoDataService: Sendable {
+public final class VideoDataService: @unchecked Sendable {
   @Dependency(\.api)
   private var api
 
@@ -31,9 +31,10 @@ public final class VideoDataService: Sendable {
     try await video.video.getProgress(storage: storage.getSavedOffset(video: video.video))
   }
 
-  private func getSections(server: ServerWithCurrentConnection,
-                           onlyCached: Bool) async throws -> [Directory]
-  {
+  private func getSections(
+    server: ServerWithCurrentConnection,
+    onlyCached: Bool
+  ) async throws -> [Directory] {
     try await api.sections(server: server, onlyCached: onlyCached).mediaContainer.directory.filter {
       $0.type == "movie" || $0.type == "show"
     }
@@ -209,5 +210,5 @@ public extension DependencyValues {
 }
 
 private struct VideoDataServiceKey: DependencyKey {
-  static var liveValue: VideoDataService = .init()
+  static let liveValue: VideoDataService = .init()
 }

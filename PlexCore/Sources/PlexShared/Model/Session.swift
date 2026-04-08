@@ -9,7 +9,7 @@ import Foundation
 import MetaCodable
 
 @Codable
-public struct Session: Hashable, Equatable {
+public struct Session: Hashable, Equatable, Sendable {
   @CodedAt("id")
   public let rawId: String
   public let bandwidth: Double

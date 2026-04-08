@@ -12,6 +12,7 @@ import OSLog
 import PlexApi
 import PlexShared
 import Processed
+import SwiftStacktrace
 
 #if os(iOS)
   import UIKit
@@ -19,7 +20,7 @@ import Processed
 
 extension FileManager: @unchecked Sendable {}
 
-final class ImageStore: Sendable {
+struct ImageStore: Sendable {
   private let logger = Logger(subsystem: "PlexVideo", category: "ImageStore")
 
   static let shared = ImageStore()
@@ -70,8 +71,7 @@ final class ImageStore: Sendable {
     }
   }
 
-  @RequestCacheActor
-  private var requestsCache: [Asset.ID: Task<(asset: Asset, remote: Bool), any Error>] = [:]
+  private var requestsCache = LockIsolated([Asset.ID: Task<(asset: Asset, remote: Bool), any Error>]())
 
   private func prepareAssetIfNeeded(
     id: Asset.ID,
@@ -87,17 +87,14 @@ final class ImageStore: Sendable {
         return try await prepareAsset(id: id, url: url, size: size)
       } catch {
         logger.error("prepareAssetIfNeeded error: \(error)")
-        throw error
+        throw StacktraceError(error)
       }
     }
 
-    Task(priority: .low) { @RequestCacheActor in
-      requestsCache[id] = task
-    }
+    requestsCache.withValue { $0[id] = task }
+
     defer {
-      Task(priority: .low) { @RequestCacheActor in
-        requestsCache.removeValue(forKey: id)
-      }
+      requestsCache.withValue { $0.removeValue(forKey: id) }
     }
 
     return try await task.value
@@ -144,16 +141,16 @@ final class ImageStore: Sendable {
     #elseif os(macOS)
       let image =
         ImageIO
-          .resizedImageWithHintingAndSubsampling(
-            at: asset,
-            for: size
-          ) // .preloadImage(at: asset, for: size)//.resizedImageWithHintingAndSubsampling(at: asset, for: size)
+        .resizedImageWithHintingAndSubsampling(
+          at: asset,
+          for: size
+        )  // .preloadImage(at: asset, for: size)//.resizedImageWithHintingAndSubsampling(at: asset, for: size)
     #else
       #error("unsupported platform")
     #endif
 
     guard
-      let image // = asset.//ImageIO.resizedImageWithHintingAndSubsampling(at: asset, for:
+      let image  // = asset.//ImageIO.resizedImageWithHintingAndSubsampling(at: asset, for:
     // size)?.preparingForDisplay()
     else {
       throw AssetError.assetNotFound
@@ -182,7 +179,7 @@ extension Video {
   }
 }
 
-@globalActor
-public actor RequestCacheActor {
-  public static let shared = RequestCacheActor()
-}
+//@globalActor
+//public actor RequestCacheActor {
+//  public static let shared = RequestCacheActor()
+//}

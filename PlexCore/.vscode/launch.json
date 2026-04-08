@@ -1,24 +1,30 @@
 {
   "configurations": [
     {
-      "type": "lldb",
+      "type": "swift",
       "request": "launch",
-      "sourceLanguages": ["swift"],
+      "sourceLanguages": [
+        "swift"
+      ],
       "args": [],
       "cwd": "${workspaceFolder:PlexCore}",
-      "name": "Debug Tester",
-      "program": "${workspaceFolder:PlexCore}/.build/debug/Tester",
-      "preLaunchTask": "swift: Build Debug Tester"
+      "name": "Debug PlexRunner",
+      "preLaunchTask": "swift: Build Debug PlexRunner",
+      "target": "PlexRunner",
+      "configuration": "debug"
     },
     {
-      "type": "lldb",
+      "type": "swift",
       "request": "launch",
-      "sourceLanguages": ["swift"],
+      "sourceLanguages": [
+        "swift"
+      ],
       "args": [],
       "cwd": "${workspaceFolder:PlexCore}",
-      "name": "Release Tester",
-      "program": "${workspaceFolder:PlexCore}/.build/release/Tester",
-      "preLaunchTask": "swift: Build Release Tester"
+      "name": "Release PlexRunner",
+      "preLaunchTask": "swift: Build Release PlexRunner",
+      "target": "PlexRunner",
+      "configuration": "release"
     }
   ]
 }

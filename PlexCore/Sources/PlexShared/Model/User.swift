@@ -9,7 +9,7 @@ import Foundation
 import MetaCodable
 
 @Codable
-public struct User: Hashable, Equatable {
+public struct User: Hashable, Equatable, Sendable {
   @CodedAt("id")
   public let rawId: String
   public let thumb: URL?

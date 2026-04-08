@@ -72,7 +72,7 @@ public final class NetworkManager: NSObject, Sendable {
   }
 }
 
-class NetworkManagerDelegate: NSObject, URLSessionDataDelegate {
+final class NetworkManagerDelegate: NSObject, URLSessionDataDelegate {
   fileprivate var continuation: AsyncStream<(URLSessionTaskTransactionMetrics, UUID)>.Continuation!
 
   public nonisolated func urlSession(
@@ -91,13 +91,13 @@ class NetworkManagerDelegate: NSObject, URLSessionDataDelegate {
   }
 }
 
-public extension DependencyValues {
-  var networkManager: NetworkManager {
+extension DependencyValues {
+  public var networkManager: NetworkManager {
     get { self[NetworkManagerKey.self] }
     set { self[NetworkManagerKey.self] = newValue }
   }
 }
 
 public struct NetworkManagerKey: DependencyKey {
-  public static var liveValue: NetworkManager = .init()
+  public static let liveValue: NetworkManager = .init()
 }

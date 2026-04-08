@@ -16,9 +16,8 @@ public struct PingerState {
   public var lastRun: Date
 }
 
-@MainActor
 @Observable
-public final class ServerPinger: Sendable, LoadableSupport {
+public final class ServerPinger: @unchecked Sendable, LoadableSupport {
   @ObservationIgnored
   private let logger = Logger(subsystem: "PlexVideo", category: "ServerPinger")
 
@@ -26,18 +25,23 @@ public final class ServerPinger: Sendable, LoadableSupport {
   @Dependency(\.serverLocator)
   private var serverLocator
 
+  @MainActor
   public private(set) var state: LoadableState<PingerState> = .absent
 
   public init() {
-    startPinging()
+    Task { @MainActor in
+      startPinging()
+    }
   }
 
+  @MainActor
   private func updatePing(ping: PingResult, yield: (PingerState) -> Void) {
     var updated = state.data ?? PingerState(results: [:], lastRun: .now)
     updated.results[ping.serverWithConnection.id] = ping
     yield(updated)
   }
 
+  @MainActor
   private func ping(timeout: Duration = .seconds(1), yield: (PingerState) -> Void) async {
     do {
       let stream = try await serverLocator.pingsStream(
@@ -59,6 +63,7 @@ public final class ServerPinger: Sendable, LoadableSupport {
     }
   }
 
+  @MainActor
   private func startPinging() {
     load(\.state, priority: .low) { yield in
       while !Task.isCancelled {
@@ -73,21 +78,20 @@ public final class ServerPinger: Sendable, LoadableSupport {
     }
   }
 
-//  public func stopPinging() {
-//    cancel(\.state)
+  //  public func stopPinging() {
+  //    cancel(\.state)
   //    pingerTask?.cancel()
   //    pingerTask = nil
-//  }
+  //  }
 }
 
-public extension DependencyValues {
-  var serverPinger: ServerPinger {
+extension DependencyValues {
+  public var serverPinger: ServerPinger {
     get { self[ServerPingerKey.self] }
     set { self[ServerPingerKey.self] = newValue }
   }
 }
 
 private struct ServerPingerKey: DependencyKey {
-  @MainActor
-  static var liveValue: ServerPinger = .init()
+  static let liveValue: ServerPinger = .init()
 }

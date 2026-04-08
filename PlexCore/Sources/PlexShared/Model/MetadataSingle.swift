@@ -9,7 +9,7 @@ import Foundation
 import MetaCodable
 
 @Codable
-public struct MetadataSingle<T: Codable & Equatable>: Equatable {
+public struct MetadataSingle<T: Codable & Equatable & Sendable>: Equatable, Sendable {
   @CodedAt("Metadata")
   public let metadata: T
 }

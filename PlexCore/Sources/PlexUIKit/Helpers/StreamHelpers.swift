@@ -9,7 +9,7 @@ import Foundation
 import PlexCore
 import PlexShared
 
-let bandwidthFormatter: MeasurementFormatter = {
+nonisolated(unsafe) let bandwidthFormatter: MeasurementFormatter = {
   let formatter = MeasurementFormatter()
   formatter.numberFormatter.maximumFractionDigits = 0
   formatter.numberFormatter.roundingMode = .up

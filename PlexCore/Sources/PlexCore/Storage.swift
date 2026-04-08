@@ -33,6 +33,9 @@ public final class Storage: ObservableObject, ServerLocatorStorageProviding,
   @AppStorage("serversResponse")
   public var servers: CodableWrapper<[Server]>?
 
+  @AppStorage("userProfile")
+  public var userProfile: CodableWrapper<UserProfile>?
+
   public nonisolated init() {}
 
   public var uuid: String {
@@ -88,6 +91,14 @@ public extension DependencyValues {
   }
 }
 
+//public extension DependencyValues {
+//  var authStorageProviding: any ServerLocatorStorageProviding {
+//    get { self[AuthStorageProvidingKey.self] }
+//    set { self[AuthStorageProvidingKey.self] = newValue }
+//  }
+//}
+
+
 public struct StorageKey: DependencyKey {
   public static let liveValue: Storage = .init()
 }
@@ -103,28 +114,3 @@ extension AuthStorageProvidingKey: DependencyKey {
 extension RequestorStorageProvidingKey: DependencyKey {
   public static let liveValue: (any RequestorStorageProviding) = StorageKey.liveValue
 }
-
-// extension ServerWithCurrentConnection: RawRepresentable {
-//  public init?(rawValue: String) {
-//    guard let data = rawValue.data(using: .utf8) else {
-//      return nil
-//    }
-//
-//    do {
-//      self = try JSONDecoder.default.decode(ServerWithCurrentConnection.self, from: data)
-//    } catch {
-//      Storage.logger.error("Connection raw decode error: \(error)")
-//      return nil
-//    }
-//  }
-//
-//  public var rawValue: String {
-//    do {
-//      let data = try JSONEncoder().encode(self)
-//      return String(data: data, encoding: .utf8) ?? ""
-//    } catch {
-//      Storage.logger.error("Connection raw encode error: \(error)")
-//      return ""
-//    }
-//  }
-// }

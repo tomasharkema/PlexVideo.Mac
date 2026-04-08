@@ -12,7 +12,7 @@ import PlexShared
 import SwiftUI
 
 #if canImport(UIKit)
-  import UIKit
+import UIKit
 #endif
 
 // @MainActor
@@ -36,13 +36,13 @@ struct VideoDetail: View {
         ProgressView()
 
       case let .loaded(player):
-        #if os(iOS)
-          VideoPlayer()
-        #elseif os(macOS)
-          MacosVideoPlayerContainer()
-        #else
-          BackupVideoPlayer()
-        #endif
+#if os(iOS)
+        VideoPlayer()
+#elseif os(macOS)
+        MacosVideoPlayerContainer()
+#else
+        BackupVideoPlayer()
+#endif
 
       case let .error(error):
         EmptyView().alert(isPresented: .constant(true)) {

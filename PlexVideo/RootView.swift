@@ -19,7 +19,8 @@ struct RootView: View {
   var body: some View {
     if let _ = storage.plexToken {
       MainView()
-    } else {
+    } 
+    else {
       Login()
     }
   }

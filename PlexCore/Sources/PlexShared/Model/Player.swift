@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct Player: Codable, Hashable, Equatable {
+public struct Player: Codable, Hashable, Equatable, Sendable {
   public let address: String
   public let device: String?
   public let machineIdentifier: String

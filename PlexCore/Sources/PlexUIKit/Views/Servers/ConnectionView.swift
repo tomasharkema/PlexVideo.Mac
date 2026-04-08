@@ -75,7 +75,7 @@ struct ConnectionView: View {
   var body: some View {
     HStack {
       if !server.connection.local {
-        SFSymbol.cloud.image()
+                SFSymbol.cloud.image()
       }
 
       Text(server.connection.address)

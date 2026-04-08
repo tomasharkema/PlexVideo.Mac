@@ -9,7 +9,7 @@ import Foundation
 import MetaCodable
 
 @Codable
-public struct DirectoryContainer {
+public struct DirectoryContainer: Codable {
   @CodedAt("Directory")
   public let directory: [Directory]
 }

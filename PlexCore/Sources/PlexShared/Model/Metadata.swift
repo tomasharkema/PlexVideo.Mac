@@ -9,7 +9,7 @@ import Foundation
 import MetaCodable
 
 @Codable
-public struct Metadata<MetadataType: Codable> {
+public struct Metadata<MetadataType: Codable>: Codable {
   @CodedAt("Metadata")
   public let metadata: [MetadataType]
 }
@@ -17,7 +17,7 @@ public struct Metadata<MetadataType: Codable> {
 extension Metadata: Sendable where MetadataType: Sendable {}
 
 @Codable
-public struct Hub<MetadataType: Codable> {
+public struct Hub<MetadataType: Codable>: Codable {
   @CodedAt("Hub")
   public let hub: [Metadata<MetadataType>]
 }

@@ -8,62 +8,56 @@
 import AsyncAlgorithms
 import AsyncHelpers
 import Dependencies
+// import DependenciesMacros
 import Foundation
 import OSLog
 import PlexShared
+import SwiftStacktrace
 
 enum ServerLocatorError: LocalizedError {
   case noUrl
   case noDetection
 }
 
+@MainActor
 @Observable
-public final class ServerLocator: Sendable {
+public final class ServerLocatorState {
+  var lastTriedRootDate: Date?
+  var lastForceTryDate: Date?
+  var isInvalidating = false
+  public package(set) var connection = [Server.ID: ServerWithCurrentConnection]()
+  public package(set) var devicesLastFetch: Date?
+  public package(set) var servers: ServersResponse?
+
+  nonisolated init() {}
+}
+
+public struct ServerLocator: Sendable {
   private let logger = Logger(subsystem: "PlexVideo", category: "ServerLocator")
 
-//  private let resources = ResourcesService()
+  public let state = ServerLocatorState()
 
-  @ObservationIgnored
+  //  private let resources = ResourcesService()
+
   @Dependency(\.resourcesService)
   private var resources
 
-  @ObservationIgnored
   @Dependency(\.requestor)
   private var requestor
 
-  @ObservationIgnored
   @Dependency(\.serverLocatorStorageProviding)
   private var storage
 
-  @ObservationIgnored
   @Dependency(\.networkManager)
   private var networkManager
-
-  @MainActor
-  private(set) var lastTriedRootDate: Date?
-
-  @MainActor
-  private(set) var lastForceTryDate: Date?
-
-  @MainActor
-  private var isInvalidating = false
-
-  @MainActor
-  public private(set) var connection = [Server.ID: ServerWithCurrentConnection]()
-
-  @MainActor
-  public private(set) var devicesLastFetch: Date?
-
-  @MainActor
-  public private(set) var servers: ServersResponse?
 
   //  @MainActor
   //  public private(set) var pings = [PingResult]()
 
-  @ObservationIgnored
-  fileprivate let rootEnsureOnce = EnsureOnce<Server.ID, ServerWithCurrentConnection>()
+  // @ObservationIgnored
+  // fileprivate let rootEnsureOnce = EnsureOnce<Server.ID, ServerWithCurrentConnection>()
 
-  public init() {
+  func start() {
     Task(priority: .low) {
       _ = try await getServersForced()
     }
@@ -80,7 +74,7 @@ public final class ServerLocator: Sendable {
     // phase 2: check if saved local and remote ip's are still viable
     do {
       guard let localConnection = await storage.lastUsedLocalConnection,
-            let remoteConnection = await storage.lastUsedRemoteConnection
+        let remoteConnection = await storage.lastUsedRemoteConnection
       else {
         return .failure(ServerLocatorError.noDetection)
       }
@@ -94,9 +88,9 @@ public final class ServerLocator: Sendable {
 
       if let connection {
         await MainActor.run {
-          var new = self.connection
+          var new = self.state.connection
           new[server.id] = connection
-          self.connection = new
+          self.state.connection = new
         }
         return .success(connection)
       } else {
@@ -151,7 +145,7 @@ public final class ServerLocator: Sendable {
       return remoteConnection
     } catch {
       logger.error("remote not succeeded \(error)")
-      throw error
+      throw StacktraceError(error)
     }
   }
 
@@ -223,7 +217,7 @@ public final class ServerLocator: Sendable {
       connections: connections,
       timeout: .seconds(1)
     )
-    return await results.compactMap { res in
+    return await results.compactMap { [logger] res in
       do {
         guard res.serverWithConnection.server == server else {
           return nil
@@ -231,7 +225,7 @@ public final class ServerLocator: Sendable {
         let result = try res.get()
         return result
       } catch {
-        self.logger.error("ping first result error: \(error)")
+        logger.error("ping first result error: \(error)")
         return nil
       }
     }.first {
@@ -239,7 +233,8 @@ public final class ServerLocator: Sendable {
     }
   }
 
-  private nonisolated func chooseServer(
+  @concurrent
+  private func chooseServer(
     server: Server
   ) async throws -> ServerWithCurrentConnection? {
     let connections = server.connections.filter {
@@ -263,25 +258,24 @@ public final class ServerLocator: Sendable {
     )
 
     let choice: ServerWithCurrentConnection? =
-      if let local = try? await localPings
-    {
-      ServerWithCurrentConnection(
-        server: local.serverWithConnection.server,
-        connection: local.serverWithConnection.connection
-      )
-    } else if let remote = try await remotePings {
-      ServerWithCurrentConnection(
-        server: remote.serverWithConnection.server,
-        connection: remote.serverWithConnection.connection
-      )
-    } else {
-      nil
-    }
+      if let local = try? await localPings {
+        ServerWithCurrentConnection(
+          server: local.serverWithConnection.server,
+          connection: local.serverWithConnection.connection
+        )
+      } else if let remote = try await remotePings {
+        ServerWithCurrentConnection(
+          server: remote.serverWithConnection.server,
+          connection: remote.serverWithConnection.connection
+        )
+      } else {
+        nil
+      }
 
     await MainActor.run {
-      var new = self.connection
+      var new = self.state.connection
       new[server.id] = choice
-      self.connection = new
+      self.state.connection = new
 
       storage.lastUsedConnection = choice.map { CodableWrapper(value: $0) }
     }
@@ -313,17 +307,17 @@ public final class ServerLocator: Sendable {
 
   @MainActor
   func invalidate(server: Server) async {
-    if isInvalidating {
+    if state.isInvalidating {
       return
     }
 
-    isInvalidating = true
+    state.isInvalidating = true
     defer {
-      isInvalidating = false
+      state.isInvalidating = false
     }
 
     storage.lastUsedConnection = nil
-    connection.removeValue(forKey: server.id)
+    state.connection.removeValue(forKey: server.id)
 
     do {
       _ = try await root(server: server, force: true)
@@ -341,7 +335,7 @@ extension ServerLocator {
       for server in servers {
         group.addTask {
           do {
-            try await self.rootForced(server: server.server)
+            _ = try await self.rootForced(server: server.server)
           } catch {
             self.logger.error("rootForcedForAll error: \(error)")
           }
@@ -351,12 +345,13 @@ extension ServerLocator {
   }
 
   private func rootForced(server: Server) async throws -> ServerWithCurrentConnection {
-    try await EnsureOnce.once {
+    return try await EnsureOnce.once {
+      // guard let self else { throw NSError(domain: "derp", code: 0) }
       guard let connection = try await self.chooseServer(server: server) else {
         throw ServerLocatorError.noUrl
       }
       await MainActor.run {
-        self.lastForceTryDate = Date()
+        self.state.lastForceTryDate = Date()
       }
       return connection
     }
@@ -378,19 +373,20 @@ extension ServerLocator {
     }
   }
 
+  @MainActor
   public func getServers() async throws -> ServersResponse {
-    let localServers = await servers
+    let localServers = await state.servers
     let storedServers = await storage.servers?.value
 
     if localServers == nil, let storedServers {
       await MainActor.run {
-        self.servers = storedServers.map {
+        self.state.servers = storedServers.map {
           ServerAndCapabilities(server: $0, capabilities: .failure(NullError()))
         }
       }
     }
 
-    if let servers = await servers {
+    if let servers = await state.servers {
       return servers
     }
 
@@ -401,110 +397,117 @@ extension ServerLocator {
     try await EnsureOnce.once {
       let servers = try await self.resources.servers()
       Task { @MainActor in
-        self.servers = servers
+        self.state.servers = servers
         self.storage.servers = CodableWrapper(value: servers.map(\.server))
       }
       return servers
     }
   }
 
-  public func root(
+  @MainActor public func root(
     server: Server,
     force: Bool = false
   ) async throws -> ServerWithCurrentConnection {
     if force {
-      await rootEnsureOnce.cancel(id: server.id)
+      // await rootEnsureOnce.cancel(id: server.id)
       return try await rootForced(server: server)
     }
 
-    if let connection = await connection[server.id] {
+    if let connection = await self.state.connection[server.id] {
       return connection
     }
 
-    return try await rootEnsureOnce.once(id: server.id) {
-      let servers = try await self.getServers()
+    //    return try await rootEnsureOnce.once(id: server.id) {
+    let servers = try await self.getServers()
 
-      guard let server = servers.first else {
-        throw NSError(domain: "derp", code: 69)
-      }
-
-      // phase 1: check for last used root and if its still viable...
-      do {
-        if let lastUsedConnection = await self.storage.lastUsedConnection {
-          if await self.lastTriedRootDate == nil {
-            let pingResult = try await self.resources.ping(
-              server: ServerWithConnection(
-                server: lastUsedConnection.value.server,
-                connection: lastUsedConnection.value.connection
-              ),
-              timeout: .seconds(1)
-            ).get()
-            self.logger.info("phase 1 \(String(describing: pingResult))")
-            await MainActor.run {
-              self.lastTriedRootDate = Date()
-            }
-          }
-          await MainActor.run {
-            var new = self.connection
-            new[server.id] = lastUsedConnection.value
-            self.connection = new
-          }
-          return lastUsedConnection.value
-        }
-      } catch {
-        await MainActor.run {
-          self.storage.lastUsedConnection = nil
-        }
-        self.logger.error("lastUsedRoot not viable... continuing! \(error)")
-      }
-
-      do {
-        let res = try await self.checkLocalAndRemoteIp(
-          server: server.server,
-          timeout: .seconds(5)
-        )
-        .get()
-        return res
-      } catch {
-        self.logger.error("secondPhase not viable... continuing! \(error)")
-      }
-
-      // phase 3: refetch potential servers to connect to
-      guard let url = try await self.chooseServer(server: server.server) else {
-        throw ServerLocatorError.noUrl
-      }
-      return url
+    guard let server = servers.first else {
+      throw NSError(domain: "derp", code: 69)
     }
+
+    // phase 1: check for last used root and if its still viable...
+    do {
+      if let lastUsedConnection = await self.storage.lastUsedConnection {
+        if await self.state.lastTriedRootDate == nil {
+          let pingResult = try await self.resources.ping(
+            server: ServerWithConnection(
+              server: lastUsedConnection.value.server,
+              connection: lastUsedConnection.value.connection
+            ),
+            timeout: .seconds(1)
+          ).get()
+          self.logger.info("phase 1 \(String(describing: pingResult))")
+          await MainActor.run {
+            self.state.lastTriedRootDate = Date()
+          }
+        }
+        await MainActor.run {
+          var new = self.state.connection
+          new[server.id] = lastUsedConnection.value
+          self.state.connection = new
+        }
+        return lastUsedConnection.value
+      }
+    } catch {
+      await MainActor.run {
+        self.storage.lastUsedConnection = nil
+      }
+      self.logger.error("lastUsedRoot not viable... continuing! \(error)")
+    }
+
+    do {
+      let res = try await self.checkLocalAndRemoteIp(
+        server: server.server,
+        timeout: .seconds(5)
+      )
+      .get()
+      return res
+    } catch {
+      self.logger.error("secondPhase not viable... continuing! \(error)")
+    }
+
+    // phase 3: refetch potential servers to connect to
+    guard let url = try await self.chooseServer(server: server.server) else {
+      throw ServerLocatorError.noUrl
+    }
+    return url
   }
+  //   }
 }
 
 @MainActor
-public protocol ServerLocatorStorageProviding: AnyObject {
+public protocol ServerLocatorStorageProviding: AnyObject, Sendable {
   var lastUsedConnection: CodableWrapper<ServerWithCurrentConnection>? { get set }
   var lastUsedLocalConnection: CodableWrapper<ServerWithCurrentConnection>? { get set }
   var lastUsedRemoteConnection: CodableWrapper<ServerWithCurrentConnection>? { get set }
   var servers: CodableWrapper<[Server]>? { get set }
 }
 
-public extension DependencyValues {
-  var serverLocatorStorageProviding: any ServerLocatorStorageProviding {
+final class TestServerLocatorStorageProviding: ServerLocatorStorageProviding {
+  var lastUsedConnection: CodableWrapper<ServerWithCurrentConnection>?
+  var lastUsedLocalConnection: CodableWrapper<ServerWithCurrentConnection>?
+  var lastUsedRemoteConnection: CodableWrapper<ServerWithCurrentConnection>?
+  var servers: CodableWrapper<[Server]>?
+}
+
+extension DependencyValues {
+  public var serverLocatorStorageProviding: any ServerLocatorStorageProviding {
     get { self[ServerLocatorStorageProvidingKey.self] }
     set { self[ServerLocatorStorageProvidingKey.self] = newValue }
   }
 }
 
 public struct ServerLocatorStorageProvidingKey: TestDependencyKey {
-  public static var testValue: (any ServerLocatorStorageProviding) =
-    unimplemented() //: (any ServerLocatorStorageProviding)?
+  public static let testValue: (any ServerLocatorStorageProviding) =
+    TestServerLocatorStorageProviding()
 }
 
-public extension DependencyValues {
-  var serverLocator: ServerLocator {
+extension DependencyValues {
+  public var serverLocator: ServerLocator {
     get { self[ServerLocatorKey.self] }
     set { self[ServerLocatorKey.self] = newValue }
   }
 }
 
 private struct ServerLocatorKey: DependencyKey {
-  static var liveValue: ServerLocator = .init()
+  static let liveValue: ServerLocator = .init()
 }

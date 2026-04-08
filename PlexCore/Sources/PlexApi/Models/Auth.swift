@@ -9,15 +9,15 @@ import Dependencies
 import Foundation
 import OSLog
 import PlexShared
-import SwiftMacros
+
+//import SwiftMacros
 
 enum AuthError: LocalizedError {
   case limitReached
   case noUrl
 }
 
-@MainActor
-public final class Auth {
+public struct Auth: Sendable {
   private let logger = Logger(subsystem: "PlexVideo", category: "Auth")
 
   @Dependency(\.authStorageProviding)
@@ -26,8 +26,12 @@ public final class Auth {
   @Dependency(\.requestor)
   private var requestor
 
-  public nonisolated init() {}
+  @Dependency(\.plexWebPinEndpoint)
+  private var plexWebPinEndpoint
 
+  public init() {}
+
+  @MainActor
   public func pollForPin(
     deviceInfo: DeviceInfo,
     pinId: String,
@@ -43,28 +47,30 @@ public final class Auth {
     try await Task.sleep(for: .seconds(requestDelay))
 
     let deviceUuid = storage.uuid
-    let urlRoot = #buildURL("https://plex.tv/api/v2/pins/").appendingPathComponent("\(pinId)")
-//    let urlRoot = #buildURL("https://plex.tv/api/v2/pins/").appendingPathComponent("\(pinId)")
-    var urlComponents = URLComponents(url: urlRoot, resolvingAgainstBaseURL: true)!
-    urlComponents.queryItems =
-      (urlComponents.queryItems ?? []) + [
-        URLQueryItem(name: "X-Plex-Client-Identifier", value: deviceUuid),
-        URLQueryItem(name: "X-Plex-Product", value: deviceInfo.product),
-        URLQueryItem(name: "X-Plex-Platform", value: deviceInfo.platform),
-        URLQueryItem(name: "X-Plex-Platform-Version", value: deviceInfo.version),
-        URLQueryItem(name: "X-Plex-Device-Name", value: deviceInfo.product),
-        URLQueryItem(name: "X-Plex-Version", value: deviceInfo.appVersion),
-      ]
-
-    let url = urlComponents.url!
+    //    let urlRoot = #buildURL("https://plex.tv/api/v2/pins/").appendingPathComponent("\(pinId)")
+    ////    let urlRoot =
+    /// #buildURL("https://plex.tv/api/v2/pins/").appendingPathComponent("\(pinId)")
+    //    var urlComponents = URLComponents(url: urlRoot, resolvingAgainstBaseURL: true)!
+    //    urlComponents.queryItems =
+    //      (urlComponents.queryItems ?? []) + [
+    //        URLQueryItem(name: "X-Plex-Client-Identifier", value: deviceUuid),
+    //        URLQueryItem(name: "X-Plex-Product", value: deviceInfo.product),
+    //        URLQueryItem(name: "X-Plex-Platform", value: deviceInfo.platform),
+    //        URLQueryItem(name: "X-Plex-Platform-Version", value: deviceInfo.version),
+    //        URLQueryItem(name: "X-Plex-Device-Name", value: deviceInfo.product),
+    //        URLQueryItem(name: "X-Plex-Version", value: deviceInfo.appVersion),
+    //      ]
+    //
+    //    let url = urlComponents.url!
 
     do {
-      let token = try await requestor.request(
-        url: url,
-        PinToken.self,
-        sendDefaultQueries: false,
-        useCache: false
-      )
+      let token = try await plexWebPinEndpoint.provider().pins(pin: pinId)
+      //      let token = try await requestor.request(
+      //        url: url,
+      //        PinToken.self,
+      //        sendDefaultQueries: false,
+      //        useCache: false
+      //      )
 
       if let authToken = token.authToken {
         storage.plexToken = authToken
@@ -91,6 +97,7 @@ public final class Auth {
     }
   }
 
+  @MainActor
   public func authUrl(deviceInfo: DeviceInfo) async throws -> (URL, String) {
     let deviceUuid = storage.uuid
 
@@ -116,8 +123,7 @@ public final class Auth {
       useCache: false
     )
 
-    let urlWebRoot =
-      #buildURL("https://app.plex.tv/auth/#!?") // URL(string: "https://app.plex.tv/auth/#!?")!
+    let urlWebRoot = URL(string: "https://app.plex.tv/auth/#!?")!
     var urlComponentsWeb = URLComponents(url: urlWebRoot, resolvingAgainstBaseURL: true)!
     urlComponentsWeb.queryItems =
       (urlComponents.queryItems ?? []) + [
@@ -146,29 +152,35 @@ public final class Auth {
   }
 }
 
-public extension DependencyValues {
-  var auth: Auth {
+extension DependencyValues {
+  public var auth: Auth {
     get { self[AuthKey.self] }
     set { self[AuthKey.self] = newValue }
   }
 }
 
-private struct AuthKey: DependencyKey {
-  static var liveValue: Auth = .init()
+private enum AuthKey: DependencyKey {
+  static let liveValue = Auth()
 }
 
-public protocol AuthStorageProviding: AnyObject {
+@MainActor
+public protocol AuthStorageProviding: AnyObject, Sendable {
   var uuid: String { get }
   var plexToken: String? { get set }
 }
 
-public extension DependencyValues {
-  var authStorageProviding: any AuthStorageProviding {
+extension DependencyValues {
+  public var authStorageProviding: any AuthStorageProviding {
     get { self[AuthStorageProvidingKey.self] }
     set { self[AuthStorageProvidingKey.self] = newValue }
   }
 }
 
+class TestAuthStorageProviding: AuthStorageProviding {
+  var uuid: String { "" }
+  var plexToken: String? = nil
+}
+
 public struct AuthStorageProvidingKey: TestDependencyKey {
-  public static var testValue: (any AuthStorageProviding) = unimplemented()
+  public static let testValue: AuthStorageProviding = TestAuthStorageProviding()
 }

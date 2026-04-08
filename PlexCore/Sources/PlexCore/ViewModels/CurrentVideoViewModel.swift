@@ -14,10 +14,10 @@ import PlexApi
 import PlexShared
 import Processed
 import SwiftUI
-import SwiftUIMacros
+//import SwiftUIMacros
 
-@EnvironmentStorage
 public extension EnvironmentValues {
+  @Entry
   var currentVideoViewModel: CurrentVideoViewModel = .init()
 }
 
@@ -73,6 +73,8 @@ public final class CurrentVideoViewModel: LoadableSupport {
 
       case .unknown:
         logger.info("playerStatus unknown")
+      @unknown default:
+        fatalError()
       }
     }
   }
@@ -293,12 +295,12 @@ public final class CurrentVideoViewModel: LoadableSupport {
   }
 
   public var screenWidth: CGFloat {
-    #if os(iOS)
-      return UIScreen.main.bounds.width
-    #endif
-    #if os(macOS)
-      return NSScreen.main?.frame.width ?? 1920
-    #endif
+#if os(iOS)
+    return UIScreen.main.bounds.width
+#endif
+#if os(macOS)
+    return NSScreen.main?.frame.width ?? 1920
+#endif
   }
 
   public var minHeight: CGFloat {

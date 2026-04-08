@@ -33,7 +33,7 @@ extension ServerAndCapabilities: Identifiable {
 }
 
 @Codable
-public struct Server: Sendable, Equatable {
+public struct Server: Sendable, Equatable, Codable {
   public let name: String
   public let product: String
   public let productVersion: String

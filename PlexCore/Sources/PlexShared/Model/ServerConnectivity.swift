@@ -69,7 +69,7 @@ extension ServerWithConnection: Identifiable {
 }
 
 @Codable
-public struct ServerWithCurrentConnection: Sendable, Equatable {
+public struct ServerWithCurrentConnection: Sendable, Equatable, Codable {
   public let server: Server
   public let connection: Connection
 
@@ -84,7 +84,7 @@ public struct ServerWithCurrentConnection: Sendable, Equatable {
 }
 
 extension ServerWithCurrentConnection: Identifiable {
-  public struct ID: Hashable {
+  public struct ID: Hashable, Sendable {
     public let serverID: Server.ID
 
     public init(server: Server) {
@@ -109,7 +109,7 @@ public struct VideoFromServer: Sendable, Equatable {
 }
 
 extension VideoFromServer: Identifiable {
-  public struct ID: Hashable {
+  public struct ID: Hashable, Sendable {
     let videoID: Video.ID
     let serverID: ServerWithCurrentConnection.ID
 
